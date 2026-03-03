@@ -2,59 +2,99 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use App\Models\TeacherRanking;
+use App\Models\School;
 
 class CensusController extends Controller
 {
-    public function index(Request $request)
+    public function listSchools()
     {
-        // Handle Delete
-        if ($request->has('delete')) {
-            DB::table('teacher_rankings')->where('id', $request->delete)->delete();
-            return redirect()->back()->with('success', 'Rank deleted successfully!');
-        }
-
-        // Handle Add
-        if ($request->has('add_rank')) {
-            DB::table('teacher_rankings')->insert([
-                'career_stage' => $request->new_stage,
-                'position_title' => $request->new_title,
-                'salary_grade' => (int)$request->new_sg,
-                'teacher_count' => (int)$request->new_count,
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
-            return redirect()->back()->with('success', 'New rank added!');
-        }
-
-        // Handle Bulk Update
-        if ($request->has('update_all')) {
-            foreach ($request->counts as $id => $count) {
-                DB::table('teacher_rankings')->where('id', $id)->update([
-                    'teacher_count' => (int)$count,
-                    'updated_at' => now()
-                ]);
-            }
-            return redirect()->back()->with('success', 'Census updated!');
-        }
-
-        // Fetch Data
-        // Fetch Data
-$search = $request->query('search', '');
-$filterStage = $request->query('filter_stage', '');
-
-$rankings = DB::table('teacher_rankings')
-    ->when($search, function($q) use ($search) {
-        return $q->where('position_title', 'ILIKE', "%{$search}%");
-    })
-    ->when($filterStage, function($q) use ($filterStage) {
-        return $q->where('career_stage', $filterStage);
-    })
-    ->orderBy('salary_grade', 'asc')
-    ->get();
-
-$totalTeachers = $rankings->sum('teacher_count');
-
-        return view('index', compact('rankings', 'totalTeachers', 'search'));
+        $schools = School::all(); 
+        return view('schools_list', compact('schools'));
     }
+
+    // PUBLIC: Show teacher rankings (filtered by school if requested)
+    public function showPublic(Request $request)
+    {
+        $schoolId = $request->query('school_id');
+        $search = $request->query('search');
+
+        $rankings = TeacherRanking::with('school')
+            ->when($schoolId, function($q) use ($schoolId) {
+                return $q->where('school_id', $schoolId);
+            })
+            ->when($search, function($q) use ($search) {
+                return $q->where('position_title', 'like', "%{$search}%");
+            })
+            ->orderBy('salary_grade', 'asc')
+            ->get();
+
+        // Get school name for the header title
+        $selectedSchool = $schoolId ? School::find($schoolId) : null;
+
+        return view('user_view', compact('rankings', 'selectedSchool'));
+    }
+
+    public function adminDashboard()
+    {
+        return view('admin.dashboard', [
+            'schoolCount' => School::count(),
+            'teacherCount' => TeacherRanking::sum('teacher_count')
+        ]);
+    }
+
+    public function manageSchools() {
+        return view('admin.schools', ['schools' => School::all()]);
+    }
+
+    public function storeSchool(Request $request)
+    {
+        $request->validate(['name' => 'required|string|max:255', 'location' => 'nullable']);
+        School::create($request->only('name', 'location'));
+        return redirect()->back()->with('success', 'School added successfully!');
+    }
+
+    public function manageTeachers(Request $request) 
+    {
+        // 1. Handle Actions (POST)
+        if ($request->isMethod('post')) {
+            if ($request->has('add_rank')) {
+                TeacherRanking::create([
+                    'school_id'      => $request->school_id,
+                    'career_stage'   => $request->new_stage,
+                    'position_title' => $request->new_title,
+                    'salary_grade'   => (int)$request->new_sg,
+                    'teacher_count'  => (int)$request->new_count,
+                ]);
+                return redirect()->back()->with('success', 'Rank added!');
+            }
+
+            if ($request->has('delete')) {
+                TeacherRanking::destroy($request->delete);
+                return redirect()->back()->with('success', 'Rank deleted!');
+            }
+
+            if ($request->has('update_all')) {
+                foreach ($request->counts as $id => $count) {
+                    TeacherRanking::where('id', $id)->update(['teacher_count' => (int)$count]);
+                }
+                return redirect()->back()->with('success', 'Census updated!');
+            }
+        }
+
+        // 2. Fetch Data (GET)
+       $schools = School::all();
+    $selectedSchoolId = $request->query('school_id'); // Get the school filter from the URL
+
+    $rankings = TeacherRanking::with('school')
+        ->when($selectedSchoolId, function($q) use ($selectedSchoolId) {
+            return $q->where('school_id', $selectedSchoolId);
+        })
+        ->orderBy('salary_grade', 'asc')
+        ->get();
+
+    $totalTeachers = $rankings->sum('teacher_count');
+
+    return view('admin.teachers', compact('rankings', 'schools', 'totalTeachers', 'selectedSchoolId'));
+}
 }

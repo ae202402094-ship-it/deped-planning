@@ -15,12 +15,9 @@
 </head>
 <body class="bg-slate-50 font-sans text-slate-900">
 
-    <header class="bg-[#a52a2a] shadow-md no-print">
-        <div class="max-w-6xl mx-auto flex justify-center">
-            <img src="{{ asset('storage/images/deped_zambo_header.png') }}" 
-                 class="w-full max-w-4xl h-auto py-2" 
-                 alt="DepEd Zamboanga Header">
-        </div>
+    <header style="background-color: #a52a2a;" class="fixed p-1 flex justify-center z-40 w-full items-center shadow-md">
+        <img src="{{ asset('images/deped_zambo_header.png') }}" class="w-full max-w-4xl h-auto block"
+            alt="DepEd Zamboanga Header">
     </header>
 
     <main class="max-w-6xl mx-auto p-4 md:p-8">
@@ -129,6 +126,34 @@
             </form>
         </div>
 
+
+{{-- Add School Section --}}
+<div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden mb-8 no-print">
+    <div class="bg-slate-100 px-6 py-3 border-b border-slate-200">
+        <h3 class="text-slate-700 font-bold uppercase text-sm">Register New School</h3>
+    </div>
+    <div class="p-6">
+        <form action="{{ route('schools.store') }}" method="POST" class="flex flex-col md:flex-row gap-4">
+            @csrf
+            <div class="flex-grow">
+                <label class="block text-xs font-bold text-slate-500 mb-1 text-uppercase">School Name</label>
+                <input type="text" name="name" placeholder="e.g. Zamboanga Central School" required 
+                       class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-red-500 outline-none">
+            </div>
+            <div class="flex-grow">
+                <label class="block text-xs font-bold text-slate-500 mb-1 text-uppercase">Location/District</label>
+                <input type="text" name="location" placeholder="e.g. City Central" 
+                       class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-red-500 outline-none">
+            </div>
+            <div class="flex items-end">
+                <button type="submit" class="bg-red-700 hover:bg-red-800 text-white px-6 py-2 rounded-lg font-bold transition-colors cursor-pointer">
+                    Add School
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+        
         {{-- Add Entry Section --}}
         <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden no-print">
             <div class="bg-slate-100 px-6 py-3 border-b border-slate-200">

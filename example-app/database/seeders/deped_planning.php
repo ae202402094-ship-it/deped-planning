@@ -10,8 +10,6 @@ class deped_planning extends Seeder
     public function run(): void
     {
         $ranks = [
-            // Changed 'stage' to 'career_stage' and 'title' to 'position_title'
-            // Changed 'count' to 'teacher_count'
             ['career_stage' => 'Beginning', 'position_title' => 'Teacher I', 'salary_grade' => 11, 'teacher_count' => 0],
             ['career_stage' => 'Beginning', 'position_title' => 'Teacher II', 'salary_grade' => 12, 'teacher_count' => 0],
             ['career_stage' => 'Proficient', 'position_title' => 'Teacher III', 'salary_grade' => 13, 'teacher_count' => 0],

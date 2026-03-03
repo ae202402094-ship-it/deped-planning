@@ -9,6 +9,11 @@ class TeacherRanking extends Model
 {
     use HasFactory;
 
-    // Add this line to allow seeding the columns
-    protected $fillable = ['career_stage', 'position_title', 'salary_grade', 'teacher_count'];
+    protected $fillable = ['school_id', 'career_stage', 'position_title', 'salary_grade', 'teacher_count'];
+
+    // This defines the relationship to the School model
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
 }
