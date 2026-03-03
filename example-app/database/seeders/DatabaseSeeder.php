@@ -8,17 +8,14 @@ use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
-    public function run(): void
-    {
-        // 1. Create the Test User
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-            'password' => bcrypt('Password'), // Matches your DB password for convenience
-        ]);
+public function run(): void
+{
+    $this->call([
+        deped_planning::class,
+    ]);
 
-        // 2. Insert the Teacher Ranking Data
-        DB::table('teacher_rankings')->insert([
+    // 2. Insert the Teacher Ranking Data
+    DB::table('teacher_rankings')->insert([
             ['career_stage' => 'Beginning', 'position_title' => 'Teacher I', 'salary_grade' => 11, 'teacher_count' => 20],
             ['career_stage' => 'Beginning', 'position_title' => 'Teacher II', 'salary_grade' => 12, 'teacher_count' => 15],
             ['career_stage' => 'Proficient', 'position_title' => 'Teacher III', 'salary_grade' => 13, 'teacher_count' => 10],
