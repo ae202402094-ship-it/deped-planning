@@ -13,8 +13,12 @@ public function up(): void
 {
     Schema::create('schools', function (Blueprint $table) {
         $table->id();
+        $table->string('school_id')->unique();
         $table->string('name');
-        $table->string('location')->nullable();
+        $table->integer('no_of_teachers')->default(0);
+        $table->integer('no_of_enrollees')->default(0);
+        $table->integer('no_of_classrooms')->default(0);
+        $table->integer('no_of_toilets')->default(0);
         $table->timestamps();
     });
 }

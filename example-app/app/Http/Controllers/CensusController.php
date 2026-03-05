@@ -1,100 +1,125 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\TeacherRanking;
 use App\Models\School;
 
 class CensusController extends Controller
 {
+    /**
+     * PUBLIC: List all schools for the viewer directory.
+     */
     public function listSchools()
     {
         $schools = School::all(); 
         return view('schools_list', compact('schools'));
     }
 
-    // PUBLIC: Show teacher rankings (filtered by school if requested)
-    public function showPublic(Request $request)
-    {
-        $schoolId = $request->query('school_id');
-        $search = $request->query('search');
+    /**
+     * PUBLIC: Show the inventory details for a specific school.
+     */
+   public function showPublic(Request $request)
+{
+    $schoolId = $request->query('school_id');
+    $school = School::findOrFail($schoolId); // Use findOrFail to catch errors
 
-        $rankings = TeacherRanking::with('school')
-            ->when($schoolId, function($q) use ($schoolId) {
-                return $q->where('school_id', $schoolId);
-            })
-            ->when($search, function($q) use ($search) {
-                return $q->where('position_title', 'like', "%{$search}%");
-            })
-            ->orderBy('salary_grade', 'asc')
-            ->get();
+    return view('user_view', compact('school'));
+}
 
-        // Get school name for the header title
-        $selectedSchool = $schoolId ? School::find($schoolId) : null;
+    /**
+     * ADMIN: Dashboard overview showing total counts for the division.
+     */
+  public function adminDashboard()
+{
+    $schools = School::all();
 
-        return view('user_view', compact('rankings', 'selectedSchool'));
-    }
+    return view('admin.dashboard', [
+        'schoolCount' => $schools->count(),
+        'teacherCount' => $schools->sum('no_of_teachers'),
+        'totalEnrollees' => $schools->sum('no_of_enrollees'),
+        'totalClassrooms' => $schools->sum('no_of_classrooms'),
+        'totalToilets' => $schools->sum('no_of_toilets'),
+    ]);
+}
 
-    public function adminDashboard()
-    {
-        return view('admin.dashboard', [
-            'schoolCount' => School::count(),
-            'teacherCount' => TeacherRanking::sum('teacher_count')
-        ]);
-    }
-
+    /**
+     * ADMIN: Display the list of schools for management.
+     */
     public function manageSchools() {
-        return view('admin.schools', ['schools' => School::all()]);
+        $schools = School::all();
+        return view('admin.schools', compact('schools'));
     }
 
+    public function updateSchool(Request $request, $id)
+{
+    $school = School::findOrFail($id);
+    
+    // Validate that the numbers are at least 0
+    $request->validate([
+        'no_of_teachers' => 'required|integer|min:0',
+        'no_of_enrollees' => 'required|integer|min:0',
+        'no_of_classrooms' => 'required|integer|min:0',
+        'no_of_toilets' => 'required|integer|min:0',
+    ]);
+
+    $school->update($request->only([
+        'no_of_teachers', 
+        'no_of_enrollees', 
+        'no_of_classrooms', 
+        'no_of_toilets'
+    ]));
+
+    return redirect()->back()->with('success', 'School inventory updated!');
+}
+
+    /**
+     * ADMIN: Save a new school with inventory data.
+     */
     public function storeSchool(Request $request)
-    {
-        $request->validate(['name' => 'required|string|max:255', 'location' => 'nullable']);
-        School::create($request->only('name', 'location'));
-        return redirect()->back()->with('success', 'School added successfully!');
-    }
+{
+    $validated = $request->validate([
+        'school_id' => 'required|unique:schools,school_id',
+        'name' => 'required|string|max:255',
+        'no_of_teachers' => 'required|integer|min:0',
+        'no_of_enrollees' => 'required|integer|min:0',
+        'no_of_classrooms' => 'required|integer|min:0',
+        'no_of_toilets' => 'required|integer|min:0',
+    ]);
 
+    School::create($validated);
+
+    return redirect()->back()->with('success', 'School added successfully!');
+}
+    /**
+     * ADMIN: Manage individual school quantities.
+     * Note: This replaces the old teacher rankings logic.
+     */
     public function manageTeachers(Request $request) 
     {
-        // 1. Handle Actions (POST)
+        // Handle POST updates for school data
         if ($request->isMethod('post')) {
-            if ($request->has('add_rank')) {
-                TeacherRanking::create([
-                    'school_id'      => $request->school_id,
-                    'career_stage'   => $request->new_stage,
-                    'position_title' => $request->new_title,
-                    'salary_grade'   => (int)$request->new_sg,
-                    'teacher_count'  => (int)$request->new_count,
+            if ($request->has('update_school')) {
+                $school = School::find($request->id);
+                $school->update([
+                    'no_of_teachers' => $request->no_of_teachers,
+                    'no_of_enrollees' => $request->no_of_enrollees,
+                    'no_of_classrooms' => $request->no_of_classrooms,
+                    'no_of_toilets' => $request->no_of_toilets,
                 ]);
-                return redirect()->back()->with('success', 'Rank added!');
+                return redirect()->back()->with('success', 'School inventory updated!');
             }
 
-            if ($request->has('delete')) {
-                TeacherRanking::destroy($request->delete);
-                return redirect()->back()->with('success', 'Rank deleted!');
-            }
-
-            if ($request->has('update_all')) {
-                foreach ($request->counts as $id => $count) {
-                    TeacherRanking::where('id', $id)->update(['teacher_count' => (int)$count]);
-                }
-                return redirect()->back()->with('success', 'Census updated!');
+            if ($request->has('delete_school')) {
+                School::destroy($request->id);
+                return redirect()->back()->with('success', 'School deleted!');
             }
         }
 
-        // 2. Fetch Data (GET)
-       $schools = School::all();
-    $selectedSchoolId = $request->query('school_id'); // Get the school filter from the URL
+        // GET: Fetch data for the management table
+        $schools = School::all();
+        $totalTeachers = $schools->sum('no_of_teachers');
 
-    $rankings = TeacherRanking::with('school')
-        ->when($selectedSchoolId, function($q) use ($selectedSchoolId) {
-            return $q->where('school_id', $selectedSchoolId);
-        })
-        ->orderBy('salary_grade', 'asc')
-        ->get();
-
-    $totalTeachers = $rankings->sum('teacher_count');
-
-    return view('admin.teachers', compact('rankings', 'schools', 'totalTeachers', 'selectedSchoolId'));
-}
+        return view('admin.teachers', compact('schools', 'totalTeachers'));
+    }
 }

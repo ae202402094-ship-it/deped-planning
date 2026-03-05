@@ -10,7 +10,6 @@
         <div class="p-6 font-bold text-xl text-red-500 border-b border-slate-700">ADMIN PANEL</div>
         <nav class="mt-4">
     <a href="{{ route('admin.schools') }}" class="block px-6 py-3 hover:bg-slate-700">Manage Schools</a>
-    <a href="{{ route('admin.teachers') }}" class="block px-6 py-3 hover:bg-slate-700">Manage Teachers</a>
 </nav>
     </aside>
 

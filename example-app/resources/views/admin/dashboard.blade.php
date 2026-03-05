@@ -22,11 +22,10 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-medium text-slate-500 uppercase tracking-wider">Total Teachers Listed</p>
-                    <p class="text-3xl font-bold text-slate-900">{{ $teacherCount }}</p>
+                    <div class="text-3xl font-bold text-slate-900">{{ $teacherCount }}</div>
                 </div>
                 <div class="text-4xl text-red-100"></div>
             </div>
-            <a href="{{ route('admin.teachers') }}" class="mt-4 block text-sm text-red-600 hover:underline font-semibold">
                 View Census Data →
             </a>
         </div>
