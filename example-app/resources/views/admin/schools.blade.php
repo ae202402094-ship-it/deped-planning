@@ -4,16 +4,16 @@
     <h2 class="text-2xl font-bold mb-6">School Management</h2>
 
     <div class="bg-white rounded-xl shadow-md p-6 mb-8 border-t-4" style="border-color: #a52a2a;">
-    <h3 class="text-sm font-bold text-slate-400 uppercase mb-4 tracking-widest">Register New School</h3>
+    <h3 class="text-sm font-bold text-slate-400 uppercase mb-4 tracking-widest text-center">Register New School Profile</h3>
     <form action="{{ route('schools.store') }}" method="POST" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
         @csrf
         <input type="text" name="school_id" placeholder="School ID" required class="border p-2 rounded text-sm">
         <input type="text" name="name" placeholder="School Name" required class="border p-2 rounded text-sm">
-        <input type="number" name="no_of_teachers" placeholder="Teachers" required class="border p-2 rounded text-sm">
-        <input type="number" name="no_of_enrollees" placeholder="Enrollees" required class="border p-2 rounded text-sm">
-        <input type="number" name="no_of_classrooms" placeholder="Classrooms" required class="border p-2 rounded text-sm">
-        <input type="number" name="no_of_toilets" placeholder="Toilets" required class="border p-2 rounded text-sm">
-        <button type="submit" class="bg-blue-600 text-white rounded font-bold uppercase text-xs hover:bg-blue-700 transition lg:col-span-full py-3">
+        <input type="number" name="no_of_teachers" placeholder="Teachers" required class="border p-2 rounded text-sm" min="0">
+        <input type="number" name="no_of_enrollees" placeholder="Enrollees" required class="border p-2 rounded text-sm" min="0">
+        <input type="number" name="no_of_classrooms" placeholder="Classrooms" required class="border p-2 rounded text-sm" min="0">
+        <input type="number" name="no_of_toilets" placeholder="Toilets" required class="border p-2 rounded text-sm" min="0">
+        <button type="submit" class="bg-blue-600 text-white rounded font-bold uppercase text-xs hover:bg-blue-700 transition lg:col-span-full py-3 mt-2">
             Add School to Registry
         </button>
     </form>
