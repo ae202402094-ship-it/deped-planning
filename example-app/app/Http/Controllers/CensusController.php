@@ -7,6 +7,12 @@ use App\Models\School;
 
 class CensusController extends Controller
 {
+
+    public function showMap() {
+    $schools = School::all();
+    return view('admin.map', compact('schools'));
+}
+
     /**
      * PUBLIC: List all schools for the viewer directory.
      */
@@ -71,30 +77,33 @@ public function editSchool($id) // Change from 'edit' to 'editSchool'
 
     public function updateSchool(Request $request, $id)
 {
-    // 1. Validate the input first
+    // 1. Validate the input, including the new map coordinates
     $validated = $request->validate([
         'no_of_teachers' => 'required|integer|min:0',
         'no_of_enrollees' => 'required|integer|min:0',
         'no_of_classrooms' => 'required|integer|min:0',
         'no_of_toilets' => 'required|integer|min:0',
+        'latitude' => 'nullable|numeric|between:-90,90',
+        'longitude' => 'nullable|numeric|between:-180,180',
     ]);
 
     try {
-        // 2. Locate the record
+        // 2. Locate the school record
         $school = School::findOrFail($id);
 
-        // 3. Update using only the validated data
+        // 3. Update using the validated data array
         $school->update($validated);
 
+        // 4. Redirect with a professional success notice
         return redirect()
             ->route('admin.schools')
-            ->with('success', "Official records for {$school->name} have been updated.");
+            ->with('success', "Registry updated: Assets and geolocation for {$school->name} are now live.");
 
     } catch (\Exception $e) {
-        // 4. Handle potential database errors gracefully
+        // 5. Catch database or connection errors
         return redirect()
             ->back()
-            ->with('error', 'System Error: Unable to commit changes to the registry.');
+            ->with('error', 'Critical System Error: Database was unable to commit the audit changes.');
     }
 }
 
