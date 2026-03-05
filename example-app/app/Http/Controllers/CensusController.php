@@ -46,31 +46,56 @@ class CensusController extends Controller
     /**
      * ADMIN: Display the list of schools for management.
      */
-    public function manageSchools() {
-        $schools = School::all();
-        return view('admin.schools', compact('schools'));
-    }
+    /**
+ * ADMIN: Display the list of schools for management with search.
+ */
+public function manageSchools(Request $request) {
+    $search = $request->input('search');
+
+    $schools = School::when($search, function ($query, $search) {
+        return $query->where('name', 'like', "%{$search}%")
+                     ->orWhere('school_id', 'like', "%{$search}%");
+    })->get();
+
+    return view('admin.schools', compact('schools'));
+}
+
+/**
+ * ADMIN: Show the dedicated edit page for a specific school.
+ */
+public function editSchool($id) // Change from 'edit' to 'editSchool'
+{
+    $school = School::findOrFail($id);
+    return view('admin.edit_school', compact('school'));
+}
 
     public function updateSchool(Request $request, $id)
 {
-    $school = School::findOrFail($id);
-    
-    // Validate that the numbers are at least 0
-    $request->validate([
+    // 1. Validate the input first
+    $validated = $request->validate([
         'no_of_teachers' => 'required|integer|min:0',
         'no_of_enrollees' => 'required|integer|min:0',
         'no_of_classrooms' => 'required|integer|min:0',
         'no_of_toilets' => 'required|integer|min:0',
     ]);
 
-    $school->update($request->only([
-        'no_of_teachers', 
-        'no_of_enrollees', 
-        'no_of_classrooms', 
-        'no_of_toilets'
-    ]));
+    try {
+        // 2. Locate the record
+        $school = School::findOrFail($id);
 
-    return redirect()->back()->with('success', 'School inventory updated!');
+        // 3. Update using only the validated data
+        $school->update($validated);
+
+        return redirect()
+            ->route('admin.schools')
+            ->with('success', "Official records for {$school->name} have been updated.");
+
+    } catch (\Exception $e) {
+        // 4. Handle potential database errors gracefully
+        return redirect()
+            ->back()
+            ->with('error', 'System Error: Unable to commit changes to the registry.');
+    }
 }
 
     /**
