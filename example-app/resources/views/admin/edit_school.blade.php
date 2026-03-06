@@ -31,10 +31,18 @@
                 </div>
 
                 <div class="space-y-4">
-                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Tap map to set school location</label>
-                    <div id="pickerMap" class="h-64 rounded-3xl border-4 border-slate-50 shadow-inner"></div>
-                </div>
-            </div>
+    <div class="flex justify-between items-center">
+        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">
+            Tap map to set school location
+        </label>
+        <button type="button" onclick="toggleMapSize()" id="expandBtn" 
+                class="text-[9px] font-black uppercase bg-slate-100 px-3 py-1 rounded-lg hover:bg-slate-200 transition">
+            ⤢ Enlarge Map
+        </button>
+    </div>
+
+    <div id="pickerMap" class="h-64 w-full rounded-3xl border-4 border-slate-50 shadow-inner transition-all duration-500 ease-in-out"></div>
+</div>
 
             <button type="button" onclick="openReviewModal()" class="w-full py-6 rounded-3xl text-white font-black uppercase tracking-widest shadow-xl hover:bg-red-900 transition" style="background-color: #a52a2a;">
                 Review & Commit Changes
@@ -70,5 +78,70 @@
         document.getElementById('lat').value = e.latlng.lat.toFixed(8);
         document.getElementById('lng').value = e.latlng.lng.toFixed(8);
     });
+</script>
+
+<div id="reviewModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-[2.5rem] w-full max-w-lg overflow-hidden shadow-2xl">
+        <div class="p-8 text-center bg-slate-50 border-b">
+            <h2 class="text-2xl font-black text-slate-800 uppercase italic">Confirm Audit Update</h2>
+        </div>
+        <div class="p-8 space-y-4" id="modalContent"></div>
+        <div class="p-8 pt-0 grid grid-cols-2 gap-4">
+            <button type="button" onclick="closeReviewModal()" class="py-4 rounded-2xl bg-slate-100 font-bold uppercase text-[10px]">Cancel</button>
+            <button type="button" onclick="document.getElementById('updateForm').submit()" style="background-color: #a52a2a;" class="py-4 rounded-2xl text-white font-bold uppercase text-[10px]">Confirm Save</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function openReviewModal() {
+    const teachers = document.getElementById('new_teachers').value;
+    const enrollees = document.getElementById('new_enrollees').value;
+    const classrooms = document.getElementById('new_classrooms').value;
+    const toilets = document.getElementById('new_toilets').value;
+    const lat = document.getElementById('lat').value;
+    const lng = document.getElementById('lng').value;
+
+    document.getElementById('modalContent').innerHTML = `
+        <div class="text-sm font-bold text-slate-600 space-y-2">
+            <p>Teachers: ${teachers}</p>
+            <p>Enrollees: ${enrollees}</p>
+            <p>Classrooms: ${classrooms}</p>
+            <p>Toilets: ${toilets}</p>
+            <p class="text-[10px] font-mono text-slate-400">Location: ${lat}, ${lng}</p>
+        </div>
+    `;
+    document.getElementById('reviewModal').classList.remove('hidden');
+}
+
+function closeReviewModal() {
+    document.getElementById('reviewModal').classList.add('hidden');
+}
+
+let isExpanded = false;
+
+function toggleMapSize() {
+    const mapContainer = document.getElementById('pickerMap');
+    const btn = document.getElementById('expandBtn');
+    
+    if (!isExpanded) {
+        // Enlarge: Increase height significantly
+        mapContainer.style.height = "600px";
+        btn.innerText = "Collapse Map ⤡";
+        isExpanded = true;
+    } else {
+        // Shrink: Return to original height
+        mapContainer.style.height = "256px"; // matches h-64
+        btn.innerText = "⤢ Enlarge Map";
+        isExpanded = false;
+    }
+    
+    // IMPORTANT: Tell Leaflet the container size changed
+    setTimeout(() => {
+        map.invalidateSize();
+        // Smoothly pan back to the current marker
+        map.panTo(marker.getLatLng());
+    }, 500); // Wait for CSS transition to finish
+}
 </script>
 @endsection

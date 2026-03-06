@@ -112,6 +112,7 @@ public function editSchool($id) // Change from 'edit' to 'editSchool'
      */
     public function storeSchool(Request $request)
 {
+    // 1. Validate the input, including the new map coordinates from the registration form
     $validated = $request->validate([
         'school_id' => 'required|unique:schools,school_id',
         'name' => 'required|string|max:255',
@@ -119,12 +120,17 @@ public function editSchool($id) // Change from 'edit' to 'editSchool'
         'no_of_enrollees' => 'required|integer|min:0',
         'no_of_classrooms' => 'required|integer|min:0',
         'no_of_toilets' => 'required|integer|min:0',
+        'latitude' => 'nullable|numeric|between:-90,90',  // Added for geolocation
+        'longitude' => 'nullable|numeric|between:-180,180', // Added for geolocation
     ]);
 
+    // 2. Create the school record with coordinates
     School::create($validated);
 
-    return redirect()->back()->with('success', 'School added successfully!');
+    // 3. Return to the registry with a success confirmation
+    return redirect()->back()->with('success', 'New school profile and geographic location registered successfully!');
 }
+
     /**
      * ADMIN: Manage individual school quantities.
      * Note: This replaces the old teacher rankings logic.

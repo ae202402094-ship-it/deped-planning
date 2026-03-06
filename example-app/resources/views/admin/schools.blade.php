@@ -46,13 +46,30 @@
                     <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">Enrollees</label>
                     <input type="number" name="no_of_enrollees" value="0" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm">
                 </div>
+                <div class="space-y-1">
+    <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">Classrooms</label>
+    <input type="number" name="no_of_classrooms" value="0" required class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm outline-none">
+</div>
+<div class="space-y-1">
+    <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">Toilets</label>
+    <input type="number" name="no_of_toilets" value="0" required class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm outline-none">
+</div>
             </div>
 
             {{-- Registration Mini-Map --}}
-            <div class="space-y-2">
-                <label class="text-[10px] font-bold text-slate-400 uppercase block text-center">Set Location (Tap Map)</label>
-                <div id="regMap" class="h-48 rounded-2xl border-2 border-slate-100 shadow-inner"></div>
-            </div>
+<div class="space-y-2">
+    <div class="flex justify-between items-center px-2">
+        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            Set Location (Tap Map)
+        </label>
+        <button type="button" onclick="toggleRegMapSize()" id="regExpandBtn" 
+                class="text-[9px] font-black uppercase bg-slate-100 px-3 py-1 rounded-lg hover:bg-slate-200 transition-all">
+            ⤢ Enlarge Map
+        </button>
+    </div>
+    
+    <div id="regMap" class="h-48 rounded-2xl border-2 border-slate-100 shadow-inner transition-all duration-500 ease-in-out"></div>
+</div>
             
             <button type="submit" style="background-color: #a52a2a;" class="text-white rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:bg-red-900 transition lg:col-span-full py-4 shadow-lg">
                 Add School to Registry
@@ -103,5 +120,30 @@
     regMarker.on('dragend', function(e) {
         updateCoords(regMarker.getLatLng().lat, regMarker.getLatLng().lng);
     });
+
+    let isRegExpanded = false;
+
+function toggleRegMapSize() {
+    const mapContainer = document.getElementById('regMap');
+    const btn = document.getElementById('regExpandBtn');
+    
+    if (!isRegExpanded) {
+        // Enlarge the container for a better view
+        mapContainer.style.height = "500px";
+        btn.innerText = "Collapse Map ⤡";
+        isRegExpanded = true;
+    } else {
+        // Return to standard dashboard height
+        mapContainer.style.height = "192px"; // matches h-48
+        btn.innerText = "⤢ Enlarge Map";
+        isRegExpanded = false;
+    }
+    
+    // Refresh Leaflet internal size and pan back to marker
+    setTimeout(() => {
+        regMap.invalidateSize();
+        regMap.panTo(regMarker.getLatLng());
+    }, 500);
+}
 </script>
 @endsection
