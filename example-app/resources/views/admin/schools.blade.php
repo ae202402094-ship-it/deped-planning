@@ -14,7 +14,7 @@
         </form>
     </div>
 
-    {{-- REGISTRATION PANEL WITH MAP --}}
+    {{-- REGISTRATION PANEL --}}
     <div class="bg-white rounded-[2rem] shadow-xl p-8 mb-10 border border-slate-200">
         <div class="flex items-center gap-3 mb-6">
             <div class="w-2 h-6 bg-red-800 rounded-full"></div>
@@ -34,42 +34,40 @@
                     <input type="text" name="name" required class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm outline-none">
                 </div>
                 
-                {{-- Hidden/Readonly Coordinate Inputs --}}
-                <input type="hidden" name="latitude" id="reg_lat" value="6.9214">
-                <input type="hidden" name="longitude" id="reg_lng" value="122.0739">
-
                 <div class="space-y-1">
                     <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">Teachers</label>
-                    <input type="number" name="no_of_teachers" value="0" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm">
+                    <input type="number" name="no_of_teachers" value="0" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm outline-none">
                 </div>
                 <div class="space-y-1">
                     <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">Enrollees</label>
-                    <input type="number" name="no_of_enrollees" value="0" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm">
+                    <input type="number" name="no_of_enrollees" value="0" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm outline-none">
                 </div>
                 <div class="space-y-1">
-    <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">Classrooms</label>
-    <input type="number" name="no_of_classrooms" value="0" required class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm outline-none">
-</div>
-<div class="space-y-1">
-    <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">Toilets</label>
-    <input type="number" name="no_of_toilets" value="0" required class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm outline-none">
-</div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">Classrooms</label>
+                    <input type="number" name="no_of_classrooms" value="0" required class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm outline-none">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">Toilets</label>
+                    <input type="number" name="no_of_toilets" value="0" required class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm outline-none">
+                </div>
             </div>
 
-            {{-- Registration Mini-Map --}}
-<div class="space-y-2">
-    <div class="flex justify-between items-center px-2">
-        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-            Set Location (Tap Map)
-        </label>
-        <button type="button" onclick="toggleRegMapSize()" id="regExpandBtn" 
-                class="text-[9px] font-black uppercase bg-slate-100 px-3 py-1 rounded-lg hover:bg-slate-200 transition-all">
-            ⤢ Enlarge Map
-        </button>
-    </div>
-    
-    <div id="regMap" class="h-48 rounded-2xl border-2 border-slate-100 shadow-inner transition-all duration-500 ease-in-out"></div>
-</div>
+            {{-- Registration Geolocation --}}
+            <div class="space-y-4">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center block">Set Location</label>
+                <div class="flex gap-2">
+                    <input type="text" name="latitude" id="reg_lat" value="6.9214" readonly class="w-full bg-slate-100 p-3 rounded-xl text-xs font-mono border-none outline-none">
+                    <input type="text" name="longitude" id="reg_lng" value="122.0739" readonly class="w-full bg-slate-100 p-3 rounded-xl text-xs font-mono border-none outline-none">
+                </div>
+                
+                <div class="p-6 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200 flex flex-col items-center">
+                    <p class="text-[9px] font-bold text-slate-400 uppercase mb-3">Map Intelligence</p>
+                    <button type="button" onclick="openMapPopup('reg_lat', 'reg_lng', document.getElementById('reg_lat').value, document.getElementById('reg_lng').value)" 
+                            class="w-full py-4 bg-slate-800 text-white rounded-xl font-bold uppercase text-[10px] tracking-widest hover:bg-black transition shadow-lg">
+                        Open Full Map Popup
+                    </button>
+                </div>
+            </div>
             
             <button type="submit" style="background-color: #a52a2a;" class="text-white rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:bg-red-900 transition lg:col-span-full py-4 shadow-lg">
                 Add School to Registry
@@ -96,54 +94,7 @@
     </div>
 </div>
 
-{{-- Leaflet Assets --}}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+{{-- Shared Map Modal --}}
+@include('admin.partials.map_modal')
 
-<script>
-    // Initialize Registration Map
-    var regMap = L.map('regMap').setView([6.9214, 122.0739], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(regMap);
-
-    var regMarker = L.marker([6.9214, 122.0739], {draggable: true}).addTo(regMap);
-
-    function updateCoords(lat, lng) {
-        document.getElementById('reg_lat').value = lat.toFixed(8);
-        document.getElementById('reg_lng').value = lng.toFixed(8);
-    }
-
-    regMap.on('click', function(e) {
-        regMarker.setLatLng(e.latlng);
-        updateCoords(e.latlng.lat, e.latlng.lng);
-    });
-
-    regMarker.on('dragend', function(e) {
-        updateCoords(regMarker.getLatLng().lat, regMarker.getLatLng().lng);
-    });
-
-    let isRegExpanded = false;
-
-function toggleRegMapSize() {
-    const mapContainer = document.getElementById('regMap');
-    const btn = document.getElementById('regExpandBtn');
-    
-    if (!isRegExpanded) {
-        // Enlarge the container for a better view
-        mapContainer.style.height = "500px";
-        btn.innerText = "Collapse Map ⤡";
-        isRegExpanded = true;
-    } else {
-        // Return to standard dashboard height
-        mapContainer.style.height = "192px"; // matches h-48
-        btn.innerText = "⤢ Enlarge Map";
-        isRegExpanded = false;
-    }
-    
-    // Refresh Leaflet internal size and pan back to marker
-    setTimeout(() => {
-        regMap.invalidateSize();
-        regMap.panTo(regMarker.getLatLng());
-    }, 500);
-}
-</script>
 @endsection

@@ -76,60 +76,49 @@ public function editSchool($id) // Change from 'edit' to 'editSchool'
 }
 
     public function updateSchool(Request $request, $id)
-{
-    // 1. Validate the input, including the new map coordinates
-    $validated = $request->validate([
-        'no_of_teachers' => 'required|integer|min:0',
-        'no_of_enrollees' => 'required|integer|min:0',
-        'no_of_classrooms' => 'required|integer|min:0',
-        'no_of_toilets' => 'required|integer|min:0',
-        'latitude' => 'nullable|numeric|between:-90,90',
-        'longitude' => 'nullable|numeric|between:-180,180',
-    ]);
+    {
+        $validated = $request->validate([
+            'no_of_teachers' => 'required|integer|min:0',
+            'no_of_enrollees' => 'required|integer|min:0',
+            'no_of_classrooms' => 'required|integer|min:0',
+            'no_of_toilets' => 'required|integer|min:0',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
+        ]);
 
-    try {
-        // 2. Locate the school record
-        $school = School::findOrFail($id);
+        try {
+            $school = School::findOrFail($id);
+            $school->update($validated);
 
-        // 3. Update using the validated data array
-        $school->update($validated);
-
-        // 4. Redirect with a professional success notice
-        return redirect()
-            ->route('admin.schools')
-            ->with('success', "Registry updated: Assets and geolocation for {$school->name} are now live.");
-
-    } catch (\Exception $e) {
-        // 5. Catch database or connection errors
-        return redirect()
-            ->back()
-            ->with('error', 'Critical System Error: Database was unable to commit the audit changes.');
+            return redirect()
+                ->route('admin.schools')
+                ->with('success', "Registry updated: Geolocation and assets for {$school->name} are live.");
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'System Error: Unable to save changes.');
+        }
     }
-}
 
     /**
      * ADMIN: Save a new school with inventory data.
      */
     public function storeSchool(Request $request)
-{
-    // 1. Validate the input, including the new map coordinates from the registration form
-    $validated = $request->validate([
-        'school_id' => 'required|unique:schools,school_id',
-        'name' => 'required|string|max:255',
-        'no_of_teachers' => 'required|integer|min:0',
-        'no_of_enrollees' => 'required|integer|min:0',
-        'no_of_classrooms' => 'required|integer|min:0',
-        'no_of_toilets' => 'required|integer|min:0',
-        'latitude' => 'nullable|numeric|between:-90,90',  // Added for geolocation
-        'longitude' => 'nullable|numeric|between:-180,180', // Added for geolocation
-    ]);
+    {
+        $validated = $request->validate([
+            'school_id' => 'required|unique:schools,school_id',
+            'name' => 'required|string|max:255',
+            'no_of_teachers' => 'required|integer|min:0',
+            'no_of_enrollees' => 'required|integer|min:0',
+            'no_of_classrooms' => 'required|integer|min:0',
+            'no_of_toilets' => 'required|integer|min:0',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
+        ]);
 
-    // 2. Create the school record with coordinates
-    School::create($validated);
+        School::create($validated);
 
-    // 3. Return to the registry with a success confirmation
-    return redirect()->back()->with('success', 'New school profile and geographic location registered successfully!');
-}
+        return redirect()->back()->with('success', 'New school registered successfully!');
+    }
+
 
     /**
      * ADMIN: Manage individual school quantities.
