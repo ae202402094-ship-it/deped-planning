@@ -19,6 +19,24 @@
         </a>
     </div>
 
+{{-- resources/views/admin/edit_school.blade.php --}}
+
+@if ($errors->any())
+    <div class="mb-8 p-6 bg-red-50 border-l-4 border-red-800 rounded-2xl shadow-sm animate-pulse">
+        <div class="flex items-center gap-3 mb-2">
+            <svg class="w-5 h-5 text-red-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <h4 class="text-[10px] font-black text-red-800 uppercase tracking-widest">Update Blocked</h4>
+        </div>
+        <ul class="list-none">
+            @foreach ($errors->all() as $error)
+                <li class="text-[11px] font-bold text-red-600 uppercase tracking-tight italic">{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
     <form action="{{ route('schools.update', $school->id) }}" method="POST" class="grid grid-cols-1 lg:grid-cols-12 gap-16">
         @csrf
         @method('PUT')
@@ -82,30 +100,51 @@
 
         {{-- Right Column: Side Actions & GPS --}}
         <div class="lg:col-span-4 space-y-8">
-            <div class="bg-slate-50 rounded-[2.5rem] p-10 border border-slate-100 shadow-sm relative overflow-hidden">
-                {{-- Decorative GPS Grid --}}
-                <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+            {{-- resources/views/admin/edit_school.blade.php --}}
 
-                <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] mb-4 text-center">
-    Coordinates
-</h3>
-                
-                <div class="space-y-6 mb-10 font-mono">
-                    <div class="flex justify-between items-center border-b border-slate-200 pb-2">
-                        <span class="text-[9px] font-black text-slate-300 uppercase">Latitude</span>
-                        <input type="text" name="latitude" id="lat" value="{{ $school->latitude }}" readonly class="bg-transparent text-right text-xs font-bold text-slate-700 outline-none border-none cursor-default">
-                    </div>
-                    <div class="flex justify-between items-center border-b border-slate-200 pb-2">
-                        <span class="text-[9px] font-black text-slate-300 uppercase">Longitude</span>
-                        <input type="text" name="longitude" id="lng" value="{{ $school->longitude }}" readonly class="bg-transparent text-right text-xs font-bold text-slate-700 outline-none border-none cursor-default">
-                    </div>
-                </div>
+<div class="bg-slate-50 rounded-[2.5rem] p-10 border border-slate-100 shadow-sm relative overflow-hidden">
+    {{-- Decorative GPS Grid --}}
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
 
-                <button type="button" onclick="openMapPopup('lat', 'lng', '{{ $school->latitude }}', '{{ $school->longitude }}')" 
-                        class="w-full py-4 bg-white border border-slate-200 text-slate-500 rounded-2xl font-black uppercase text-[9px] tracking-widest hover:border-red-800 hover:text-red-800 transition-all shadow-sm">
-                    Re-Pin School Location
-                </button>
-            </div>
+    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] mb-6 text-center">Satellite Coordination</h3>
+    
+    <div class="space-y-6 mb-4 font-mono">
+        {{-- Latitude Field --}}
+        <div class="relative flex justify-between items-center border-b border-slate-200 pb-2">
+            <span id="lat_status" class="text-[9px] font-black text-slate-300 uppercase tracking-widest transition-colors">Locked by GPS</span>
+            <input type="text" name="latitude" id="lat" value="{{ $school->latitude }}" readonly 
+                   class="bg-transparent text-right text-xs font-bold text-slate-700 outline-none border-none cursor-not-allowed opacity-60 transition-all">
+        </div>
+        
+        {{-- Longitude Field --}}
+        <div class="relative flex justify-between items-center border-b border-slate-200 pb-2">
+            <span id="lng_status" class="text-[9px] font-black text-slate-300 uppercase tracking-widest transition-colors">Locked by GPS</span>
+            <input type="text" name="longitude" id="lng" value="{{ $school->longitude }}" readonly 
+                   class="bg-transparent text-right text-xs font-bold text-slate-700 outline-none border-none cursor-not-allowed opacity-60 transition-all">
+        </div>
+    </div>
+
+    {{-- Instructional Hint --}}
+    <p id="coord_hint" class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-8 text-center italic">
+        Coordinates are locked to Map Data. Click 'Manual Type' to override.
+    </p>
+
+    <div class="flex gap-4">
+    {{-- Re-Pin Button --}}
+    <button type="button" 
+            onclick="openMapPopup('lat', 'lng', '{{ $school->latitude }}', '{{ $school->longitude }}')" 
+            class="flex-1 py-4 bg-slate-800 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition-all shadow-lg">
+        Re-Pin
+    </button>
+
+    {{-- Manual Type Button --}}
+    <button type="button" 
+            onclick="toggleManualEntry()" 
+            class="flex-1 py-4 bg-white border border-slate-200 text-slate-400 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:border-red-800 hover:text-red-800 transition-all shadow-sm">
+        Manual Type
+    </button>
+</div>
+</div>
 
             {{-- resources/views/admin/edit_school.blade.php --}}
 
@@ -197,7 +236,138 @@
     function submitOfficialForm() {
         document.querySelector('form').submit();
     }
-</script>
+   /**
+ * Live Duplicate Check for Edit Page
+ */
+async function performEditDuplicateCheck(inputElement, fieldName, displayName) {
+    const value = inputElement.value.trim();
+    if (!value) return;
 
+    try {
+        const response = await fetch("{{ route('schools.check') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ 
+                field: fieldName, 
+                value: value,
+                exclude_id: "{{ $school->id }}" // Tells server to ignore THIS record
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.exists) {
+            inputElement.classList.add('text-red-600', 'border-red-500');
+            showToast(`Conflict: The ${displayName} "${value}" is already used by another school.`, true);
+        } else {
+            inputElement.classList.remove('text-red-600', 'border-red-500');
+        }
+    } catch (error) {
+        console.error('Check failed:', error);
+    }
+}
+
+// Attach listeners
+document.querySelector('input[name="school_id"]').addEventListener('blur', function() {
+    performEditDuplicateCheck(this, 'school_id', 'School ID');
+});
+document.querySelector('input[name="name"]').addEventListener('blur', function() {
+    performEditDuplicateCheck(this, 'name', 'Institutional Name');
+});
+
+/**
+ * Manual GPS Override Toggle
+ */
+function toggleManualEntry() {
+    const lat = document.getElementById('lat');
+    const lng = document.getElementById('lng');
+    const latStatus = document.getElementById('lat_status');
+    const lngStatus = document.getElementById('lng_status');
+    const hint = document.getElementById('coord_hint');
+    
+    if (lat.readOnly) {
+        lat.readOnly = false; 
+        lng.readOnly = false;
+        [lat, lng].forEach(el => {
+            el.classList.remove('cursor-not-allowed', 'opacity-60');
+            el.classList.add('text-red-600', 'font-black');
+        });
+        latStatus.innerText = "Manual Entry Active";
+        latStatus.classList.replace('text-slate-300', 'text-red-600');
+        lngStatus.innerText = "Manual Entry Active";
+        lngStatus.classList.replace('text-slate-300', 'text-red-600');
+        hint.innerText = "Protocol Warning: Manual coordinates active. Please verify accuracy.";
+        hint.classList.replace('text-slate-400', 'text-red-500');
+        showToast("Manual Override Protocol: Enabled");
+    } else {
+        lat.readOnly = true; 
+        lng.readOnly = true;
+        [lat, lng].forEach(el => {
+            el.classList.add('cursor-not-allowed', 'opacity-60');
+            el.classList.remove('text-red-600', 'font-black');
+        });
+        latStatus.innerText = "Locked by GPS";
+        latStatus.classList.replace('text-red-600', 'text-slate-300');
+        lngStatus.innerText = "Locked by GPS";
+        lngStatus.classList.replace('text-red-600', 'text-slate-300');
+        hint.innerText = "Coordinates are locked to Map Data. Click 'Manual Type' to override.";
+        hint.classList.replace('text-red-500', 'text-slate-400');
+        showToast("Map Intelligence: Restored");
+    }
+}
+
+</script>
+{{-- resources/views/admin/edit_school.blade.php --}}
+
+<div class="mt-20 pt-10 border-t border-slate-100">
+    <div class="flex flex-col items-center">
+        <p class="text-[9px] font-black text-slate-300 uppercase tracking-[0.2em] mb-4">Danger Zone</p>
+        <button type="button" onclick="openDeleteModal()" 
+                class="px-10 py-3 border border-red-200 text-red-800 rounded-2xl font-black uppercase text-[9px] tracking-widest hover:bg-red-800 hover:text-white transition-all">
+            Decommission School Record
+        </button>
+    </div>
+</div>
+
+{{-- DELETE CONFIRMATION MODAL --}}
+<div id="deleteModal" class="fixed inset-0 z-[3000] hidden flex items-center justify-center bg-slate-900/80 backdrop-blur-md p-4">
+    <div class="bg-white w-full max-w-md rounded-[3rem] shadow-2xl overflow-hidden border border-red-100">
+        <div class="bg-red-800 p-8 text-center text-white">
+            <h3 class="font-black uppercase tracking-widest text-sm italic">Irreversible Protocol</h3>
+        </div>
+        <div class="p-10 text-center space-y-8">
+            <p class="text-[11px] font-bold text-slate-500 uppercase tracking-widest leading-relaxed">
+                You are about to permanently delete <br>
+                <span class="text-slate-900 font-black underline">{{ $school->name }}</span> <br>
+                This action cannot be undone.
+            </p>
+
+            <form action="{{ route('schools.destroy', $school->id) }}" method="POST" id="deleteForm">
+                @csrf
+                @method('DELETE')
+                <div class="flex flex-col gap-3">
+                    <button type="submit" class="w-full py-4 bg-red-800 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition-all">
+                        Confirm Deletion
+                    </button>
+                    <button type="button" onclick="closeDeleteModal()" class="w-full py-3 text-slate-400 font-bold uppercase text-[9px] tracking-widest">
+                        Abort Protocol
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openDeleteModal() {
+        document.getElementById('deleteModal').classList.remove('hidden');
+    }
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').classList.add('hidden');
+    }
+</script>
 @include('admin.partials.map_modal')
 @endsection

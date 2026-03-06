@@ -21,3 +21,8 @@ Route::get('/view-census/{id}', [CensusController::class, 'showPublic'])->name('
 
 // backup
 // Route::get('/directory', [CensusController::class, 'listSchools'])->name('public.list');
+
+//functions
+Route::post('/admin/schools/check-duplicate', [CensusController::class, 'checkDuplicate'])->name('schools.check');
+Route::delete('/admin/schools/{id}', [CensusController::class, 'destroySchool'])->name('schools.destroy');
+Route::put('/admin/schools/{id}', [CensusController::class, 'updateSchool'])->name('schools.update');
