@@ -1,54 +1,49 @@
 @extends('layouts.admin')
 
 @section('content')
-    <h2 class="text-2xl font-bold mb-6">School Management</h2>
+<div class="max-w-7xl mx-auto px-4">
+    <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+        <div>
+            <h2 class="text-2xl font-black text-slate-800 uppercase tracking-tight">School Management</h2>
+            <p class="text-xs text-slate-500 font-bold uppercase tracking-widest">Division of Zamboanga City</p>
+        </div>
 
-    <div class="bg-white rounded-xl shadow-md p-6 mb-8 border-t-4" style="border-color: #a52a2a;">
-    <h3 class="text-sm font-bold text-slate-400 uppercase mb-4 tracking-widest">Register New School</h3>
-    <form action="{{ route('schools.store') }}" method="POST" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        @csrf
-        <input type="text" name="school_id" placeholder="School ID" required class="border p-2 rounded text-sm">
-        <input type="text" name="name" placeholder="School Name" required class="border p-2 rounded text-sm">
-        <input type="number" name="no_of_teachers" placeholder="Teachers" required class="border p-2 rounded text-sm">
-        <input type="number" name="no_of_enrollees" placeholder="Enrollees" required class="border p-2 rounded text-sm">
-        <input type="number" name="no_of_classrooms" placeholder="Classrooms" required class="border p-2 rounded text-sm">
-        <input type="number" name="no_of_toilets" placeholder="Toilets" required class="border p-2 rounded text-sm">
-        <button type="submit" class="bg-blue-600 text-white rounded font-bold uppercase text-xs hover:bg-blue-700 transition lg:col-span-full py-3">
-            Add School to Registry
-        </button>
-    </form>
+        <div class="flex gap-4 items-center">
+            {{-- NEW: Link to the separate registration page --}}
+            <a href="{{ route('schools.create') }}" style="background-color: #a52a2a;" class="text-white px-6 py-3 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-red-900 transition shadow-lg">
+                + Register School
+            </a>
+            
+            <form action="{{ route('admin.schools') }}" method="GET" class="flex gap-2">
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search ID/Name..." 
+                       class="w-64 border border-slate-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-red-500 outline-none shadow-sm">
+                <button type="submit" class="bg-slate-800 text-white px-4 py-2 rounded-xl font-bold uppercase text-[10px] tracking-widest">
+                    Find
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    {{-- SCHOOLS GRID --}}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        @foreach($schools as $school)
+            <a href="{{ route('schools.edit', $school->id) }}" class="group bg-white rounded-[2rem] shadow-sm hover:shadow-2xl transition-all border border-slate-200 overflow-hidden flex flex-col">
+                <div class="p-8">
+                    <div class="flex justify-between items-start mb-6">
+                        <span class="bg-slate-100 text-slate-500 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">ID: {{ $school->school_id }}</span>
+                        <span class="text-red-700 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-black uppercase tracking-widest">Edit Profile →</span>
+                    </div>
+                    <h3 class="text-xl font-black text-slate-800 uppercase leading-tight mb-6 group-hover:text-red-800 transition-colors">{{ $school->name }}</h3>
+                </div>
+                <div class="mt-auto bg-slate-50 p-4 text-center border-t border-slate-100 group-hover:bg-red-50 transition-colors">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] group-hover:text-red-700">Open Official Census Data</span>
+                </div>
+            </a>
+        @endforeach
+    </div>
 </div>
 
-    <div class="bg-white rounded-xl shadow-md overflow-hidden">
-        <table class="w-full text-left border-collapse">
-    <thead>
-        <tr style="background-color: #a52a2a;" class="text-white uppercase text-xs">
-            <th class="p-4">School Name</th>
-            <th class="p-4 text-center">Teachers</th>
-            <th class="p-4 text-center">Enrollees</th>
-            <th class="p-4 text-center">Classrooms</th>
-            <th class="p-4 text-center">Toilets</th>
-            <th class="p-4 text-center">Action</th>
-        </tr>
-    </thead>
-    <tbody class="divide-y">
-        @foreach($schools as $school)
-        <tr>
-            <form action="{{ route('schools.update', $school->id) }}" method="POST">
-                @csrf
-                @method('PUT')
-                <td class="p-4 font-bold">{{ $school->name }}</td>
-                <td class="p-4"><input type="number" name="no_of_teachers" value="{{ $school->no_of_teachers }}" class="w-20 border rounded text-center"></td>
-                <td class="p-4"><input type="number" name="no_of_enrollees" value="{{ $school->no_of_enrollees }}" class="w-20 border rounded text-center"></td>
-                <td class="p-4"><input type="number" name="no_of_classrooms" value="{{ $school->no_of_classrooms }}" class="w-20 border rounded text-center"></td>
-                <td class="p-4"><input type="number" name="no_of_toilets" value="{{ $school->no_of_toilets }}" class="w-20 border rounded text-center"></td>
-                <td class="p-4 text-center">
-                    <button type="submit" class="bg-green-600 text-white px-3 py-1 rounded text-xs font-bold uppercase hover:bg-green-700">Update</button>
-                </td>
-            </form>
-        </tr>
-        @endforeach
-    </tbody>
-</table>
-    </div>
+{{-- Shared Map Modal --}}
+@include('admin.partials.map_modal')
+
 @endsection

@@ -10,12 +10,8 @@ class School extends Model
     use HasFactory;
 
     protected $fillable = [
-    'school_id',
-    'name', 
-    'no_of_teachers', 
-    'no_of_enrollees', 
-    'no_of_classrooms', 
-    'no_of_toilets'
+    'school_id', 'name', 'latitude', 'longitude', 
+    'no_of_teachers', 'no_of_enrollees', 'no_of_classrooms', 'no_of_toilets'
 ];
 
     public function teacherRankings()

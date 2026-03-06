@@ -7,9 +7,15 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
 <body class="bg-slate-50 text-slate-900">
-   <div class="flex-1">
-        <header style="background-color: #a52a2a;" class="p-1 flex justify-center shadow-md">
-            <img src="{{ asset('images/deped_zambo_header.png') }}" class="h-16 w-auto" alt="Header">
+    <div class="flex-1">
+        <header style="background-color: #a52a2a;" class="p-4 shadow-md flex flex-col items-center gap-4">
+            <img src="{{ asset('images/deped_zambo_header.png') }}" class="h-24 w-auto" alt="Header">
+            
+            <nav class="flex gap-6 border-t border-white/20 pt-2">
+    <a href="{{ route('public.schools') }}" class="text-white font-bold uppercase text-[10px] tracking-widest hover:text-slate-200 transition">
+        Home / Interactive Map
+    </a>
+</nav>
         </header>
     </div>
 
