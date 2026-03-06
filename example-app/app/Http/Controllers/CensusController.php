@@ -9,8 +9,18 @@ class CensusController extends Controller
 {
 
     public function showMap() {
-    $schools = School::all();
+    $schools = School::all(); // Fetch all schools with their coordinates
     return view('admin.map', compact('schools'));
+}
+
+/**
+ * PUBLIC: Show the interactive map for all schools.
+ */
+public function showPublicMap()
+{
+    // Fetch all schools to plot them as markers on the map
+    $schools = School::all(); 
+    return view('public_map', compact('schools'));
 }
 
     /**
@@ -23,13 +33,12 @@ class CensusController extends Controller
     }
 
     /**
-     * PUBLIC: Show the inventory details for a specific school.
-     */
-   public function showPublic(Request $request)
+ * PUBLIC: Show the inventory details for a specific school.
+ */
+// app/Http/Controllers/CensusController.php
+public function showPublic($id) // Change from (Request $request)
 {
-    $schoolId = $request->query('school_id');
-    $school = School::findOrFail($schoolId); // Use findOrFail to catch errors
-
+    $school = School::findOrFail($id); // Laravel now passes the ID directly
     return view('user_view', compact('school'));
 }
 
@@ -97,6 +106,14 @@ public function editSchool($id) // Change from 'edit' to 'editSchool'
             return redirect()->back()->with('error', 'System Error: Unable to save changes.');
         }
     }
+
+/**
+ * ADMIN: Show the dedicated registration page.
+ */
+public function createSchool()
+{
+    return view('admin.create_school');
+}
 
     /**
      * ADMIN: Save a new school with inventory data.
