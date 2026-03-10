@@ -14,82 +14,138 @@
     </div>
 
     {{-- 📊 Summary Stat Cards --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div class="bg-emerald-50 border border-emerald-100 p-6 rounded-3xl flex flex-col justify-center">
-            <p class="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">New Schools Found</p>
-            <p class="text-3xl font-black text-emerald-800 tabular-nums">{{ $newCount }}</p>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div class="bg-emerald-50 border border-emerald-100 p-6 rounded-3xl">
+            <p class="text-[10px] font-black text-emerald-600 uppercase mb-1">New Records</p>
+            <p class="text-3xl font-black text-emerald-800">{{ $newCount }}</p>
         </div>
-        <div class="bg-blue-50 border border-blue-100 p-6 rounded-3xl flex flex-col justify-center">
-            <p class="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1">Existing Updates</p>
-            <p class="text-3xl font-black text-blue-800 tabular-nums">{{ $updateCount }}</p>
+        <div class="bg-blue-50 border border-blue-100 p-6 rounded-3xl">
+            <p class="text-[10px] font-black text-blue-600 uppercase mb-1">Overwriting</p>
+            <p class="text-3xl font-black text-blue-800">{{ $updateCount }}</p>
         </div>
-        <div class="bg-slate-50 border border-slate-200 p-6 rounded-3xl flex flex-col justify-center">
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Queue</p>
-            <p class="text-3xl font-black text-slate-800 tabular-nums">{{ count($importData) }}</p>
+        <div class="{{ $conflictCount > 0 ? 'bg-red-100 border-red-200' : 'bg-slate-50 border-slate-200' }} p-6 rounded-3xl">
+            <p class="text-[10px] font-black {{ $conflictCount > 0 ? 'text-red-600' : 'text-slate-400' }} uppercase mb-1">CSV Conflicts</p>
+            <p class="text-3xl font-black {{ $conflictCount > 0 ? 'text-red-800' : 'text-slate-800' }}">{{ $conflictCount }}</p>
+        </div>
+        <div class="bg-slate-900 p-6 rounded-3xl">
+            <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Total</p>
+            <p class="text-3xl font-black text-white">{{ count($importData) }}</p>
         </div>
     </div>
 
     {{-- 📋 Data Table --}}
     <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden mb-8">
-        <table class="w-full text-left border-collapse">
-            <thead class="bg-slate-50 border-b border-slate-200">
-                <tr class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                    <th class="p-4 border-r border-slate-200">Protocol</th> {{-- Status Column --}}
-                    <th class="p-4 border-r border-slate-200">School ID</th>
-                    <th class="p-4 border-r border-slate-200">Name</th>
-                    <th class="p-4 border-r border-slate-200 text-center">Tchrs</th>
-                    <th class="p-4 border-r border-slate-200 text-center">Enrll</th>
-                    <th class="p-4 border-r border-slate-200 text-center">Rooms</th>
-                    <th class="p-4 border-r border-slate-200 text-center">Toilets</th>
-                    <th class="p-4 text-center">Coord</th>
-                </tr>
-            </thead>
-            <tbody class="text-sm font-medium">
-                @foreach($importData as $row)
-                    <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                        <td class="p-4 border-r border-slate-100">
-                            @if($row['status'] === 'new')
-                                <span class="px-3 py-1 bg-emerald-100 text-emerald-700 text-[9px] font-black uppercase rounded-full border border-emerald-200">
-                                    NEW RECORD
-                                </span>
-                            @else
-                                <span class="px-3 py-1 bg-blue-100 text-blue-700 text-[9px] font-black uppercase rounded-full border border-blue-200">
-                                    UPDATE DATA
-                                </span>
-                            @endif
-                        </td>
-                        <td class="p-4 border-r border-slate-100 font-mono text-xs text-slate-500">{{ $row['school_id'] }}</td>
-                        <td class="p-4 border-r border-slate-100 font-bold uppercase text-slate-700">{{ $row['name'] }}</td>
-                        <td class="p-4 border-r border-slate-100 text-center tabular-nums">{{ $row['no_of_teachers'] }}</td>
-                        <td class="p-4 border-r border-slate-100 text-center tabular-nums">{{ $row['no_of_enrollees'] }}</td>
-                        <td class="p-4 border-r border-slate-100 text-center tabular-nums">{{ $row['no_of_classrooms'] }}</td>
-                        <td class="p-4 border-r border-slate-100 text-center tabular-nums">{{ $row['no_of_toilets'] }}</td>
-                        <td class="p-4 text-center text-[10px] text-slate-400">
-                            {{ round($row['latitude'], 4) }}, {{ round($row['longitude'], 4) }}
-                        </td>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-slate-50 border-b border-slate-200">
+                    <tr class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        <th class="p-4 border-r border-slate-200">Protocol</th>
+                        <th class="p-4 border-r border-slate-200">School ID</th>
+                        <th class="p-4 border-r border-slate-200">Name</th>
+                        <th class="p-4 border-r border-slate-200 text-center">Tchrs</th>
+                        <th class="p-4 border-r border-slate-200 text-center">Enrll</th>
+                        <th class="p-4 border-r border-slate-200 text-center">Rooms</th>
+                        <th class="p-4 border-r border-slate-200 text-center">Toilets</th>
+                        <th class="p-4 text-center">System Note</th>
                     </tr>
-                @endforeach
-            </tbody>
-        </table>
+                </thead>
+                <tbody class="text-sm font-medium">
+                    @foreach($importData as $row)
+                        <tr class="border-b border-slate-100 hover:bg-slate-50/50 transition-colors {{ $row['status'] === 'conflict' ? 'bg-red-50' : '' }}">
+                            <td class="p-4 border-r border-slate-100 text-center">
+                                @if($row['status'] === 'conflict')
+                                    <span class="px-2 py-1 bg-red-600 text-white text-[8px] font-black uppercase rounded-full animate-pulse">CONFLICT</span>
+                                @elseif($row['status'] === 'update')
+                                    <span class="px-2 py-1 bg-blue-100 text-blue-700 text-[8px] font-black uppercase rounded-full">UPDATE</span>
+                                @else
+                                    <span class="px-2 py-1 bg-emerald-100 text-emerald-700 text-[8px] font-black uppercase rounded-full">NEW</span>
+                                @endif
+                            </td>
+
+                            <td class="p-4 border-r border-slate-100 font-mono text-xs text-slate-500">{{ $row['school_id'] }}</td>
+                            <td class="p-4 border-r border-slate-100 font-bold uppercase text-slate-700">
+                                {{ $row['name'] }}
+                                @if($row['status'] === 'update' && $row['name'] !== $row['old_values']['name'])
+                                    <span class="block text-[9px] text-slate-400 line-through font-normal">{{ $row['old_values']['name'] }}</span>
+                                @endif
+                            </td>
+
+                        <x-sync-cell :value="$row['no_of_teachers']" field="no_of_teachers" :row="$row" :index="$loop->index" />
+                        <x-sync-cell :value="$row['no_of_enrollees']" field="no_of_enrollees" :row="$row" :index="$loop->index" />
+                        <x-sync-cell :value="$row['no_of_classrooms']" field="no_of_classrooms" :row="$row" :index="$loop->index" />
+                        <x-sync-cell :value="$row['no_of_toilets']" field="no_of_toilets" :row="$row" :index="$loop->index" />
+
+                            <td class="p-4 text-center">
+                                @if($row['exists_in_db'])
+                                    <span class="text-[9px] font-bold text-blue-500 uppercase italic">Matches Registry ID</span>
+                                @else
+                                    <span class="text-[9px] font-bold text-emerald-500 uppercase italic">Fresh Entry</span>
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    {{-- Final Authorization Button --}}
+    {{-- Authorization --}}
+    @php $hasConflicts = collect($importData)->contains('status', 'conflict'); @endphp
     <form action="{{ route('schools.confirm_import') }}" method="POST" id="confirmForm">
         @csrf
-        <button type="submit" id="submitBtn" class="w-full py-4 bg-red-800 text-white rounded-2xl font-black uppercase text-xs tracking-[0.3em] hover:bg-black transition-all shadow-xl flex items-center justify-center gap-3">
-            <span id="btnText">Authorize Registry Synchronization ({{ count($importData) }} Records)</span>
+        <button type="submit" id="submitBtn" 
+            @if($hasConflicts) disabled @endif
+            class="w-full py-4 rounded-2xl font-black uppercase text-xs tracking-[0.3em] transition-all 
+            {{ $hasConflicts ? 'bg-slate-300 cursor-not-allowed text-slate-500' : 'bg-red-800 hover:bg-black text-white' }}">
+            @if($hasConflicts)
+                BLOCKED: RESOLVE CSV DUPLICATES
+            @else
+                <span id="btnText">Authorize Registry Sync ({{ count($importData) }} Records)</span>
+            @endif
         </button>
     </form>
 </div>
-
-{{-- Add the spinner script to prevent double-submits --}}
 <script>
-    document.getElementById('confirmForm').addEventListener('submit', function() {
-        const btn = document.getElementById('submitBtn');
-        const text = document.getElementById('btnText');
-        
-        btn.classList.add('opacity-50', 'cursor-not-allowed');
-        text.innerHTML = 'Synchronizing... Please do not close browser';
+function toggleEdit(field, index) {
+    const display = document.getElementById(`display-${field}-${index}`);
+    const input = document.getElementById(`input-${field}-${index}`);
+    
+    if (display && input) {
+        display.classList.add('hidden');
+        input.classList.remove('hidden');
+        input.focus();
+        input.select();
+    }
+}
+
+function saveEdit(field, index) {
+    const input = document.getElementById(`input-${field}-${index}`);
+    const display = document.getElementById(`display-${field}-${index}`);
+    const newValue = input.value;
+
+    fetch("/admin/census/update-preview", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "X-CSRF-TOKEN": "{{ csrf_token() }}"
+        },
+        body: JSON.stringify({ field, index, value: newValue })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.reload(); // This refreshes the page to show new totals
+        } else {
+            alert("Error saving: " + data.message);
+            window.location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        display.classList.remove('hidden');
+        input.classList.add('hidden');
     });
+}
 </script>
 @endsection

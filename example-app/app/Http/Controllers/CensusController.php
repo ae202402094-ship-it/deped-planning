@@ -13,36 +13,74 @@ class CensusController extends Controller
 // app/Http/Controllers/CensusController.php
 // app/Http/Controllers/CensusController.php
 
+public function updatePreviewSession(Request $request)
+{
+    // 1. Get the current session data
+    $importData = session('pending_import', []);
+
+    $index = $request->input('index');
+    $field = $request->input('field');
+    $value = $request->input('value');
+
+    if (isset($importData[$index])) {
+        // 2. Update the specific field
+        $importData[$index][$field] = $value;
+
+        // 3. Re-run Conflict/Existing check for this specific row
+        $currentId = (string)$importData[$index]['school_id'];
+        
+        // Count IDs in the current session to check for file-duplicates
+        $allIds = array_column($importData, 'school_id');
+        $idCounts = array_count_values($allIds);
+
+        foreach ($importData as $key => $row) {
+            if ($idCounts[(string)$row['school_id']] > 1) {
+                $importData[$key]['status'] = 'conflict';
+            } else {
+                $exists = \App\Models\School::where('school_id', $row['school_id'])->exists();
+                $importData[$key]['status'] = $exists ? 'update' : 'new';
+            }
+        }
+
+        // 4. Put it back and FORCE a save
+        session(['pending_import' => $importData]);
+        session()->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Session updated'
+        ]);
+    }
+
+    return response()->json(['success' => false, 'message' => 'Row not found'], 422);
+}
+
 public function confirmImport(Request $request)
 {
-    // 1. Retrieve the data we saved in the session during the 'import' step
     $data = session('pending_import');
 
-    // 2. If the session expired or is empty, send them back
     if (!$data) {
         return redirect()->route('admin.schools')->with('error', 'No pending data found or session expired.');
     }
 
-    // 3. Loop through the data and save/update the schools
     foreach ($data as $row) {
+        // Explicitly cast values to ensure the DB recognizes them as numbers
         School::updateOrCreate(
-            ['school_id' => $row['school_id']], // Unique identifier
+            ['school_id' => (string)$row['school_id']], 
             [
-                'name'             => $row['name'],
-                'no_of_teachers'   => $row['no_of_teachers'],
-                'no_of_enrollees'  => $row['no_of_enrollees'],
-                'no_of_classrooms' => $row['no_of_classrooms'],
-                'no_of_toilets'    => $row['no_of_toilets'],
-                'latitude'         => $row['latitude'],
-                'longitude'        => $row['longitude'],
+                'name'             => (string)$row['name'],
+                'no_of_teachers'   => (int)$row['no_of_teachers'],
+                'no_of_enrollees'  => (int)$row['no_of_enrollees'],
+                'no_of_classrooms' => (int)$row['no_of_classrooms'],
+                'no_of_toilets'    => (int)$row['no_of_toilets'],
+                'latitude'         => (float)$row['latitude'],
+                'longitude'        => (float)$row['longitude'],
             ]
         );
     }
 
-    // 4. Clean up the session so we don't import it twice by accident
     session()->forget('pending_import');
-
-    return redirect()->route('admin.schools')->with('success', 'Registry Synchronization Complete: ' . count($data) . ' records updated.');
+    return redirect()->route('admin.schools')->with('success', 'Registry successfully synchronized.');
 }
 
 public function import(Request $request)
@@ -53,26 +91,34 @@ public function import(Request $request)
 
     $file = $request->file('csv_file');
     $handle = fopen($file->getRealPath(), 'r');
-    
     fgetcsv($handle); // Skip header
 
     $formattedData = [];
     $newCount = 0;
     $updateCount = 0;
+    $conflictCount = 0;
+    $seenIds = []; 
 
     while (($row = fgetcsv($handle, 1000, ",")) !== FALSE) {
         if (!empty($row[0])) {
-            // Check database for existing school ID
-            $exists = \App\Models\School::where('school_id', $row[0])->exists();
+            $currentId = (string)$row[0];
             
-            if ($exists) {
-                $updateCount++;
+            // Check Database for existing ID
+            $existingSchool = \App\Models\School::where('school_id', $currentId)->first();
+            
+            // Check if this ID appeared earlier in this same CSV file
+            if (isset($seenIds[$currentId])) {
+                $status = 'conflict';
+                $conflictCount++;
             } else {
-                $newCount++;
+                $status = $existingSchool ? 'update' : 'new';
+                $existingSchool ? $updateCount++ : $newCount++;
             }
 
+            $seenIds[$currentId] = true;
+
             $formattedData[] = [
-                'school_id'        => (string)$row[0],
+                'school_id'        => $currentId,
                 'name'             => $row[1] ?? 'N/A',
                 'no_of_teachers'   => (int)($row[2] ?? 0),
                 'no_of_enrollees'  => (int)($row[3] ?? 0),
@@ -80,24 +126,25 @@ public function import(Request $request)
                 'no_of_toilets'    => (int)($row[5] ?? 0),
                 'latitude'         => !empty($row[6]) ? (float)$row[6] : 6.9214,
                 'longitude'        => !empty($row[7]) ? (float)$row[7] : 122.0739,
-                'status'           => $exists ? 'update' : 'new', // Add status key
+                'status'           => $status,
+                'exists_in_db'     => $existingSchool ? true : false, // Added this flag
+                'old_values'       => $existingSchool ? [
+                    'no_of_teachers'  => $existingSchool->no_of_teachers,
+                    'no_of_enrollees' => $existingSchool->no_of_enrollees,
+                    'name'            => $existingSchool->name,
+                ] : null,
             ];
         }
     }
     fclose($handle);
 
-    if (empty($formattedData)) {
-        return redirect()->back()->with('error', 'No valid data found in CSV.');
-    }
-
     session(['pending_import' => $formattedData]);
-    $request->session()->save();
-
-    // Pass counts to the view for the top summary
+    
     return view('admin.preview_import', [
-        'importData' => $formattedData,
-        'newCount' => $newCount,
-        'updateCount' => $updateCount
+        'importData'    => $formattedData,
+        'newCount'      => $newCount,
+        'updateCount'   => $updateCount,
+        'conflictCount' => $conflictCount
     ]);
 }
 
