@@ -12,11 +12,14 @@ class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable;
 
+    // Added 'name' and 'email_verified_at'
     protected $fillable = [
+        'name',
         'email',
         'password',
         'role',   
         'status', 
+        'email_verified_at',
     ];
 
     protected $hidden = [
@@ -43,9 +46,6 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->status === 1;
     }
 
-    /**
-     * Overrides the default notification to use your custom themed email.
-     */
     public function sendEmailVerificationNotification()
     {
         $this->notify(new CustomVerifyEmail);

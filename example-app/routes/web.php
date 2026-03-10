@@ -8,69 +8,78 @@ use App\Http\Controllers\CensusController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\AuthController; // Ensure your custom AuthController is used
 
-// --- Public Routes ---
-Route::get('/', [CensusController::class, 'listSchools'])->name('public.schools');
+// ==========================================
+// 1. PUBLIC ROUTES (Viewers Only - No Login)
+// ==========================================
+Route::get('/', [CensusController::class, 'showPublicMap'])->name('public.schools');
 Route::get('/view-census', [CensusController::class, 'showPublic'])->name('public.view');
+Route::get('/view-census/{id}', [CensusController::class, 'showPublic'])->name('public.view.single');
 
-// --- Authentication Routes ---
-Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [LoginController::class, 'login'])->name('login.post');
-Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+// ==========================================
+// 2. AUTHENTICATION & VERIFICATION
+// ==========================================
+Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
-Route::post('/register', [RegisterController::class, 'register'])->name('register.post');
+Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 
-// --- Email Verification Routes ---
-
-// 1. The Notice (Fixed typo: changed 'emails' to 'email')
 Route::get('/email/verify', function () {
     return view('auth.verify-email');
 })->middleware('auth')->name('verification.notice');
 
-// 2. The Verification Action (When user clicks link in email)
-Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
-    $request->fulfill();
-    return redirect('/login')->with('verified', true);
-})->middleware(['auth', 'signed'])->name('verification.verify');
+// 2. The Verification Action (Customized for Pending Admins)
+Route::get('/email/verify/{id}/{hash}', function ($id, $hash) {
+    $user = \App\Models\User::findOrFail($id);
 
-// 3. Resend Notification
+    // Verify the secure signature
+    if (! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+        abort(403, 'Invalid or expired verification link.');
+    }
+
+    // Mark email as verified if it hasn't been already
+    if (! $user->hasVerifiedEmail()) {
+        $user->markEmailAsVerified();
+    }
+
+    // Redirect to login with a clean success message
+    return redirect('/login')->with('success', 'Email successfully verified! You can log in once the Super Admin approves your account.');
+    
+})->middleware(['signed'])->name('verification.verify'); // Removed the 'auth' middleware
+
+
+
 Route::post('/email/verification-notification', function (Request $request) {
     $request->user()->sendEmailVerificationNotification();
     return back()->with('resent', true);
 })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
 
-// --- Authenticated Admin Routes ---
-Route::middleware(['auth'])->group(function () {
+// ==========================================
+// 3. ADMIN ROUTES (CRUD Operations)
+// Access: Both 'admin' and 'super_admin'
+// ==========================================
+Route::middleware(['auth', 'role:admin,super_admin'])->group(function () {
+    Route::get('/admin/map', [CensusController::class, 'showMap'])->name('admin.map');
+    
+    // School CRUD
+    Route::get('/admin/schools', [CensusController::class, 'manageSchools'])->name('admin.schools');
+    Route::get('/admin/schools/create', [CensusController::class, 'createSchool'])->name('schools.create');
+    Route::post('/admin/schools', [CensusController::class, 'storeSchool'])->name('schools.store');
+    Route::get('/admin/schools/{id}/edit', [CensusController::class, 'editSchool'])->name('schools.edit');
+    Route::put('/admin/schools/{id}', [CensusController::class, 'updateSchool'])->name('schools.update');
+    Route::delete('/admin/schools/{id}', [CensusController::class, 'destroySchool'])->name('schools.destroy');
+    Route::post('/admin/schools/check-duplicate', [CensusController::class, 'checkDuplicate'])->name('schools.check');
+});
+
+// ==========================================
+// 4. SUPER ADMIN ROUTES (System Control)
+// Access: ONLY 'super_admin'
+// ==========================================
+Route::middleware(['auth', 'role:super_admin'])->group(function () {
     Route::get('/admin', [AdminController::class, 'index'])->name('admin.dashboard');
     Route::post('/admin/approve/{id}', [AdminController::class, 'approve'])->name('admin.approve');
     Route::post('/admin/reject/{id}', [AdminController::class, 'reject'])->name('admin.reject');
-
-    Route::get('/admin/schools', [CensusController::class, 'manageSchools'])->name('admin.schools');
-    Route::post('/admin/schools', [CensusController::class, 'storeSchool'])->name('schools.store');
-    Route::put('/admin/schools/{id}', [CensusController::class, 'updateSchool'])->name('schools.update');
 });
-// --- ADMIN DASHBOARD ROUTES ---
-Route::get('/admin', [CensusController::class, 'adminDashboard'])->name('admin.dashboard');
-Route::get('/admin/schools', [CensusController::class, 'manageSchools'])->name('admin.schools'); // The List
-Route::get('/admin/schools/create', [CensusController::class, 'createSchool'])->name('schools.create'); // The New Page
-Route::post('/admin/schools', [CensusController::class, 'storeSchool'])->name('schools.store');
-Route::put('/admin/schools/{id}', [CensusController::class, 'updateSchool'])->name('schools.update');
-Route::get('/admin/schools/{id}/edit', [CensusController::class, 'editSchool'])->name('schools.edit');
-Route::get('/admin/map', [CensusController::class, 'showMap'])->name('admin.map');
-
-// --- PUBLIC VIEWER ROUTES ---
-
-// Set the Interactive Map as the Landing Page
-Route::get('/', [CensusController::class, 'showPublicMap'])->name('public.schools');
-
-// Individual School Profile View
-Route::get('/view-census/{id}', [CensusController::class, 'showPublic'])->name('public.view');
-
-// backup
-// Route::get('/directory', [CensusController::class, 'listSchools'])->name('public.list');
-
-//functions
-Route::post('/admin/schools/check-duplicate', [CensusController::class, 'checkDuplicate'])->name('schools.check');
-Route::delete('/admin/schools/{id}', [CensusController::class, 'destroySchool'])->name('schools.destroy');
-Route::put('/admin/schools/{id}', [CensusController::class, 'updateSchool'])->name('schools.update');
