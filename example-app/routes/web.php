@@ -75,7 +75,7 @@ Route::middleware(['auth', 'verified', 'role:admin,super_admin'])->group(functio
     })->name('admin.index');
 
     // Dashboard & User Management (Managed by AdminController)
-    Route::get('/admin', [CensusController::class, 'adminDashboard'])->name('admin.dashboard');
+    Route::get('/admin', [CensusController::class, 'manageSchools'])->name('admin.schools');
     Route::post('/admin/approve/{id}', [AdminController::class, 'approve'])->name('admin.approve');
     Route::post('/admin/reject/{id}', [AdminController::class, 'reject'])->name('admin.reject');
 
