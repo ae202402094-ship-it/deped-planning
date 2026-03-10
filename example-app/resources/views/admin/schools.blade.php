@@ -64,7 +64,7 @@
                         </div>
                         <div class="text-left">
                             <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Select File</p>
-                            <p class="text-xs font-bold text-slate-600 truncate max-w-[150px]">Choose CSV...</p>
+                            <p id="fileNameDisplay" class="text-xs font-bold text-slate-600 truncate max-w-[150px]">Choose CSV...</p>
                         </div>
                     </div>
                 </div>
@@ -102,5 +102,28 @@
 
 {{-- Shared Map Modal --}}
 @include('admin.partials.map_modal')
-
+<script>
+    document.querySelector('input[name="csv_file"]').addEventListener('change', function(e) {
+        const fileName = e.target.files[0] ? e.target.files[0].name : "Choose CSV...";
+        const display = document.getElementById('fileNameDisplay');
+        
+        // Update the text to the filename
+        display.innerText = fileName;
+        
+        // Optional: Change the color to red-800 to show it's ready
+        display.classList.remove('text-slate-600');
+        display.classList.add('text-red-800');
+        document.querySelector('form[action*="import"]').addEventListener('submit', function() {
+    const btn = this.querySelector('button[type="submit"]');
+    btn.innerHTML = `
+        <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Processing...
+    `;
+    btn.classList.add('opacity-50', 'cursor-not-allowed');
+});
+    });
+</script>
 @endsection

@@ -64,9 +64,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/schools', [CensusController::class, 'manageSchools'])->name('admin.schools');
     Route::get('/admin/schools/create', [CensusController::class, 'createSchool'])->name('schools.create');
     Route::post('/admin/schools', [CensusController::class, 'storeSchool'])->name('schools.store');
-    Route::post('/admin/schools/import', [CensusController::class, 'importCSV'])->name('schools.import');
+    //For Import
     Route::get('/admin/schools/download-sample', [CensusController::class, 'downloadSampleCSV'])->name('schools.sample');
     Route::post('/admin/schools/import', [CensusController::class, 'import'])->name('schools.import');
+    Route::post('/admin/schools/confirm-import', [CensusController::class, 'confirmImport'])->name('schools.confirm_import');
     
     Route::get('/admin/schools/{id}/edit', [CensusController::class, 'editSchool'])->name('schools.edit');
     Route::put('/admin/schools/{id}', [CensusController::class, 'updateSchool'])->name('schools.update');
