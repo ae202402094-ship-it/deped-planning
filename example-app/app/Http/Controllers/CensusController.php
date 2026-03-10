@@ -43,9 +43,7 @@ public function confirmImport(Request $request)
 
 public function import(Request $request)
 {
-    $request->validate([
-        'csv_file' => 'required|mimes:csv,txt|max:2048'
-    ]);
+    $request->validate(['csv_file' => 'required|mimes:csv,txt|max:2048']);
 
     $file = $request->file('csv_file');
     $handle = fopen($file->getRealPath(), 'r');
@@ -55,27 +53,38 @@ public function import(Request $request)
     $newCount = 0;
     $updateCount = 0;
     $conflictCount = 0;
+    $nameMismatchCount = 0; // NEW: Initialize count
     $seenIds = []; 
 
     while (($row = fgetcsv($handle, 1000, ",")) !== FALSE) {
         if (!empty($row[0])) {
             $currentId = (string)$row[0];
-            $existingSchool = \App\Models\School::where('school_id', $currentId)->first();
+            $currentName = (string)($row[1] ?? 'N/A');
             
-            // Check for duplicates within the uploaded file
+            $existingById = \App\Models\School::where('school_id', $currentId)->first();
+            
+            // NEW: Check if this name is already used by a DIFFERENT ID
+            $existingByName = \App\Models\School::where('name', $currentName)
+                                ->where('school_id', '!=', $currentId)
+                                ->first();
+
             if (isset($seenIds[$currentId])) {
                 $status = 'conflict';
                 $conflictCount++;
+            } elseif ($existingByName) {
+                // NEW: Logic for mismatch
+                $status = 'name_mismatch'; 
+                $nameMismatchCount++;
             } else {
-                $status = $existingSchool ? 'update' : 'new';
-                $existingSchool ? $updateCount++ : $newCount++;
+                $status = $existingById ? 'update' : 'new';
+                $existingById ? $updateCount++ : $newCount++;
             }
 
             $seenIds[$currentId] = true;
 
             $formattedData[] = [
                 'school_id'        => $currentId,
-                'name'             => $row[1] ?? 'N/A',
+                'name'             => $currentName,
                 'no_of_teachers'   => (int)($row[2] ?? 0),
                 'no_of_enrollees'  => (int)($row[3] ?? 0),
                 'no_of_classrooms' => (int)($row[4] ?? 0),
@@ -83,11 +92,12 @@ public function import(Request $request)
                 'latitude'         => !empty($row[6]) ? (float)$row[6] : 6.9214,
                 'longitude'        => !empty($row[7]) ? (float)$row[7] : 122.0739,
                 'status'           => $status,
-                'exists_in_db'     => (bool)$existingSchool,
-                'old_values'       => $existingSchool ? [
-                    'no_of_teachers'  => $existingSchool->no_of_teachers,
-                    'no_of_enrollees' => $existingSchool->no_of_enrollees,
-                    'name'            => $existingSchool->name,
+                'exists_in_db'     => (bool)$existingById,
+                'mismatch_id'      => $existingByName ? $existingByName->school_id : null, // NEW: Capture the ID
+                'old_values'       => $existingById ? [
+                    'no_of_teachers'  => $existingById->no_of_teachers,
+                    'no_of_enrollees' => $existingById->no_of_enrollees,
+                    'name'            => $existingById->name,
                 ] : null,
             ];
         }
@@ -96,7 +106,8 @@ public function import(Request $request)
 
     session(['pending_import' => $formattedData]);
     
-    return view('admin.preview_import', compact('formattedData', 'newCount', 'updateCount', 'conflictCount'));
+    // Updated compact() to include nameMismatchCount
+    return view('admin.preview_import', compact('formattedData', 'newCount', 'updateCount', 'conflictCount', 'nameMismatchCount'));
 }
 
 public function downloadSampleCSV(): StreamedResponse
