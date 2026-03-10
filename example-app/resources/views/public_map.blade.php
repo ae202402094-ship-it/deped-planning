@@ -73,15 +73,15 @@
             var marker = L.marker([{{ $school->latitude }}, {{ $school->longitude }}])
                 .addTo(map)
                 .bindPopup(`
-                    <div class="p-2 text-center">
-                        <h4 class="font-black text-slate-800 uppercase text-xs mb-1">{{ $school->name }}</h4>
-                        <p class="text-[9px] text-slate-400 mb-3 uppercase tracking-tighter">ID: {{ $school->school_id }}</p>
-                        <a href="{{ route('public.view', ['id' => $school->id]) }}" 
-                           class="inline-block py-2 px-4 bg-red-800 text-white rounded-lg text-[9px] font-black uppercase tracking-widest no-underline hover:bg-black transition">
-                           View Profile
-                        </a>
-                    </div>
-                `);
+    <div class="p-2 text-center">
+        <h4 class="font-black text-slate-800 uppercase text-xs mb-1">{{ $school->name }}</h4>
+        <p class="text-[9px] text-slate-400 mb-3 uppercase tracking-tighter">ID: {{ $school->school_id }}</p>
+        <a href="{{ route('public.view', ['id' => $school->id]) }}" 
+           class="inline-block py-2 px-4 bg-red-800 !text-white rounded-lg text-[9px] font-black uppercase tracking-widest no-underline hover:bg-black transition">
+           View Profile
+        </a>
+    </div>
+`);
             
             // Map the internal database ID to the marker object
             markerRegistry['{{ $school->id }}'] = marker; 

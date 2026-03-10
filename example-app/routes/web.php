@@ -26,3 +26,8 @@ Route::get('/view-census/{id}', [CensusController::class, 'showPublic'])->name('
 Route::post('/admin/schools/check-duplicate', [CensusController::class, 'checkDuplicate'])->name('schools.check');
 Route::delete('/admin/schools/{id}', [CensusController::class, 'destroySchool'])->name('schools.destroy');
 Route::put('/admin/schools/{id}', [CensusController::class, 'updateSchool'])->name('schools.update');
+
+// Limit checks to 60 per minute to stop automated scraping
+Route::post('/admin/schools/check-duplicate', [CensusController::class, 'checkDuplicate'])
+    ->middleware('throttle:60,1') 
+    ->name('schools.check');

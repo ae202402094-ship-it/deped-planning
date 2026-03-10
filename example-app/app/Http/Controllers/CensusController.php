@@ -88,25 +88,29 @@ public function editSchool($id) // Change from 'edit' to 'editSchool'
 
 public function updateSchool(Request $request, $id)
 {
+    // Secure Validation: The 'unique' rule now ignores the current record's ID
     $validated = $request->validate([
-        // The '.$id' tells Laravel: "Allow this specific ID/Name for this specific record"
         'school_id' => 'required|string|unique:schools,school_id,' . $id,
         'name' => 'required|string|max:255|unique:schools,name,' . $id,
         'no_of_teachers' => 'required|integer|min:0',
         'no_of_enrollees' => 'required|integer|min:0',
         'no_of_classrooms' => 'required|integer|min:0',
         'no_of_toilets' => 'required|integer|min:0',
-        'latitude' => 'nullable|numeric',
-        'longitude' => 'nullable|numeric',
+        'latitude' => 'nullable|numeric|between:-90,90',
+        'longitude' => 'nullable|numeric|between:-180,180',
     ]);
 
-    $school = School::findOrFail($id);
-    $school->update($validated);
+    try {
+        $school = School::findOrFail($id);
+        // Use $validated instead of $request->all() to prevent mass assignment injection
+        $school->update($validated); 
 
-    return redirect()->route('admin.schools')->with('success', 'Registry updated successfully.');
+        return redirect()->route('admin.schools')
+            ->with('success', "Registry Synchronization Complete for {$school->name}.");
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', 'System Error: Update protocol failed.');
+    }
 }
-
-// app/Http/Controllers/CensusController.php
 
 public function checkDuplicate(Request $request)
 {
