@@ -4,9 +4,109 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\School;
+use App\Models\User;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\SchoolImport;
 
 class CensusController extends Controller
 {
+// app/Http/Controllers/CensusController.php
+// app/Http/Controllers/CensusController.php
+public function confirmImport()
+{
+    $data = session('pending_import');
+
+    if (!$data) {
+        return redirect()->route('admin.schools')->with('error', 'No pending data found.');
+    }
+
+    foreach ($data as $row) {
+        School::updateOrCreate(
+            ['school_id' => $row['school_id']],
+            $row
+        );
+    }
+
+    session()->forget('pending_import');
+    return redirect()->route('admin.schools')->with('success', 'Registry successfully synchronized.');
+}
+
+// app/Http/Controllers/CensusController.php
+
+public function import(Request $request)
+{
+    // 1. Validate the file exists and is the right type
+    $request->validate([
+        'csv_file' => 'required|file|mimes:csv,xlsx,xls|max:2048'
+    ]);
+
+    try {
+        // 2. Use a null object instead of an empty array to get raw data
+        // This ensures .xlsx files are read correctly
+        $data = Excel::toArray(new \stdClass(), $request->file('csv_file'));
+        
+        if (empty($data) || empty($data[0])) {
+            return redirect()->back()->with('error', 'The file appears to be empty.');
+        }
+
+        $rows = $data[0];
+        array_shift($rows); // Remove the header row
+
+        $formattedData = [];
+        foreach ($rows as $row) {
+            // Only add the row if the School ID (index 0) is not empty
+            if (!empty($row[0])) {
+                $formattedData[] = [
+                    'school_id'        => (string)$row[0],
+                    'name'             => $row[1] ?? 'N/A',
+                    'no_of_teachers'   => (int)($row[2] ?? 0),
+                    'no_of_enrollees'  => (int)($row[3] ?? 0),
+                    'no_of_classrooms' => (int)($row[4] ?? 0),
+                    'no_of_toilets'    => (int)($row[5] ?? 0),
+                    'latitude'         => !empty($row[6]) ? (float)$row[6] : 6.9214,
+                    'longitude'        => !empty($row[7]) ? (float)$row[7] : 122.0739,
+                ];
+            }
+        }
+
+        if (empty($formattedData)) {
+            return redirect()->back()->with('error', 'No valid school data found in the file.');
+        }
+
+        // 3. Store in session for the confirmImport method
+        session(['pending_import' => $formattedData]);
+
+        // 4. Return the preview view
+        return view('admin.preview_import', [
+            'importData' => $formattedData
+        ]);
+
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', 'System Error: ' . $e->getMessage());
+    }
+}
+
+public function downloadSampleCSV(): StreamedResponse
+{
+    return new StreamedResponse(function () {
+        $handle = fopen('php://output', 'w');
+        
+        // Added latitude and longitude to the headers
+        fputcsv($handle, [
+            'school_id', 'name', 'no_of_teachers', 'no_of_enrollees', 
+            'no_of_classrooms', 'no_of_toilets', 'latitude', 'longitude'
+        ]);
+
+        // Example row with Zamboanga coordinates
+        fputcsv($handle, ['123456', 'SAMPLE SCHOOL', '20', '500', '15', '8', '6.9214', '122.0739']);
+
+        fclose($handle);
+    }, 200, [
+        'Content-Type' => 'text/csv',
+        'Content-Disposition' => 'attachment; filename="deped_census_map_template.csv"',
+    ]);
+}
 
     public function showMap() {
     $schools = School::all(); // Fetch all schools with their coordinates
@@ -46,17 +146,22 @@ public function showPublic($id) // Change from (Request $request)
      * ADMIN: Dashboard overview showing total counts for the division.
      */
   public function adminDashboard()
-{
-    $schools = School::all();
+    {
+        $schools = School::all();
 
-    return view('admin.dashboard', [
-        'schoolCount' => $schools->count(),
-        'teacherCount' => $schools->sum('no_of_teachers'),
-        'totalEnrollees' => $schools->sum('no_of_enrollees'),
-        'totalClassrooms' => $schools->sum('no_of_classrooms'),
-        'totalToilets' => $schools->sum('no_of_toilets'),
-    ]);
-}
+        // Fetch users who are verified but not yet active/approved
+        // Adjust 'status' or 'is_active' based on your actual database column
+        $pendingUsers = User::where('status', 'pending')->get(); 
+
+        return view('admin.dashboard', [
+            'schoolCount' => $schools->count(),
+            'teacherCount' => $schools->sum('no_of_teachers'),
+            'totalEnrollees' => $schools->sum('no_of_enrollees'),
+            'totalClassrooms' => $schools->sum('no_of_classrooms'),
+            'totalToilets' => $schools->sum('no_of_toilets'),
+            'pendingUsers' => $pendingUsers, // Pass the variable to the view
+        ]);
+    }
 
     /**
      * ADMIN: Display the list of schools for management.
@@ -86,9 +191,10 @@ public function editSchool($id) // Change from 'edit' to 'editSchool'
 
     // app/Http/Controllers/CensusController.php
 
+// app/Http/Controllers/CensusController.php
+
 public function updateSchool(Request $request, $id)
 {
-    // Secure Validation: The 'unique' rule now ignores the current record's ID
     $validated = $request->validate([
         'school_id' => 'required|string|unique:schools,school_id,' . $id,
         'name' => 'required|string|max:255|unique:schools,name,' . $id,
@@ -96,20 +202,15 @@ public function updateSchool(Request $request, $id)
         'no_of_enrollees' => 'required|integer|min:0',
         'no_of_classrooms' => 'required|integer|min:0',
         'no_of_toilets' => 'required|integer|min:0',
+        // Added range validation to prevent Map crashes
         'latitude' => 'nullable|numeric|between:-90,90',
         'longitude' => 'nullable|numeric|between:-180,180',
     ]);
 
-    try {
-        $school = School::findOrFail($id);
-        // Use $validated instead of $request->all() to prevent mass assignment injection
-        $school->update($validated); 
+    $school = School::findOrFail($id);
+    $school->update($validated);
 
-        return redirect()->route('admin.schools')
-            ->with('success', "Registry Synchronization Complete for {$school->name}.");
-    } catch (\Exception $e) {
-        return redirect()->back()->with('error', 'System Error: Update protocol failed.');
-    }
+    return redirect()->route('admin.schools')->with('success', 'Registry updated successfully.');
 }
 
 public function checkDuplicate(Request $request)

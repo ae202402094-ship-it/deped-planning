@@ -59,10 +59,8 @@
 <script>
     var fullMap, fullMarker, targetLatId, targetLngId;
 
-    /**
-     * Initializes and shows the map modal
-     */
     function openMapPopup(latId, lngId, currentLat, currentLng) {
+        // Store the IDs of the inputs on the main form (e.g., 'lat' and 'lng')
         targetLatId = latId;
         targetLngId = lngId;
         
@@ -73,62 +71,60 @@
         var modal = new bootstrap.Modal(modalElement);
         modal.show();
         
-        // Wait for modal to be fully visible before loading the map
         modalElement.addEventListener('shown.bs.modal', function() {
             if (!fullMap) {
                 fullMap = L.map('fullMap').setView([startLat, startLng], 17);
                 
-                // Street Layer
-                var streets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '© OpenStreetMap contributors'
                 }).addTo(fullMap);
 
-                // Satellite Layer (High-detail for Zamboanga)
-                var satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-                    attribution: 'Tiles &copy; Esri'
-                });
-
-                L.control.layers({ "Streets": streets, "Satellite": satellite }).addTo(fullMap);
-
-                // Initialize Draggable Marker
+                // Create the marker and enable dragging
                 fullMarker = L.marker([startLat, startLng], {draggable: true}).addTo(fullMap);
                 
-                // Allow clicking anywhere on map to move the marker
+                // Clicking on the map also moves the marker
                 fullMap.on('click', function(e) { 
                     fullMarker.setLatLng(e.latlng); 
                 });
             } else {
+                // If map already exists, just move the view and marker to current school location
                 fullMap.setView([startLat, startLng], 17);
                 fullMarker.setLatLng([startLat, startLng]);
             }
             
-            // Fix Leaflet tile rendering issues inside modals
             fullMap.invalidateSize();
         }, {once: true});
     }
 
     /**
-     * Captures coordinates and updates the form
+     * FIX: This function now explicitly finds the main form inputs by ID
      */
     function confirmLocation() {
-        var selectedLatLng = fullMarker.getLatLng();
+        if (!fullMarker) return;
 
-        // Inject high-precision coordinates into the original form
-        if (targetLatId && targetLngId) {
-            document.getElementById(targetLatId).value = selectedLatLng.lat.toFixed(8);
-            document.getElementById(targetLngId).value = selectedLatLng.lng.toFixed(8);
+        var selectedLatLng = fullMarker.getLatLng();
+        console.log("Capturing:", selectedLatLng.lat, selectedLatLng.lng); // Debugging
+
+        // 1. Find the inputs on the main Edit School form
+        const latInput = document.getElementById(targetLatId);
+        const lngInput = document.getElementById(targetLngId);
+
+        if (latInput && lngInput) {
+            // 2. Inject the values and force 8 decimal places for database precision
+            latInput.value = selectedLatLng.lat.toFixed(8);
+            lngInput.value = selectedLatLng.lng.toFixed(8);
             
-            // Close modal programmatically
+            // 3. Close the modal
             var modalEl = document.getElementById('fullScreenMapModal');
             var modalInstance = bootstrap.Modal.getInstance(modalEl);
-            if (modalInstance) {
-                modalInstance.hide();
-            }
+            if (modalInstance) modalInstance.hide();
 
-            // Trigger visual feedback toast if available
+            // 4. Trigger the UI feedback if you have it
             if (window.showToast) {
-                showToast("Location Captured Successfully");
+                showToast("Registry Coordinates Synchronized");
             }
+        } else {
+            console.error("Critical Error: Target inputs '" + targetLatId + "' not found on main form.");
         }
     }
 </script>

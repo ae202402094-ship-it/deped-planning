@@ -23,7 +23,64 @@
             </form>
         </div>
     </div>
-    
+{{-- resources/views/admin/schools.blade.php --}}
+
+{{-- Enhanced Bulk Registry Synchronization UI --}}
+<div class="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-xl shadow-slate-200/50 mb-12 overflow-hidden relative">
+    {{-- Decorative Background Element --}}
+    <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-slate-50 rounded-full opacity-50"></div>
+
+    <div class="relative flex flex-col lg:flex-row items-center justify-between gap-8">
+        <div class="max-w-md">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-1.5 h-6 bg-red-800 rounded-full"></div>
+                <h3 class="text-[11px] font-black text-slate-800 uppercase tracking-[0.4em]">Bulk Registry Sync</h3>
+            </div>
+            <p class="text-sm text-slate-500 font-medium leading-relaxed mb-4">
+                Automate your institutional updates by uploading a structured dataset. 
+                <span class="block mt-2">
+                    <a href="{{ route('schools.sample') }}" class="inline-flex items-center gap-2 text-red-800 font-bold text-xs uppercase tracking-widest group">
+                        <span class="border-b-2 border-red-200 group-hover:border-red-800 transition-all">Download Master Template</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v12m0 0l-4-4m4 4l4-4M8 20h8" />
+                        </svg>
+                    </a>
+                </span>
+            </p>
+        </div>
+        
+        <form action="{{ route('schools.import') }}" method="POST" enctype="multipart/form-data" class="w-full lg:w-auto">
+            @csrf
+            <div class="flex flex-col sm:flex-row items-stretch gap-4">
+                {{-- Custom Styled File Input Area --}}
+                <div class="relative flex-1 group">
+                    <input type="file" name="csv_file" accept=".csv" required 
+                           class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                    <div class="bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl px-6 py-4 flex items-center gap-4 group-hover:border-red-300 group-hover:bg-white transition-all">
+                        <div class="p-2 bg-white rounded-xl shadow-sm group-hover:scale-110 transition-transform">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400 group-hover:text-red-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        </div>
+                        <div class="text-left">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Select File</p>
+                            <p class="text-xs font-bold text-slate-600 truncate max-w-[150px]">Choose CSV...</p>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Submit Action --}}
+                <button type="submit" 
+                        class="px-8 py-4 bg-slate-900 text-white rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] hover:bg-red-800 hover:shadow-lg hover:shadow-red-900/20 active:scale-95 transition-all flex items-center justify-center gap-3">
+                    Execute Protocol
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
     {{-- SCHOOLS GRID --}}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         @foreach($schools as $school)
