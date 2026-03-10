@@ -26,6 +26,12 @@
                 <div class="p-8">
                     <h2 class="text-xl font-bold text-slate-800 text-center uppercase mb-6">Sign In</h2>
 
+                    @if(session('success'))
+                        <div class="mb-4 p-3 bg-green-50 border-l-4 border-green-500 text-green-700 text-xs font-bold">
+                            {{ session('success') }}
+                        </div>
+                    @endif
+
                     @if(session('error'))
                         <div class="mb-4 p-3 bg-red-50 border-l-4 border-red-500 text-red-700 text-xs font-bold">
                             {{ session('error') }}

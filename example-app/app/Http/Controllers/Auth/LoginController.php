@@ -13,48 +13,67 @@ class LoginController extends Controller
         return view('auth.login');
     }
 
-    public function login(Request $request)
+    protected function authenticated(Request $request, $user)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
-
-        // 1. Get credentials and include the status check
-        $credentials = $request->only('email', 'password');
-        $credentials['status'] = 1; // User must be approved/active
-
-        // 2. Attempt login
-        if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
-            
-            // Redirect based on role
-            if (Auth::user()->role === 'admin') {
-                return redirect()->route('admin.dashboard');
-            }
-            
-            return redirect()->intended('/');
+        if (!$user->isApproved()) {
+            Auth::logout();
+            return redirect()->route('login')->with('error', 'Your email is not verified or your account is not yet approved.');
         }
 
-        // 3. If login fails, check if it's because the account is just pending
-        $userExists = \App\Models\User::where('email', $request->email)->first();
-        if ($userExists && $userExists->status == 0) {
+        // Redirect based on role
+        if ($user->isSuperAdmin()) {
+            return redirect()->route('superadmin.dashboard');
+        }
+
+        return redirect()->route('admin.schools');
+    }
+
+    public function login(Request $request)
+{
+    // Validate the login input
+    $credentials = $request->validate([
+        'email' => ['required', 'email'],
+        'password' => ['required'],
+    ]);
+
+    // 1. Attempt to log the user in
+    if (\Illuminate\Support\Facades\Auth::attempt($credentials)) {
+        
+        $user = \Illuminate\Support\Facades\Auth::user();
+
+        // 2. Check if they are approved by the Super Admin
+        if (!$user->isApproved()) { // Uses the helper we made in User.php
+            \Illuminate\Support\Facades\Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            
             return back()->withErrors([
-                'email' => 'Your account is pending admin approval.',
+                'email' => 'Your account is pending approval by the Super Admin.',
             ]);
         }
 
-        // 4. Otherwise, it's just a wrong password/email
-        return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
-        ]);
+        // 3. User is approved, regenerate session for security
+        $request->session()->regenerate();
+
+        // 4. Redirect based on their exact role
+        if ($user->isSuperAdmin()) {
+            return redirect()->route('superadmin.dashboard');
+        }
+
+        // Regular admins go to the schools management page
+        return redirect()->route('admin.schools');
     }
 
-    public function logout(Request $request)
-    {
+    // 5. If Auth::attempt fails (wrong password or email)
+    return back()->withErrors([
+        'email' => 'The provided credentials do not match our records.',
+    ])->onlyInput('email');
+}
+
+    public function logout(Request $request) {
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect('/login');
+        return redirect('/login')->with('success', 'You have been successfully logged out.');
     }
 }
