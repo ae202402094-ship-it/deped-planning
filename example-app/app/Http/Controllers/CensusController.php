@@ -12,6 +12,21 @@ class CensusController extends Controller
 
 // app/Http/Controllers/CensusController.php
 // app/Http/Controllers/CensusController.php
+/**
+ * DEBUG TOOL: Wipe the entire school registry.
+ */
+public function clearAllSchools()
+{
+    try {
+        // truncate() resets the IDs and clears the table instantly
+        \App\Models\School::truncate(); 
+        
+        return redirect()->route('admin.schools')
+            ->with('success', 'DEBUG: School registry has been completely wiped.');
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', 'System Error: Wipe protocol failed.');
+    }
+}
 
 public function confirmImport(Request $request)
 {

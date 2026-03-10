@@ -75,10 +75,12 @@ Route::middleware(['auth', 'verified', 'role:admin,super_admin'])->group(functio
     })->name('admin.index');
 
     // Dashboard & User Management (Managed by AdminController)
-    Route::get('/admin', [CensusController::class, 'adminDashboard'])->name('admin.dashboard');
+    Route::get('/admin', [CensusController::class, 'manageSchools'])->name('admin.schools');
     Route::post('/admin/approve/{id}', [AdminController::class, 'approve'])->name('admin.approve');
     Route::post('/admin/reject/{id}', [AdminController::class, 'reject'])->name('admin.reject');
-
+    //Fordebuggings
+    // Add this to your admin/super_admin middleware group
+    Route::delete('/admin/schools/clear-all', [CensusController::class, 'clearAllSchools'])->name('schools.clear_all');
     // School Registry Management (Managed by CensusController)
     Route::get('/admin/schools', [CensusController::class, 'manageSchools'])->name('admin.schools');
     Route::get('/admin/schools/create', [CensusController::class, 'createSchool'])->name('schools.create');

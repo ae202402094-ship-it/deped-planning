@@ -13,6 +13,14 @@
             <a href="{{ route('schools.create') }}" style="background-color: #a52a2a;" class="text-white px-6 py-3 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-red-900 transition shadow-lg">
                 + Click Here To Register A Single School
             </a>
+            {{-- NEW: Debug Purge Button --}}
+    <form action="{{ route('schools.clear_all') }}" method="POST" onsubmit="return confirm('WARNING: This will delete EVERY school in the database. Proceed with Wipe Protocol?');">
+        @csrf
+        @method('DELETE')
+        <button type="submit" class="bg-white border-2 border-red-200 text-red-400 px-6 py-3 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-red-800 hover:text-white hover:border-red-800 transition shadow-sm">
+            ⚠ Purge Registry
+        </button>
+    </form>
             
             <form action="{{ route('admin.schools') }}" method="GET" class="flex gap-2">
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Search ID/Name..." 
