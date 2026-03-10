@@ -74,6 +74,25 @@ Route::middleware(['auth', 'verified', 'role:admin,super_admin'])->group(functio
         return redirect()->route('admin.schools');
     })->name('admin.index');
 
+    // Dashboard & User Management (Managed by AdminController)
+    Route::get('/admin', [CensusController::class, 'adminDashboard'])->name('admin.dashboard');
+    Route::post('/admin/approve/{id}', [AdminController::class, 'approve'])->name('admin.approve');
+    Route::post('/admin/reject/{id}', [AdminController::class, 'reject'])->name('admin.reject');
+
+    // School Registry Management (Managed by CensusController)
+    Route::get('/admin/schools', [CensusController::class, 'manageSchools'])->name('admin.schools');
+    Route::get('/admin/schools/create', [CensusController::class, 'createSchool'])->name('schools.create');
+    Route::post('/admin/schools', [CensusController::class, 'storeSchool'])->name('schools.store');
+    //For Import
+    Route::get('/admin/schools/download-sample', [CensusController::class, 'downloadSampleCSV'])->name('schools.sample');
+    Route::post('/admin/schools/import', [CensusController::class, 'import'])->name('schools.import');
+    Route::post('/admin/schools/confirm-import', [CensusController::class, 'confirmImport'])->name('schools.confirm_import');
+
+    Route::get('/admin/schools/{id}/edit', [CensusController::class, 'editSchool'])->name('schools.edit');
+    Route::put('/admin/schools/{id}', [CensusController::class, 'updateSchool'])->name('schools.update');
+    Route::delete('/admin/schools/{id}', [CensusController::class, 'destroySchool'])->name('schools.destroy');
+
+    // Admin Tools
     Route::get('/admin/map', [CensusController::class, 'showMap'])->name('admin.map');
     
     // School Resource (Handles Create, Store, Edit, Update, Delete)
