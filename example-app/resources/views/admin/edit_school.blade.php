@@ -70,37 +70,50 @@
             </section>
 
             {{-- 02. Physical Inventory --}}
-            <section>
-                <div class="flex items-center gap-4 mb-8">
-                    <span class="text-xs font-black text-slate-300 font-mono">02</span>
-                    <h3 class="text-[10px] font-black text-slate-800 uppercase tracking-[0.3em]">Physical Inventory Metrics</h3>
-                    <div class="h-px flex-1 bg-slate-100"></div>
-                </div>
+           <section>
+    <div class="flex items-center gap-4 mb-6">
+        <span class="text-xs font-black text-slate-300 font-mono">02</span>
+        <h3 class="text-[10px] font-black text-slate-800 uppercase tracking-[0.3em]">Inventory Spreadsheet View</h3>
+        <div class="h-px flex-1 bg-slate-100"></div>
+    </div>
 
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-10">
-                    @foreach([
-                        'teachers' => ['label' => 'Teachers', 'ratio' => "1:$teacherRatio"],
-                        'enrollees' => ['label' => 'Enrollees', 'ratio' => 'Total Count'],
-                        'classrooms' => ['label' => 'Classrooms', 'ratio' => "1:$classroomRatio"],
-                        'toilets' => ['label' => 'Toilets', 'ratio' => 'Sanitation']
-                    ] as $field => $meta)
-                    <div class="relative group">
-                        <label class="block text-[9px] font-black text-slate-400 uppercase mb-1 tracking-widest">{{ $meta['label'] }}</label>
-                        <input type="number" name="no_of_{{ $field }}" value="{{ $school->{"no_of_$field"} }}" 
-                               class="w-full py-2 bg-transparent text-3xl font-black text-slate-800 outline-none border-b border-slate-200 focus:border-transparent transition-all tabular-nums">
-                        <div class="absolute bottom-0 left-0 w-0 h-0.5 bg-red-800 transition-all duration-500 group-focus-within:w-full"></div>
-                        <p class="mt-2 text-[8px] font-black {{ str_contains($meta['ratio'], '1:') ? 'text-red-700' : 'text-slate-300' }} uppercase tracking-widest italic">
-                            {{ $meta['ratio'] }}
-                        </p>
-                    </div>
-                    @endforeach
-                </div>
-            </section>
+    <div class="overflow-hidden bg-white rounded-2xl border border-slate-200 shadow-sm">
+        <table class="w-full text-left border-collapse">
+            <thead class="bg-slate-50 border-b border-slate-200 text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                <tr>
+                    <th class="p-4 border-r border-slate-200">Teachers</th>
+                    <th class="p-4 border-r border-slate-200">Enrollees</th>
+                    <th class="p-4 border-r border-slate-200">Classrooms</th>
+                    <th class="p-4">Toilets</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="p-0 border-r border-slate-100">
+                        <input type="number" name="no_of_teachers" value="{{ $school->no_of_teachers }}" 
+                               class="w-full p-4 bg-transparent outline-none font-black text-xl tabular-nums focus:bg-red-50/30 transition-all text-center">
+                    </td>
+                    <td class="p-0 border-r border-slate-100">
+                        <input type="number" name="no_of_enrollees" value="{{ $school->no_of_enrollees }}" 
+                               class="w-full p-4 bg-transparent outline-none font-black text-xl tabular-nums focus:bg-red-50/30 transition-all text-center">
+                    </td>
+                    <td class="p-0 border-r border-slate-100">
+                        <input type="number" name="no_of_classrooms" value="{{ $school->no_of_classrooms }}" 
+                               class="w-full p-4 bg-transparent outline-none font-black text-xl tabular-nums focus:bg-red-50/30 transition-all text-center">
+                    </td>
+                    <td class="p-0">
+                        <input type="number" name="no_of_toilets" value="{{ $school->no_of_toilets }}" 
+                               class="w-full p-4 bg-transparent outline-none font-black text-xl tabular-nums focus:bg-red-50/30 transition-all text-center">
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
         </div>
 
         {{-- Right Column: Side Actions & GPS --}}
         <div class="lg:col-span-4 space-y-8">
-            {{-- resources/views/admin/edit_school.blade.php --}}
 
 <div class="bg-slate-50 rounded-[2.5rem] p-10 border border-slate-100 shadow-sm relative overflow-hidden">
     {{-- Decorative GPS Grid --}}
@@ -130,12 +143,13 @@
     </p>
 
     <div class="flex gap-4">
-    {{-- Re-Pin Button --}}
-    <button type="button" 
-            onclick="openMapPopup('lat', 'lng', '{{ $school->latitude }}', '{{ $school->longitude }}')" 
-            class="flex-1 py-4 bg-slate-800 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition-all shadow-lg">
-        Re-Pin
-    </button>
+    {{--repin--}}
+
+<button type="button" 
+        onclick="openMapPopup('lat', 'lng', '{{ $school->latitude }}', '{{ $school->longitude }}')" 
+        class="flex-1 py-4 bg-slate-800 text-white rounded-2xl font-black">
+    Re-Pin
+</button>
 
     {{-- Manual Type Button --}}
     <button type="button" 
@@ -145,8 +159,6 @@
     </button>
 </div>
 </div>
-
-            {{-- resources/views/admin/edit_school.blade.php --}}
 
 <button type="button" onclick="triggerVerification()" style="background-color: #a52a2a;" 
         class="group w-full py-6 text-white rounded-[2rem] font-black uppercase text-xs tracking-[0.2em] shadow-2xl shadow-red-900/30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3">
@@ -320,8 +332,6 @@ function toggleManualEntry() {
 }
 
 </script>
-{{-- resources/views/admin/edit_school.blade.php --}}
-
 <div class="mt-20 pt-10 border-t border-slate-100">
     <div class="flex flex-col items-center">
         <p class="text-[9px] font-black text-slate-300 uppercase tracking-[0.2em] mb-4">Danger Zone</p>

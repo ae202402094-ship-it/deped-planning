@@ -10,19 +10,24 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\AuthController; // Ensure your custom AuthController is used
 
-// ==========================================
-// 1. PUBLIC ROUTES (Viewers Only - No Login)
-// ==========================================
+/*
+|--------------------------------------------------------------------------
+| Public Routes
+|--------------------------------------------------------------------------
+*/
+// Interactive Map is the Landing Page
 Route::get('/', [CensusController::class, 'showPublicMap'])->name('public.schools');
-Route::get('/view-census', [CensusController::class, 'showPublic'])->name('public.view');
-Route::get('/view-census/{id}', [CensusController::class, 'showPublic'])->name('public.view.single');
+// Individual School Profile View
+Route::get('/view-census/{id}', [CensusController::class, 'showPublic'])->name('public.view');
 
-// ==========================================
-// 2. AUTHENTICATION & VERIFICATION
-// ==========================================
-Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-Route::post('/login', [AuthController::class, 'login'])->name('login.post');
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+/*
+|--------------------------------------------------------------------------
+| Authentication & Email Verification
+|--------------------------------------------------------------------------
+*/
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [LoginController::class, 'login'])->name('login.post');
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
