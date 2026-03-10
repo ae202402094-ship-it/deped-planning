@@ -11,7 +11,7 @@
         <div class="flex gap-4 items-center">
             {{-- NEW: Link to the separate registration page --}}
             <a href="{{ route('schools.create') }}" style="background-color: #a52a2a;" class="text-white px-6 py-3 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-red-900 transition shadow-lg">
-                + Register School
+                + Click Here To Register A Single School
             </a>
             
             <form action="{{ route('admin.schools') }}" method="GET" class="flex gap-2">
