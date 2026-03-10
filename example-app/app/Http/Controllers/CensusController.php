@@ -13,48 +13,6 @@ class CensusController extends Controller
 // app/Http/Controllers/CensusController.php
 // app/Http/Controllers/CensusController.php
 
-public function updatePreviewSession(Request $request)
-{
-    // 1. Get the current session data
-    $importData = session('pending_import', []);
-
-    $index = $request->input('index');
-    $field = $request->input('field');
-    $value = $request->input('value');
-
-    if (isset($importData[$index])) {
-        // 2. Update the specific field
-        $importData[$index][$field] = $value;
-
-        // 3. Re-run Conflict/Existing check for this specific row
-        $currentId = (string)$importData[$index]['school_id'];
-        
-        // Count IDs in the current session to check for file-duplicates
-        $allIds = array_column($importData, 'school_id');
-        $idCounts = array_count_values($allIds);
-
-        foreach ($importData as $key => $row) {
-            if ($idCounts[(string)$row['school_id']] > 1) {
-                $importData[$key]['status'] = 'conflict';
-            } else {
-                $exists = \App\Models\School::where('school_id', $row['school_id'])->exists();
-                $importData[$key]['status'] = $exists ? 'update' : 'new';
-            }
-        }
-
-        // 4. Put it back and FORCE a save
-        session(['pending_import' => $importData]);
-        session()->save();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Session updated'
-        ]);
-    }
-
-    return response()->json(['success' => false, 'message' => 'Row not found'], 422);
-}
-
 public function confirmImport(Request $request)
 {
     $data = session('pending_import');
@@ -102,11 +60,9 @@ public function import(Request $request)
     while (($row = fgetcsv($handle, 1000, ",")) !== FALSE) {
         if (!empty($row[0])) {
             $currentId = (string)$row[0];
-            
-            // Check Database for existing ID
             $existingSchool = \App\Models\School::where('school_id', $currentId)->first();
             
-            // Check if this ID appeared earlier in this same CSV file
+            // Check for duplicates within the uploaded file
             if (isset($seenIds[$currentId])) {
                 $status = 'conflict';
                 $conflictCount++;
@@ -127,7 +83,7 @@ public function import(Request $request)
                 'latitude'         => !empty($row[6]) ? (float)$row[6] : 6.9214,
                 'longitude'        => !empty($row[7]) ? (float)$row[7] : 122.0739,
                 'status'           => $status,
-                'exists_in_db'     => $existingSchool ? true : false, // Added this flag
+                'exists_in_db'     => (bool)$existingSchool,
                 'old_values'       => $existingSchool ? [
                     'no_of_teachers'  => $existingSchool->no_of_teachers,
                     'no_of_enrollees' => $existingSchool->no_of_enrollees,
@@ -140,12 +96,7 @@ public function import(Request $request)
 
     session(['pending_import' => $formattedData]);
     
-    return view('admin.preview_import', [
-        'importData'    => $formattedData,
-        'newCount'      => $newCount,
-        'updateCount'   => $updateCount,
-        'conflictCount' => $conflictCount
-    ]);
+    return view('admin.preview_import', compact('formattedData', 'newCount', 'updateCount', 'conflictCount'));
 }
 
 public function downloadSampleCSV(): StreamedResponse
