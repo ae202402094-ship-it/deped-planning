@@ -1,0 +1,58 @@
+<div class="col-md-3 bg-dark min-vh-100 p-3 text-white shadow">
+    <div class="text-center mb-4">
+        <h4 class="fw-bold">Super Admin</h4>
+        <small class="text-muted">Control Panel</small>
+    </div>
+    <hr class="bg-secondary">
+    
+    <ul class="nav nav-pills flex-column mb-auto">
+        <li class="nav-item mb-2">
+            <a href="{{ route('superadmin.dashboard') }}" 
+               class="nav-link text-white {{ request()->routeIs('superadmin.dashboard') ? 'active bg-primary' : '' }}">
+                <i class="bi bi-speedometer2 me-2"></i> Dashboard
+            </a>
+        </li>
+
+        <li class="nav-item mb-2">
+            <a href="{{ route('superadmin.notifications') }}" 
+               class="nav-link text-white d-flex justify-content-between align-items-center {{ request()->routeIs('superadmin.notifications') ? 'active bg-primary' : '' }}">
+                <span><i class="bi bi-bell me-2"></i> Notifications</span>
+                
+                @php $pendingCount = \App\Models\User::where('status', 'pending')->count(); @endphp
+                @if($pendingCount > 0)
+                    <span class="badge bg-danger rounded-pill">{{ $pendingCount }}</span>
+                @endif
+            </a>
+        </li>
+
+        <li class="nav-item mb-2">
+            <a href="{{ route('superadmin.history') }}" 
+               class="nav-link text-white {{ request()->routeIs('superadmin.history') ? 'active bg-primary' : '' }}">
+                <i class="bi bi-clock-history me-2"></i> History Log
+            </a>
+        </li>
+
+        <hr class="bg-secondary">
+
+        <li class="nav-item mb-2">
+            <a href="{{ route('admin.schools') }}" class="nav-link text-info">
+                <i class="bi bi-houses me-2"></i> Manage Schools
+            </a>
+        </li>
+        
+        <li class="nav-item mb-2">
+            <a href="{{ route('public.map') }}" class="nav-link text-warning">
+                <i class="bi bi-map me-2"></i> View Public Map
+            </a>
+        </li>
+    </ul>
+
+    <div class="mt-5">
+        <form action="{{ route('logout') }}" method="POST">
+            @csrf
+            <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </button>
+        </form>
+    </div>
+</div>

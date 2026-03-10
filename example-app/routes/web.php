@@ -2,27 +2,27 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
-use Illuminate\Foundation\Auth\EmailVerificationRequest;
-
 use App\Http\Controllers\CensusController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\RegisterController;
-use App\Http\Controllers\AuthController; // Ensure your custom AuthController is used
+use App\Http\Controllers\AuthController;
+use Illuminate\Support\Facades\Mail;
 
 /*
 |--------------------------------------------------------------------------
-| Public Routes
+| 1. Public Routes (No Login Required)
 |--------------------------------------------------------------------------
 */
-// Interactive Map is the Landing Page
-Route::get('/', [CensusController::class, 'showPublicMap'])->name('public.schools');
-// Individual School Profile View
-Route::get('/view-census/{id}', [CensusController::class, 'showPublic'])->name('public.view');
+// Interactive Map / Landing Page
+Route::get('/', [CensusController::class, 'showPublicMap'])->name('public.map');
+// School List and Details
+Route::get('/schools', [CensusController::class, 'showPublicList'])->name('public.schools');
+Route::get('/schools/{id}', [CensusController::class, 'showPublicDetail'])->name('public.view');
 
 /*
 |--------------------------------------------------------------------------
-| Authentication & Email Verification
+| 2. Authentication Routes
 |--------------------------------------------------------------------------
 */
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -32,59 +32,94 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 
-Route::get('/email/verify', function () {
-    return view('auth.verify-email');
-})->middleware('auth')->name('verification.notice');
+/*
+|--------------------------------------------------------------------------
+| 3. Email Verification (Custom)
+|--------------------------------------------------------------------------
+*/
+Route::middleware('auth')->group(function () {
+    Route::get('/email/verify', function () {
+        return view('auth.verify-email');
+    })->name('verification.notice');
 
-// 2. The Verification Action (Customized for Pending Admins)
-Route::get('/email/verify/{id}/{hash}', function ($id, $hash) {
-    $user = \App\Models\User::findOrFail($id);
+    Route::get('/email/verify/{id}/{hash}', function ($id, $hash) {
+        $user = \App\Models\User::findOrFail($id);
+        if (!hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+            abort(403, 'Invalid or expired verification link.');
+        }
+        if (!$user->hasVerifiedEmail()) {
+            $user->markEmailAsVerified();
+        }
+        return redirect('/login')->with('success', 'Email verified! Please wait for Super Admin approval.');
+    })->name('verification.verify');
 
-    // Verify the secure signature
-    if (! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
-        abort(403, 'Invalid or expired verification link.');
-    }
+    Route::post('/email/verification-notification', function (Request $request) {
+        $request->user()->sendEmailVerificationNotification();
+        return back()->with('resent', true);
+    })->middleware('throttle:6,1')->name('verification.send');
+});
 
-    // Mark email as verified if it hasn't been already
-    if (! $user->hasVerifiedEmail()) {
-        $user->markEmailAsVerified();
-    }
-
-    // Redirect to login with a clean success message
-    return redirect('/login')->with('success', 'Email successfully verified! You can log in once the Super Admin approves your account.');
+/*
+|--------------------------------------------------------------------------
+| 4. Shared Admin & Super Admin (School Management)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'verified', 'role:admin,super_admin'])->group(function () {
     
-})->middleware(['signed'])->name('verification.verify'); // Removed the 'auth' middleware
+    // Catch the base /admin URL and redirect based on role
+    Route::get('/admin', function () {
+        if (auth()->user()->isSuperAdmin()) {
+            return redirect()->route('superadmin.dashboard');
+        }
+        return redirect()->route('admin.schools');
+    })->name('admin.index');
 
-
-
-Route::post('/email/verification-notification', function (Request $request) {
-    $request->user()->sendEmailVerificationNotification();
-    return back()->with('resent', true);
-})->middleware(['auth', 'throttle:6,1'])->name('verification.send');
-
-// ==========================================
-// 3. ADMIN ROUTES (CRUD Operations)
-// Access: Both 'admin' and 'super_admin'
-// ==========================================
-Route::middleware(['auth', 'role:admin,super_admin'])->group(function () {
     Route::get('/admin/map', [CensusController::class, 'showMap'])->name('admin.map');
     
-    // School CRUD
-    Route::get('/admin/schools', [CensusController::class, 'manageSchools'])->name('admin.schools');
-    Route::get('/admin/schools/create', [CensusController::class, 'createSchool'])->name('schools.create');
-    Route::post('/admin/schools', [CensusController::class, 'storeSchool'])->name('schools.store');
-    Route::get('/admin/schools/{id}/edit', [CensusController::class, 'editSchool'])->name('schools.edit');
-    Route::put('/admin/schools/{id}', [CensusController::class, 'updateSchool'])->name('schools.update');
-    Route::delete('/admin/schools/{id}', [CensusController::class, 'destroySchool'])->name('schools.destroy');
+    // School Resource (Handles Create, Store, Edit, Update, Delete)
+    Route::resource('admin/schools', CensusController::class)->names([
+        'index'   => 'admin.schools',
+        'create'  => 'schools.create',
+        'store'   => 'schools.store',
+        'edit'    => 'schools.edit',
+        'update'  => 'schools.update',
+        'destroy' => 'schools.destroy',
+    ]);
+    
     Route::post('/admin/schools/check-duplicate', [CensusController::class, 'checkDuplicate'])->name('schools.check');
 });
 
-// ==========================================
-// 4. SUPER ADMIN ROUTES (System Control)
-// Access: ONLY 'super_admin'
-// ==========================================
-Route::middleware(['auth', 'role:super_admin'])->group(function () {
-    Route::get('/admin', [AdminController::class, 'index'])->name('admin.dashboard');
-    Route::post('/admin/approve/{id}', [AdminController::class, 'approve'])->name('admin.approve');
-    Route::post('/admin/reject/{id}', [AdminController::class, 'reject'])->name('admin.reject');
+/*
+|--------------------------------------------------------------------------
+| 5. Super Admin Only (Approvals, Notifications, History)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'verified', 'role:super_admin'])->group(function () {
+    // Dashboard & Control Panel
+    Route::get('/super-admin/dashboard', [SuperAdminController::class, 'dashboard'])->name('superadmin.dashboard');
+    
+    // Notifications & User Approvals
+    Route::get('/super-admin/notifications', [SuperAdminController::class, 'notifications'])->name('superadmin.notifications');
+    Route::post('/super-admin/approve/{id}', [SuperAdminController::class, 'approveUser'])->name('superadmin.approve');
+    Route::delete('/super-admin/reject/{id}', [SuperAdminController::class, 'rejectUser'])->name('superadmin.reject');
+    
+    // System History Log
+    Route::get('/super-admin/history', [SuperAdminController::class, 'history'])->name('superadmin.history');
+});
+
+/*
+|--------------------------------------------------------------------------
+| 6. Testing Route
+|--------------------------------------------------------------------------
+*/
+Route::get('/test-mail', function () {
+    try {
+        Mail::raw('Hi! This is a test email from DepEd Zamboanga.', function ($message) {
+            $message->to('pettyrequest@gmail.com') // Change this to your personal email
+                    ->subject('Gmail Connection Test');
+        });
+        return "Email sent successfully! Check your inbox.";
+    } catch (\Exception $e) {
+        return "Error: " . $e->getMessage();
+    }
 });

@@ -12,7 +12,6 @@ class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable;
 
-    // Added 'name' and 'email_verified_at'
     protected $fillable = [
         'name',
         'email',
@@ -32,20 +31,32 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'status' => 'integer',
+            // REMOVED 'integer' cast if you are using string statuses like 'pending'/'approved'
         ];
     }
 
-    public function isAdmin()
+    /**
+     * Role & Status Helpers
+     */
+    public function isSuperAdmin() 
     {
-        return in_array($this->role, ['admin', 'super_admin']);
+        return $this->role === 'super_admin';
     }
 
-    public function isApproved()
+    public function isAdmin() 
     {
-        return $this->status === 1;
+        return $this->role === 'admin';
     }
 
+    public function isApproved() 
+    {
+        // Must match exactly what is in your database 'status' column
+        return $this->status === 'approved';
+    }
+
+    /**
+     * Custom Email Verification
+     */
     public function sendEmailVerificationNotification()
     {
         $this->notify(new CustomVerifyEmail);
