@@ -43,7 +43,9 @@ public function confirmImport(Request $request)
 
 public function import(Request $request)
 {
-    $request->validate(['csv_file' => 'required|mimes:csv,txt|max:2048']);
+    $request->validate([
+        'csv_file' => 'required|mimes:csv,txt|max:2048'
+    ]);
 
     $file = $request->file('csv_file');
     $handle = fopen($file->getRealPath(), 'r');
@@ -53,7 +55,7 @@ public function import(Request $request)
     $newCount = 0;
     $updateCount = 0;
     $conflictCount = 0;
-    $nameMismatchCount = 0; // NEW: Initialize count
+    $nameMismatchCount = 0; // Track name-ID mismatches
     $seenIds = []; 
 
     while (($row = fgetcsv($handle, 1000, ",")) !== FALSE) {
@@ -61,23 +63,24 @@ public function import(Request $request)
             $currentId = (string)$row[0];
             $currentName = (string)($row[1] ?? 'N/A');
             
-            $existingById = \App\Models\School::where('school_id', $currentId)->first();
+            // 1. Check if the ID exists
+            $existingSchoolById = \App\Models\School::where('school_id', $currentId)->first();
             
-            // NEW: Check if this name is already used by a DIFFERENT ID
-            $existingByName = \App\Models\School::where('name', $currentName)
-                                ->where('school_id', '!=', $currentId)
-                                ->first();
+            // 2. Check if the Name exists under a DIFFERENT ID
+            $existingSchoolByName = \App\Models\School::where('name', $currentName)
+                                    ->where('school_id', '!=', $currentId)
+                                    ->first();
 
             if (isset($seenIds[$currentId])) {
                 $status = 'conflict';
                 $conflictCount++;
-            } elseif ($existingByName) {
-                // NEW: Logic for mismatch
+            } elseif ($existingSchoolByName) {
+                // This is the new notification state you requested
                 $status = 'name_mismatch'; 
                 $nameMismatchCount++;
             } else {
-                $status = $existingById ? 'update' : 'new';
-                $existingById ? $updateCount++ : $newCount++;
+                $status = $existingSchoolById ? 'update' : 'new';
+                $existingSchoolById ? $updateCount++ : $newCount++;
             }
 
             $seenIds[$currentId] = true;
@@ -92,12 +95,12 @@ public function import(Request $request)
                 'latitude'         => !empty($row[6]) ? (float)$row[6] : 6.9214,
                 'longitude'        => !empty($row[7]) ? (float)$row[7] : 122.0739,
                 'status'           => $status,
-                'exists_in_db'     => (bool)$existingById,
-                'mismatch_id'      => $existingByName ? $existingByName->school_id : null, // NEW: Capture the ID
-                'old_values'       => $existingById ? [
-                    'no_of_teachers'  => $existingById->no_of_teachers,
-                    'no_of_enrollees' => $existingById->no_of_enrollees,
-                    'name'            => $existingById->name,
+                'exists_in_db'     => (bool)$existingSchoolById,
+                'mismatch_id'      => $existingSchoolByName ? $existingSchoolByName->school_id : null,
+                'old_values'       => $existingSchoolById ? [
+                    'no_of_teachers'  => $existingSchoolById->no_of_teachers,
+                    'no_of_enrollees' => $existingSchoolById->no_of_enrollees,
+                    'name'            => $existingSchoolById->name,
                 ] : null,
             ];
         }
@@ -106,8 +109,14 @@ public function import(Request $request)
 
     session(['pending_import' => $formattedData]);
     
-    // Updated compact() to include nameMismatchCount
-    return view('admin.preview_import', compact('formattedData', 'newCount', 'updateCount', 'conflictCount', 'nameMismatchCount'));
+    // Pass nameMismatchCount to the view
+    return view('admin.preview_import', compact(
+        'formattedData', 
+        'newCount', 
+        'updateCount', 
+        'conflictCount', 
+        'nameMismatchCount'
+    ));
 }
 
 public function downloadSampleCSV(): StreamedResponse
