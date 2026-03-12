@@ -98,14 +98,14 @@ Route::middleware(['auth', 'verified', 'role:admin,super_admin'])->group(functio
     Route::get('/admin/map', [CensusController::class, 'showMap'])->name('admin.map');
     
     // School Resource (Handles Create, Store, Edit, Update, Delete)
-    Route::resource('admin/schools', CensusController::class)->names([
-        'index'   => 'admin.schools',
-        'create'  => 'schools.create',
-        'store'   => 'schools.store',
-        'edit'    => 'schools.edit',
-        'update'  => 'schools.update',
-        'destroy' => 'schools.destroy',
-    ]);
+    Route::resource('admin/schools', CensusController::class)->except(['create'])->names([
+    'index'   => 'admin.schools',
+    'store'   => 'schools.store',
+    'edit'    => 'schools.edit',
+    'update'  => 'schools.update',
+    'destroy' => 'schools.destroy',
+]);
+
     
     Route::post('/admin/schools/check-duplicate', [CensusController::class, 'checkDuplicate'])->name('schools.check');
 });
