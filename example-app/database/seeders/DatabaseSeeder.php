@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
-    public function run(): void
+   public function run(): void
     {
         // 1. Create the Master Super Admin Account
         User::create([
@@ -16,10 +16,8 @@ class DatabaseSeeder extends Seeder
             'email'             => 'superadmin@deped.gov.ph',
             'password'          => Hash::make('password123'),
             'role'              => 'super_admin',
-            'status'            => 1,
+            'status'            => 'approved', // Changed from 1 to 'approved'
             'email_verified_at' => now(),
         ]);
-        
-        // Removed the deped_planning call from here
     }
 }

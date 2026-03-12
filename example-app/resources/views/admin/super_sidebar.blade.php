@@ -1,7 +1,7 @@
 <div class="col-md-3 bg-dark min-vh-100 p-3 text-white shadow">
     <div class="text-center mb-4">
         <h4 class="fw-bold">Super Admin</h4>
-        <small class="text-muted">Control Panel</small>
+        <small class="text-muted">Master Control Panel</small>
     </div>
     <hr class="bg-secondary">
     
@@ -16,7 +16,7 @@
         <li class="nav-item mb-2">
             <a href="{{ route('superadmin.notifications') }}" 
                class="nav-link text-white d-flex justify-content-between align-items-center {{ request()->routeIs('superadmin.notifications') ? 'active bg-primary' : '' }}">
-                <span><i class="bi bi-bell me-2"></i> Notifications</span>
+                <span><i class="bi bi-person-lines-fill me-2"></i> Account Requests</span>
                 
                 @php $pendingCount = \App\Models\User::where('status', 'pending')->count(); @endphp
                 @if($pendingCount > 0)
@@ -28,21 +28,24 @@
         <li class="nav-item mb-2">
             <a href="{{ route('superadmin.history') }}" 
                class="nav-link text-white {{ request()->routeIs('superadmin.history') ? 'active bg-primary' : '' }}">
-                <i class="bi bi-clock-history me-2"></i> History Log
+                <i class="bi bi-clock-history me-2"></i> User History Log
             </a>
         </li>
 
         <hr class="bg-secondary">
+        <small class="text-uppercase text-muted fw-bold mb-2 d-block px-3">Data Management</small>
 
         <li class="nav-item mb-2">
-            <a href="{{ route('admin.schools') }}" class="nav-link text-info">
-                <i class="bi bi-houses me-2"></i> Manage Schools
+            <a href="{{ route('admin.schools') }}" 
+               class="nav-link text-white {{ request()->routeIs('admin.schools') ? 'active bg-primary' : '' }}">
+                <i class="bi bi-building me-2"></i> Manage Schools
             </a>
         </li>
         
         <li class="nav-item mb-2">
-            <a href="{{ route('public.map') }}" class="nav-link text-warning">
-                <i class="bi bi-map me-2"></i> View Public Map
+            <a href="{{ route('admin.map') }}" 
+               class="nav-link text-white {{ request()->routeIs('admin.map') ? 'active bg-primary' : '' }}">
+                <i class="bi bi-geo-alt-fill me-2"></i> Manage Maps
             </a>
         </li>
     </ul>
