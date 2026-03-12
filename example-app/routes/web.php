@@ -66,48 +66,40 @@ Route::middleware('auth')->group(function () {
 */
 Route::middleware(['auth', 'verified', 'role:admin,super_admin'])->group(function () {
     
-    // Catch the base /admin URL and redirect based on role
+    // Base Admin Gateway
     Route::get('/admin', function () {
         if (auth()->user()->isSuperAdmin()) {
             return redirect()->route('superadmin.dashboard');
         }
-        return redirect()->route('admin.schools');
+        return redirect()->route('admin.dashboard');
     })->name('admin.index');
 
-    // Dashboard & User Management (Managed by AdminController)
-    Route::get('/admin', [CensusController::class, 'manageSchools'])->name('admin.schools');
+    // Dashboard & Approvals (AdminController)
+    Route::get('/admin/dashboard', [CensusController::class, 'adminDashboard'])->name('admin.dashboard');
     Route::post('/admin/approve/{id}', [AdminController::class, 'approve'])->name('admin.approve');
     Route::post('/admin/reject/{id}', [AdminController::class, 'reject'])->name('admin.reject');
-    //Fordebuggings
-    // Add this to your admin/super_admin middleware group
+
+    // Logic Routes (Logical Order: Place specific paths BEFORE generic ones)
     Route::delete('/admin/schools/clear-all', [CensusController::class, 'clearAllSchools'])->name('schools.clear_all');
-    // School Registry Management (Managed by CensusController)
-    Route::get('/admin/schools', [CensusController::class, 'manageSchools'])->name('admin.schools');
-    Route::get('/admin/schools/create', [CensusController::class, 'createSchool'])->name('schools.create');
-    Route::post('/admin/schools', [CensusController::class, 'storeSchool'])->name('schools.store');
-    //For Import
     Route::get('/admin/schools/download-sample', [CensusController::class, 'downloadSampleCSV'])->name('schools.sample');
     Route::post('/admin/schools/import', [CensusController::class, 'import'])->name('schools.import');
     Route::post('/admin/schools/confirm-import', [CensusController::class, 'confirmImport'])->name('schools.confirm_import');
+    Route::post('/admin/schools/check-duplicate', [CensusController::class, 'checkDuplicate'])->name('schools.check');
 
+    // School Management (Standard CRUD - Manually defined to match your Controller names)
+    Route::get('/admin/schools', [CensusController::class, 'manageSchools'])->name('admin.schools');
+    Route::get('/admin/schools/create', [CensusController::class, 'createSchool'])->name('schools.create');
+    Route::post('/admin/schools', [CensusController::class, 'storeSchool'])->name('schools.store');
     Route::get('/admin/schools/{id}/edit', [CensusController::class, 'editSchool'])->name('schools.edit');
     Route::put('/admin/schools/{id}', [CensusController::class, 'updateSchool'])->name('schools.update');
     Route::delete('/admin/schools/{id}', [CensusController::class, 'destroySchool'])->name('schools.destroy');
 
     // Admin Tools
     Route::get('/admin/map', [CensusController::class, 'showMap'])->name('admin.map');
-    
-    // School Resource (Handles Create, Store, Edit, Update, Delete)
-    Route::resource('admin/schools', CensusController::class)->names([
-        'index'   => 'admin.schools',
-        'create'  => 'schools.create',
-        'store'   => 'schools.store',
-        'edit'    => 'schools.edit',
-        'update'  => 'schools.update',
-        'destroy' => 'schools.destroy',
-    ]);
-    
-    Route::post('/admin/schools/check-duplicate', [CensusController::class, 'checkDuplicate'])->name('schools.check');
+    Route::get('/admin/history', [CensusController::class, 'viewHistory'])->name('admin.history');
+    Route::get('/admin/schools/{id}/report', [CensusController::class, 'generateReport'])->name('schools.report');
+
+    // !!! IMPORTANT: REMOVE Route::resource('admin/schools', ...) line completely !!!
 });
 
 /*

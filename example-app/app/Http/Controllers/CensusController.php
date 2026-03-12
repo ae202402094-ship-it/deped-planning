@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\School;
 use App\Models\User;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use App\Models\ActivityLog;
 
 class CensusController extends Controller
 {
@@ -31,29 +32,30 @@ public function clearAllSchools()
 public function confirmImport(Request $request)
 {
     $data = session('pending_import');
-
     if (!$data) {
-        return redirect()->route('admin.schools')->with('error', 'No pending data found or session expired.');
+        return redirect()->route('admin.schools')->with('error', 'No pending data found.');
     }
 
-    foreach ($data as $row) {
-        // Explicitly cast values to ensure the DB recognizes them as numbers
-        School::updateOrCreate(
-            ['school_id' => (string)$row['school_id']], 
-            [
-                'name'             => (string)$row['name'],
-                'no_of_teachers'   => (int)$row['no_of_teachers'],
-                'no_of_enrollees'  => (int)$row['no_of_enrollees'],
-                'no_of_classrooms' => (int)$row['no_of_classrooms'],
-                'no_of_toilets'    => (int)$row['no_of_toilets'],
-                'latitude'         => (float)$row['latitude'],
-                'longitude'        => (float)$row['longitude'],
-            ]
-        );
-    }
+    // Wrap in a transaction to speed up DB operations and prevent session lockups
+    \DB::transaction(function () use ($data) {
+        foreach ($data as $row) {
+            School::updateOrCreate(
+                ['school_id' => (string)$row['school_id']], 
+                [
+                    'name'             => (string)$row['name'],
+                    'no_of_teachers'   => (int)$row['no_of_teachers'],
+                    'no_of_enrollees'  => (int)$row['no_of_enrollees'],
+                    'no_of_classrooms' => (int)$row['no_of_classrooms'],
+                    'no_of_toilets'    => (int)$row['no_of_toilets'],
+                    'latitude'         => (float)$row['latitude'],
+                    'longitude'        => (float)$row['longitude'],
+                ]
+            );
+        }
+    });
 
     session()->forget('pending_import');
-    return redirect()->route('admin.schools')->with('success', 'Registry successfully synchronized.');
+    return redirect()->route('admin.schools')->with('success', 'Registry synchronized.');
 }
 
 public function import(Request $request)
@@ -183,7 +185,7 @@ public function showPublicMap()
  * PUBLIC: Show the inventory details for a specific school.
  */
 // app/Http/Controllers/CensusController.php
-public function showPublic($id) // Change from (Request $request)
+public function showPublicDetail($id) // Change from (Request $request)
 {
     $school = School::findOrFail($id); // Laravel now passes the ID directly
     return view('user_view', compact('school'));
@@ -219,45 +221,100 @@ public function showPublic($id) // Change from (Request $request)
 public function manageSchools(Request $request) {
     $search = $request->input('search');
 
+    // Use paginate(50) to show 50 schools per page instead of get()
     $schools = School::when($search, function ($query, $search) {
         return $query->where('name', 'like', "%{$search}%")
                      ->orWhere('school_id', 'like', "%{$search}%");
-    })->get();
+    })->orderBy('name', 'asc')->paginate(50); 
 
     return view('admin.schools', compact('schools'));
 }
 
+public function generateReport($id)
+{
+    $school = School::findOrFail($id);
+    
+    // Calculate Ratios for the Report
+    $ratios = [
+        'teacher' => $school->no_of_teachers > 0 ? round($school->no_of_enrollees / $school->no_of_teachers) : 0,
+        'classroom' => $school->no_of_classrooms > 0 ? round($school->no_of_enrollees / $school->no_of_classrooms) : 0,
+    ];
+
+    return view('admin.school_report', compact('school', 'ratios'));
+}
+
+public function viewHistory(Request $request)
+{
+    $query = ActivityLog::with('user')->latest();
+
+    // Omni-Search Logic (Admin, School, Action)
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function($q) use ($search) {
+            $q->where('target_name', 'LIKE', "%{$search}%")
+              ->orWhere('action', 'LIKE', "%{$search}%")
+              ->orWhereHas('user', function($u) use ($search) {
+                  $u->where('name', 'LIKE', "%{$search}%");
+              });
+        });
+    }
+
+    // Date Range Logic
+    if ($request->filled('from_date')) {
+        $query->whereDate('created_at', '>=', $request->from_date);
+    }
+
+    if ($request->filled('to_date')) {
+        $query->whereDate('created_at', '<=', $request->to_date);
+    }
+
+    $logs = $query->paginate(30)->withQueryString();
+
+    return view('admin.history', compact('logs'));
+}
 /**
  * ADMIN: Show the dedicated edit page for a specific school.
  */
-public function editSchool($id) // Change from 'edit' to 'editSchool'
-{
-    $school = School::findOrFail($id);
-    return view('admin.edit_school', compact('school'));
-}
-
-    // app/Http/Controllers/CensusController.php
-
-// app/Http/Controllers/CensusController.php
-
 public function updateSchool(Request $request, $id)
 {
-    $validated = $request->validate([
-        'school_id' => 'required|string|unique:schools,school_id,' . $id,
-        'name' => 'required|string|max:255|unique:schools,name,' . $id,
-        'no_of_teachers' => 'required|integer|min:0',
-        'no_of_enrollees' => 'required|integer|min:0',
-        'no_of_classrooms' => 'required|integer|min:0',
-        'no_of_toilets' => 'required|integer|min:0',
-        // Added range validation to prevent Map crashes
-        'latitude' => 'nullable|numeric|between:-90,90',
-        'longitude' => 'nullable|numeric|between:-180,180',
+    $school = School::findOrFail($id);
+
+    // 1. Capture "Before" data including coordinates
+    $oldData = $school->only([
+        'name', 'school_id', 'no_of_teachers', 
+        'no_of_enrollees', 'no_of_classrooms', 'no_of_toilets',
+        'latitude', 'longitude' // Added coordinates here
     ]);
 
-    $school = School::findOrFail($id);
+    $validated = $request->validate([
+        'school_id' => 'required|string',
+        'name' => 'required|string',
+        'no_of_teachers' => 'required|integer',
+        'no_of_enrollees' => 'required|integer',
+        'no_of_classrooms' => 'required|integer',
+        'no_of_toilets' => 'required|integer',
+        'latitude' => 'required',
+        'longitude' => 'required',
+    ]);
+
     $school->update($validated);
 
-    return redirect()->route('admin.schools')->with('success', 'Registry updated successfully.');
+    // 2. Save the Log Entry with the new coordinates
+    ActivityLog::create([
+        'user_id' => auth()->id(),
+        'action' => 'Updated School Profile',
+        'target_name' => $school->name,
+        'changes' => [
+            'before' => $oldData,
+            'after' => $request->only([
+                'name', 'school_id', 'no_of_teachers', 
+                'no_of_enrollees', 'no_of_classrooms', 'no_of_toilets',
+                'latitude', 'longitude' // Added coordinates here
+            ])
+        ]
+    ]);
+
+    return redirect()->route('schools.edit', $id)->with('success', 'Registry synchronized.');
 }
 
 public function checkDuplicate(Request $request)
@@ -326,6 +383,17 @@ public function storeSchool(Request $request)
     }
 }
 
+/**
+ * ADMIN: Show the dedicated edit page for a specific school.
+ */
+public function editSchool($id)
+{
+    // Find the school record or fail with a 404 error if not found
+    $school = \App\Models\School::findOrFail($id);
+    
+    // Return the edit view with the school data
+    return view('admin.edit_school', compact('school'));
+}
 
     /**
      * ADMIN: Manage individual school quantities.
