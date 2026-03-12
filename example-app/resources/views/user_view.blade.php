@@ -2,28 +2,39 @@
 
 @section('content')
 @php
-    // Calculate Ratios
-    $teacherRatio = $school->no_of_teachers > 0 ? round($school->no_of_enrollees / $school->no_of_teachers) : 0;
-    $classroomRatio = $school->no_of_classrooms > 0 ? round($school->no_of_enrollees / $school->no_of_classrooms) : 0;
+    // 1. Core Ratio Calculations
+    $teacherLearnerRatio = $school->no_of_teachers > 0 
+        ? "1 : " . round($school->no_of_enrollees / $school->no_of_teachers) 
+        : "0 : 0";
+
+    $classroomLearnerRatio = $school->no_of_classrooms > 0 
+        ? "1 : " . round($school->no_of_enrollees / $school->no_of_classrooms) 
+        : "0 : 0";
+
+    // 2. Raw Number for Status Logic
+    $rawClassroomRatio = $school->no_of_classrooms > 0 
+        ? round($school->no_of_enrollees / $school->no_of_classrooms) 
+        : 0;
 @endphp
 
 <div class="max-w-6xl mx-auto px-6">
     {{-- Navigation --}}
     <div class="mb-8">
-        <a href="{{ route('public.schools') }}" class="group inline-flex items-center gap-3 text-slate-400 hover:text-red-800 transition-all">
+        <a href="{{ route('public.map') }}" class="group inline-flex items-center gap-3 text-slate-400 hover:text-red-800 transition-all">
             <div class="p-2 rounded-full group-hover:bg-red-50 transition-colors">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
             </div>
             <span class="text-[10px] font-black uppercase tracking-[0.2em]">Return to Interactive Map</span>
         </a>
     </div>
 
     {{-- Main Profile Card --}}
-    <div class="bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-slate-200">
+    <div class="bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-slate-200 mb-12">
         
         {{-- Header Banner --}}
         <div style="background-color: #a52a2a;" class="p-12 text-white text-center relative overflow-hidden">
-            {{-- Subtle Background Pattern --}}
             <div class="absolute inset-0 opacity-10 pointer-events-none">
                 <svg width="100%" height="100%"><rect width="100%" height="100%" fill="url(#grid)"/><defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="1"/></pattern></defs></svg>
             </div>
@@ -41,7 +52,7 @@
         </div>
 
         {{-- Primary Metrics Grid --}}
-        <div class="p-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+        <div class="p-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 border-b border-slate-100">
             @php
                 $metrics = [
                     ['label' => 'Teachers', 'value' => $school->no_of_teachers, 'icon' => 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z'],
@@ -64,46 +75,24 @@
             @endforeach
         </div>
 
-        {{-- Analytical Insights (Ratios) --}}
-        <div class="bg-slate-50 p-10 grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-slate-100">
-            
-            {{-- Student-Teacher Card --}}
-            <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-200 flex items-center justify-between">
-                <div class="flex items-center gap-5">
-                    <div class="h-14 w-2 {{ $teacherRatio > 45 ? 'bg-red-600' : 'bg-green-500' }} rounded-full shadow-lg"></div>
-                    <div>
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Student-Teacher Ratio</p>
-                        <p class="text-4xl font-black text-slate-800">1:{{ $teacherRatio }}</p>
-                    </div>
+        {{-- Capacity & Ratio Analytics --}}
+        <div class="p-12 space-y-8 bg-slate-50/50">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Teacher : Learner Ratio</p>
+                    <p class="text-3xl font-black text-slate-800">{{ $teacherLearnerRatio }}</p>
+                    <p class="mt-2 text-[9px] font-bold text-slate-400 uppercase italic">Institutional Staffing Metric</p>
                 </div>
-                <div class="text-right hidden sm:block">
-                    <span class="text-[9px] font-black uppercase {{ $teacherRatio > 45 ? 'text-red-600' : 'text-green-600' }}">
-                        {{ $teacherRatio > 45 ? 'Critical Density' : 'Ideal Capacity' }}
-                    </span>
+
+                <div class="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Classroom : Learner Ratio</p>
+                    <p class="text-3xl font-black text-slate-800">{{ $classroomLearnerRatio }}</p>
+                    <p class="mt-2 text-[9px] font-bold text-slate-400 uppercase italic">Physical Infrastructure Metric</p>
                 </div>
             </div>
-
-            {{-- Student-Classroom Card --}}
-            <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-200 flex items-center justify-between">
-                <div class="flex items-center gap-5">
-                    <div class="h-14 w-2 {{ $classroomRatio > 40 ? 'bg-red-600' : 'bg-green-500' }} rounded-full shadow-lg"></div>
-                    <div>
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Student-Classroom Ratio</p>
-                        <p class="text-4xl font-black text-slate-800">1:{{ $classroomRatio }}</p>
-                    </div>
-                </div>
-                <div class="text-right hidden sm:block">
-                    <span class="text-[9px] font-black uppercase {{ $classroomRatio > 40 ? 'text-red-600' : 'text-green-600' }}">
-                        {{ $classroomRatio > 40 ? 'Overcrowded' : 'Standard' }}
-                    </span>
-                </div>
-            </div>
-
-        </div>
-    </div>
 
     {{-- Footer Branding --}}
-    <div class="mt-12 text-center pb-20">
+    <div class="text-center pb-20">
         <p class="text-[9px] font-black text-slate-300 uppercase tracking-[0.5em]">Division of Zamboanga City Data Analytics</p>
     </div>
 </div>

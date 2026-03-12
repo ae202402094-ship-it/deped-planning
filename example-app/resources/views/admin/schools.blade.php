@@ -1,137 +1,160 @@
 @extends('layouts.admin')
 
 @section('content')
+
+{{-- 00. OFFICIAL PRINT HEADER (Only visible on paper) --}}
+<div class="hidden print:block mb-10 border-b-4 border-double border-slate-900 pb-6 text-center">
+    <div class="flex flex-col items-center">
+        <h1 class="text-2xl font-black uppercase tracking-widest">Republic of the Philippines</h1>
+        <h2 class="text-3xl font-black uppercase tracking-tighter text-red-900">Department of Education</h2>
+        <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500 mt-1">Division of Zamboanga City | Information Systems Office</p>
+    </div>
+    <div class="mt-6 flex justify-between items-end text-[9px] font-mono text-slate-400 uppercase">
+        <div>
+            <p>Document: Institutional Registry Summary</p>
+            <p>Total Records: {{ $schools->total() }}</p>
+        </div>
+        <div class="text-right">
+            <p>Generated: {{ now()->format('M d, Y | H:i') }}</p>
+            <p>Ref ID: REG-{{ strtoupper(Str::random(8)) }}</p>
+        </div>
+    </div>
+</div>
+
 <div class="max-w-7xl mx-auto px-4">
+    {{-- 01. NAVIGATION & SEARCH --}}
     <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
         <div>
-            <h2 class="text-2xl font-black text-slate-800 uppercase tracking-tight">School Management</h2>
-            <p class="text-xs text-slate-500 font-bold uppercase tracking-widest">Division of Zamboanga City</p>
+            <h2 class="text-2xl font-black text-slate-800 uppercase tracking-tight">School Registry</h2>
+            <p class="text-xs text-slate-500 font-bold uppercase tracking-widest italic">Institutional Management Interface</p>
         </div>
 
-        <div class="flex gap-4 items-center">
-            {{-- NEW: Link to the separate registration page --}}
-            <a href="{{ route('schools.create') }}" style="background-color: #a52a2a;" class="text-white px-6 py-3 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-red-900 transition shadow-lg">
-                + Click Here To Register A Single School
+        <div class="flex flex-wrap gap-4 items-center no-print">
+            {{-- Print Trigger --}}
+            <button onclick="window.print()" class="bg-slate-100 text-slate-800 px-6 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-slate-200 transition shadow-sm flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                </svg>
+                Print Registry
+            </button>
+
+            {{-- Create Button --}}
+            <a href="{{ route('schools.create') }}" class="bg-red-800 text-white px-6 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition shadow-lg">
+                + Register School
             </a>
-            {{-- NEW: Debug Purge Button --}}
-    <form action="{{ route('schools.clear_all') }}" method="POST" onsubmit="return confirm('WARNING: This will delete EVERY school in the database. Proceed with Wipe Protocol?');">
-        @csrf
-        @method('DELETE')
-        <button type="submit" class="bg-white border-2 border-red-200 text-red-400 px-6 py-3 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-red-800 hover:text-white hover:border-red-800 transition shadow-sm">
-            ⚠ Purge Registry
-        </button>
-    </form>
             
+            {{-- Search Bar --}}
             <form action="{{ route('admin.schools') }}" method="GET" class="flex gap-2">
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search ID/Name..." 
-                       class="w-64 border border-slate-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-red-500 outline-none shadow-sm">
-                <button type="submit" class="bg-slate-800 text-white px-4 py-2 rounded-xl font-bold uppercase text-[10px] tracking-widest">
-                    Find
-                </button>
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search ID or Name..." 
+                       class="w-64 border border-slate-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-red-500 outline-none shadow-sm text-sm font-medium">
+                <button type="submit" class="bg-slate-800 text-white px-4 py-2 rounded-xl font-bold uppercase text-[10px] tracking-widest">Find</button>
             </form>
         </div>
     </div>
-{{-- resources/views/admin/schools.blade.php --}}
 
-{{-- Enhanced Bulk Registry Synchronization UI --}}
-<div class="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-xl shadow-slate-200/50 mb-12 overflow-hidden relative">
-    {{-- Decorative Background Element --}}
-    <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-slate-50 rounded-full opacity-50"></div>
-
-    <div class="relative flex flex-col lg:flex-row items-center justify-between gap-8">
-        <div class="max-w-md">
-            <div class="flex items-center gap-3 mb-3">
-                <div class="w-1.5 h-6 bg-red-800 rounded-full"></div>
-                <h3 class="text-[11px] font-black text-slate-800 uppercase tracking-[0.4em]">Bulk Registry Sync</h3>
+    {{-- 02. BULK REGISTRY SYNC (CSVs) --}}
+    <div class="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-xl shadow-slate-200/50 mb-12 relative overflow-hidden no-print">
+        <div class="relative flex flex-col lg:flex-row items-center justify-between gap-8">
+            <div class="max-w-md">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-1.5 h-6 bg-red-800 rounded-full"></div>
+                    <h3 class="text-[11px] font-black text-slate-800 uppercase tracking-[0.4em]">Bulk Registry Sync</h3>
+                </div>
+                <p class="text-sm text-slate-500 font-medium mb-4">
+                    Automate updates by uploading a structured dataset. 
+                    <span class="block mt-2">
+                        <a href="{{ route('schools.sample') }}" class="text-red-800 font-bold text-xs uppercase tracking-widest border-b-2 border-red-200 hover:border-red-800 transition-all">
+                            Download Master Template
+                        </a>
+                    </span>
+                </p>
             </div>
-            <p class="text-sm text-slate-500 font-medium leading-relaxed mb-4">
-                Automate your institutional updates by uploading a structured dataset. 
-                <span class="block mt-2">
-                    <a href="{{ route('schools.sample') }}" class="inline-flex items-center gap-2 text-red-800 font-bold text-xs uppercase tracking-widest group">
-                        <span class="border-b-2 border-red-200 group-hover:border-red-800 transition-all">Download Master Template</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v12m0 0l-4-4m4 4l4-4M8 20h8" />
-                        </svg>
-                    </a>
-                </span>
-            </p>
+            
+            <form action="{{ route('schools.import') }}" method="POST" enctype="multipart/form-data" class="w-full lg:w-auto">
+                @csrf
+                <div class="flex flex-col sm:flex-row items-stretch gap-4">
+                    <div class="relative flex-1 group">
+                        <input type="file" name="csv_file" accept=".csv" required 
+                               onchange="document.getElementById('fileNameDisplay').innerText = this.files[0].name"
+                               class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                        <div class="bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl px-6 py-4 flex items-center gap-4 group-hover:border-red-300 transition-all">
+                            <div class="text-left">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Select File</p>
+                                <p id="fileNameDisplay" class="text-xs font-bold text-slate-600 truncate max-w-[150px]">Choose CSV...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="px-8 py-4 bg-slate-900 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-red-800 transition-all">
+                        Execute Protocol
+                    </button>
+                </div>
+            </form>
         </div>
-        
-        <form action="{{ route('schools.import') }}" method="POST" enctype="multipart/form-data" class="w-full lg:w-auto">
-            @csrf
-            <div class="flex flex-col sm:flex-row items-stretch gap-4">
-                {{-- Custom Styled File Input Area --}}
-                <div class="relative flex-1 group">
-                    <input type="file" name="csv_file" accept=".csv" required 
-                           class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
-                    <div class="bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl px-6 py-4 flex items-center gap-4 group-hover:border-red-300 group-hover:bg-white transition-all">
-                        <div class="p-2 bg-white rounded-xl shadow-sm group-hover:scale-110 transition-transform">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400 group-hover:text-red-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                        </div>
-                        <div class="text-left">
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Select File</p>
-                            <p id="fileNameDisplay" class="text-xs font-bold text-slate-600 truncate max-w-[150px]">Choose CSV...</p>
-                        </div>
-                    </div>
-                </div>
+    </div>
 
-                {{-- Submit Action --}}
-                <button type="submit" 
-                        class="px-8 py-4 bg-slate-900 text-white rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] hover:bg-red-800 hover:shadow-lg hover:shadow-red-900/20 active:scale-95 transition-all flex items-center justify-center gap-3">
-                    Execute Protocol
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                </button>
+    {{-- 03. MAIN DATA TABLE --}}
+    <div class="bg-white rounded-[2rem] border border-slate-200 shadow-xl overflow-hidden print:border-slate-900">
+        <table class="w-full text-left border-collapse">
+            <thead class="bg-slate-50 border-b border-slate-200 print:bg-transparent">
+                <tr class="text-[10px] font-black text-slate-400 uppercase tracking-widest print:text-black">
+                    <th class="p-5 border-r border-slate-200">School ID</th>
+                    <th class="p-5 border-r border-slate-200">Institutional Name</th>
+                    <th class="p-5 border-r border-slate-200 text-center">Teachers</th>
+                    <th class="p-5 border-r border-slate-200 text-center">Enrollees</th>
+                    <th class="p-5 text-center no-print">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="text-sm">
+                @forelse($schools as $school)
+                    <tr class="border-b border-slate-100 hover:bg-red-50/30 transition-colors group">
+                        <td class="p-5 border-r border-slate-100 font-mono font-bold text-slate-500 print:text-black">{{ $school->school_id }}</td>
+                        <td class="p-5 border-r border-slate-100 font-black text-slate-800 uppercase tracking-tight">
+                            {{ $school->name }}
+                        </td>
+                        <td class="p-5 border-r border-slate-100 text-center font-bold tabular-nums">
+                            {{ number_format($school->no_of_teachers) }}
+                        </td>
+                        <td class="p-5 border-r border-slate-100 text-center font-bold tabular-nums">
+                            {{ number_format($school->no_of_enrollees) }}
+                        </td>
+                        <td class="p-5 text-center no-print">
+                            <a href="{{ route('schools.edit', $school->id) }}" class="inline-flex items-center gap-2 text-[10px] font-black text-red-800 uppercase tracking-widest hover:text-black transition-colors">
+                                Edit Profile →
+                            </a>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="5" class="p-20 text-center text-slate-400 uppercase font-black tracking-widest text-xs">
+                            No Institutional Records Found
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+
+        {{-- Pagination --}}
+        @if($schools->hasPages())
+            <div class="p-6 bg-slate-50 border-t border-slate-200 no-print">
+                {{ $schools->links() }}
             </div>
-        </form>
+        @endif
     </div>
-</div>
-    {{-- SCHOOLS GRID --}}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        @foreach($schools as $school)
-            <a href="{{ route('schools.edit', $school->id) }}" class="group bg-white rounded-[2rem] shadow-sm hover:shadow-2xl transition-all border border-slate-200 overflow-hidden flex flex-col">
-                <div class="p-8">
-                    <div class="flex justify-between items-start mb-6">
-                        <span class="bg-slate-100 text-slate-500 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">ID: {{ $school->school_id }}</span>
-                        <span class="text-red-700 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-black uppercase tracking-widest">Edit Profile →</span>
-                    </div>
-                    <h3 class="text-xl font-black text-slate-800 uppercase leading-tight mb-6 group-hover:text-red-800 transition-colors">{{ $school->name }}</h3>
-                </div>
-                <div class="mt-auto bg-slate-50 p-4 text-center border-t border-slate-100 group-hover:bg-red-50 transition-colors">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] group-hover:text-red-700">Open Official Census Data</span>
-                </div>
-            </a>
-        @endforeach
-    </div>
-</div>
 
-{{-- Shared Map Modal --}}
-@include('admin.partials.map_modal')
-<script>
-    document.querySelector('input[name="csv_file"]').addEventListener('change', function(e) {
-        const fileName = e.target.files[0] ? e.target.files[0].name : "Choose CSV...";
-        const display = document.getElementById('fileNameDisplay');
+    {{-- 04. EMERGENCY CONTROLS --}}
+    <div class="mt-12 flex flex-col items-center gap-4 no-print">
+        <form action="{{ route('schools.clear_all') }}" method="POST" onsubmit="return confirm('CRITICAL WARNING: This will wipe the entire registry. Proceed?');">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="text-[9px] font-bold text-slate-300 uppercase tracking-[0.2em] hover:text-red-800 transition-colors">
+                ⚠ Emergency Wipe Protocol
+            </button>
+        </form>
         
-        // Update the text to the filename
-        display.innerText = fileName;
-        
-        // Optional: Change the color to red-800 to show it's ready
-        display.classList.remove('text-slate-600');
-        display.classList.add('text-red-800');
-        document.querySelector('form[action*="import"]').addEventListener('submit', function() {
-    const btn = this.querySelector('button[type="submit"]');
-    btn.innerHTML = `
-        <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        Processing...
-    `;
-    btn.classList.add('opacity-50', 'cursor-not-allowed');
-});
-    });
-</script>
+        <p class="text-[9px] font-black text-slate-200 uppercase tracking-[0.5em] mt-4">
+            Division of Zamboanga City Data Systems
+        </p>
+    </div>
+</div>
 @endsection
