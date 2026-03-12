@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Models\School; // Make sure to import School model
+use App\Models\School; 
 use Illuminate\Http\Request;
 use App\Notifications\AccountApproved;
 
@@ -12,15 +12,53 @@ class SuperAdminController extends Controller
     /**
      * Super Admin Dashboard Overview
      */
-    public function dashboard()
+  public function dashboard(Request $request)
     {
+        // Start a query builder for Users
+        $query = User::query();
+
+        // 1. Search by Name or Email
+        if ($request->filled('search')) {
+            $query->where(function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search . '%')
+                  ->orWhere('email', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        // 2. Filter by Role
+        if ($request->filled('role')) {
+            $query->where('role', $request->role);
+        }
+
+        // 3. Filter by Status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
         return view('admin.super_dashboard', [
             'totalUsers'   => User::count(),
             'pendingCount' => User::where('status', 'pending')->count(),
             'adminCount'   => User::where('role', 'admin')->count(),
-            'recentUsers'  => User::latest()->take(5)->get(),
-            'totalSchools' => School::count(), // Add total schools to dashboard
+            'totalSchools' => School::count(), 
+            // We replaced recentUsers with paginated $users so the search bar works!
+            'users'        => $query->latest()->paginate(10)->withQueryString(), 
         ]);
+    }
+
+    /**
+     * Update User Role & Status from Dashboard
+     */
+    public function updateUser(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+        
+        // Update the user's data
+        $user->update([
+            'role'   => $request->role,
+            'status' => $request->status,
+        ]);
+
+        return back()->with('success', "{$user->name}'s account has been successfully updated.");
     }
 
     /**
