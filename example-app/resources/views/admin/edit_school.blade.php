@@ -188,11 +188,15 @@
                 </button>
 
                 <div class="mt-20 pt-10 border-t border-slate-100 text-center">
-                    <button type="button" onclick="openDeleteModal()" 
-                            class="px-10 py-3 border border-red-200 text-red-800 rounded-2xl font-black uppercase text-[9px] tracking-widest hover:bg-red-800 hover:text-white transition-all">
-                        Decommission Record
-                    </button>
-                </div>
+    <form action="{{ route('schools.destroy', $school->id) }}" method="POST" onsubmit="return confirm('CRITICAL WARNING: Are you sure you want to decommission this school? This action cannot be undone.');">
+        @csrf
+        @method('DELETE')
+        <button type="submit" 
+                class="px-10 py-3 border border-red-200 text-red-800 rounded-2xl font-black uppercase text-[9px] tracking-widest hover:bg-red-800 hover:text-white transition-all">
+            Decommission Record
+        </button>
+    </form>
+</div>
             </div>
         </div>
     </form>
