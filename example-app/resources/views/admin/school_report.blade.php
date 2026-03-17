@@ -89,7 +89,7 @@
             <p class="text-[8px] font-mono text-slate-400 italic">Verify at: depedzambo.ph/verify</p>
         </div>
         <div class="text-center border-t border-slate-900 pt-2 px-12">
-            <p class="text-xs font-black uppercase">Admin Rivera</p>
+            <p class="text-xs font-black uppercase">Admin Officer</p>
             <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Division Planning Officer</p>
         </div>
     </div>

@@ -85,7 +85,7 @@
         <nav class="mt-4 flex-grow">
             <a href="{{ route('admin.schools') }}" class="block px-6 py-3 hover:bg-slate-700 transition">Manage Schools</a>
             <a href="{{ route('admin.map') }}" class="block px-6 py-3 hover:bg-slate-700 transition text-slate-400">View School Map</a>
-            <a href="{{ route('admin.history') }}" class="block px-6 py-3 hover:bg-slate-700 transition text-slate-400">View Admin History</a>
+            <a href="{{ route('admin.history') }}" class="block px-6 py-3 hover:bg-slate-700 transition text-slate-400">View History</a>
         </nav>
 
         <div class="mt-auto border-t border-slate-700">

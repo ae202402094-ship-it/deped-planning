@@ -245,9 +245,10 @@ public function generateReport($id)
 
 public function viewHistory(Request $request)
 {
+    // Ensure we are using the detailed ActivityLog model
     $query = ActivityLog::with('user')->latest();
 
-    // Omni-Search Logic (Admin, School, Action)
+    // Omni-Search Logic
     if ($request->filled('search')) {
         $search = $request->search;
         $query->where(function($q) use ($search) {
@@ -259,16 +260,15 @@ public function viewHistory(Request $request)
         });
     }
 
-    // Date Range Logic
+    // Date Range Protocol
     if ($request->filled('from_date')) {
         $query->whereDate('created_at', '>=', $request->from_date);
     }
-
     if ($request->filled('to_date')) {
         $query->whereDate('created_at', '<=', $request->to_date);
     }
 
-    $logs = $query->paginate(30)->withQueryString();
+    $logs = $query->paginate(40)->withQueryString();
 
     return view('admin.history', compact('logs'));
 }
