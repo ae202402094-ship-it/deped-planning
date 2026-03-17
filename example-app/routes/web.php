@@ -2,11 +2,16 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
-use App\Http\Controllers\CensusController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\SchoolImportController;
+use App\Http\Controllers\MapController;
+use App\Http\Controllers\PublicSchoolController;
+use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\SchoolCrudController;
+use App\Http\Controllers\SchoolReportController;
 use Illuminate\Support\Facades\Mail;
 
 /*
@@ -15,10 +20,11 @@ use Illuminate\Support\Facades\Mail;
 |--------------------------------------------------------------------------
 */
 // Interactive Map / Landing Page
-Route::get('/', [CensusController::class, 'showPublicMap'])->name('public.map');
+Route::get('/', [MapController::class, 'showPublicMap'])->name('public.map');
+
 // School List and Details
-Route::get('/schools', [CensusController::class, 'showPublicList'])->name('public.schools');
-Route::get('/schools/{id}', [CensusController::class, 'showPublicDetail'])->name('public.view');
+Route::get('/schools', [PublicSchoolController::class, 'listSchools'])->name('public.schools');
+Route::get('/schools/{id}', [PublicSchoolController::class, 'showPublicDetail'])->name('public.view');
 
 /*
 |--------------------------------------------------------------------------
@@ -74,32 +80,30 @@ Route::middleware(['auth', 'verified', 'role:admin,super_admin'])->group(functio
         return redirect()->route('admin.dashboard');
     })->name('admin.index');
 
-    // Dashboard & Approvals (AdminController)
-    Route::get('/admin/dashboard', [CensusController::class, 'adminDashboard'])->name('admin.dashboard');
+    // Dashboard & Approvals
+    Route::get('/admin/dashboard', [AdminDashboardController::class, 'adminDashboard'])->name('admin.dashboard');
     Route::post('/admin/approve/{id}', [AdminController::class, 'approve'])->name('admin.approve');
     Route::post('/admin/reject/{id}', [AdminController::class, 'reject'])->name('admin.reject');
 
-    // Logic Routes (Logical Order: Place specific paths BEFORE generic ones)
-    Route::delete('/admin/schools/clear-all', [CensusController::class, 'clearAllSchools'])->name('schools.clear_all');
-    Route::get('/admin/schools/download-sample', [CensusController::class, 'downloadSampleCSV'])->name('schools.sample');
-    Route::post('/admin/schools/import', [CensusController::class, 'import'])->name('schools.import');
-    Route::post('/admin/schools/confirm-import', [CensusController::class, 'confirmImport'])->name('schools.confirm_import');
-    Route::post('/admin/schools/check-duplicate', [CensusController::class, 'checkDuplicate'])->name('schools.check');
+    // Data Sync & Logic Routes
+    Route::delete('/admin/schools/clear-all', [SchoolImportController::class, 'clearAllSchools'])->name('schools.clear_all');
+    Route::get('/admin/schools/download-sample', [SchoolImportController::class, 'downloadSampleCSV'])->name('schools.sample');
+    Route::post('/admin/schools/import', [SchoolImportController::class, 'import'])->name('schools.import');
+    Route::post('/admin/schools/confirm-import', [SchoolImportController::class, 'confirmImport'])->name('schools.confirm_import');
+    Route::post('/admin/schools/check-duplicate', [SchoolCrudController::class, 'checkDuplicate'])->name('schools.check');
 
-    // School Management (Standard CRUD - Manually defined to match your Controller names)
-    Route::get('/admin/schools', [CensusController::class, 'manageSchools'])->name('admin.schools');
-    Route::get('/admin/schools/create', [CensusController::class, 'createSchool'])->name('schools.create');
-    Route::post('/admin/schools', [CensusController::class, 'storeSchool'])->name('schools.store');
-    Route::get('/admin/schools/{id}/edit', [CensusController::class, 'editSchool'])->name('schools.edit');
-    Route::put('/admin/schools/{id}', [CensusController::class, 'updateSchool'])->name('schools.update');
-    Route::delete('/admin/schools/{id}', [CensusController::class, 'destroySchool'])->name('schools.destroy');
+    // School Management CRUD
+    Route::get('/admin/schools', [SchoolCrudController::class, 'manageSchools'])->name('admin.schools');
+    Route::get('/admin/schools/create', [SchoolCrudController::class, 'createSchool'])->name('schools.create');
+    Route::post('/admin/schools', [SchoolCrudController::class, 'storeSchool'])->name('schools.store');
+    Route::get('/admin/schools/{id}/edit', [SchoolCrudController::class, 'editSchool'])->name('schools.edit');
+    Route::put('/admin/schools/{id}', [SchoolCrudController::class, 'updateSchool'])->name('schools.update');
+    Route::delete('/admin/schools/{id}', [SchoolCrudController::class, 'destroySchool'])->name('schools.destroy');
 
     // Admin Tools
-    Route::get('/admin/map', [CensusController::class, 'showMap'])->name('admin.map');
-    Route::get('/admin/history', [CensusController::class, 'viewHistory'])->name('admin.history');
-    Route::get('/admin/schools/{id}/report', [CensusController::class, 'generateReport'])->name('schools.report');
-
-    
+    Route::get('/admin/map', [MapController::class, 'showMap'])->name('admin.map');
+    Route::get('/admin/history', [SchoolReportController::class, 'viewHistory'])->name('admin.history');
+    Route::get('/admin/schools/{id}/report', [SchoolReportController::class, 'generateReport'])->name('schools.report');
 });
 
 /*
@@ -108,18 +112,12 @@ Route::middleware(['auth', 'verified', 'role:admin,super_admin'])->group(functio
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'verified', 'role:super_admin'])->group(function () {
-    // Dashboard & Control Panel
     Route::get('/super-admin/dashboard', [SuperAdminController::class, 'dashboard'])->name('superadmin.dashboard');
-    
-    // Notifications & User Approvals
     Route::get('/super-admin/notifications', [SuperAdminController::class, 'notifications'])->name('superadmin.notifications');
     Route::post('/super-admin/approve/{id}', [SuperAdminController::class, 'approveUser'])->name('superadmin.approve');
     Route::delete('/super-admin/reject/{id}', [SuperAdminController::class, 'rejectUser'])->name('superadmin.reject');
-    
-    // System History Log
     Route::get('/super-admin/history', [SuperAdminController::class, 'history'])->name('superadmin.history');
-    // Update User Route
-Route::put('/super-admin/users/{id}/update', [SuperAdminController::class, 'updateUser'])->name('superadmin.update_user');
+    Route::put('/super-admin/users/{id}/update', [SuperAdminController::class, 'updateUser'])->name('superadmin.update_user');
 });
 
 /*
@@ -130,7 +128,7 @@ Route::put('/super-admin/users/{id}/update', [SuperAdminController::class, 'upda
 Route::get('/test-mail', function () {
     try {
         Mail::raw('Hi! This is a test email from DepEd Zamboanga.', function ($message) {
-            $message->to('pettyrequest@gmail.com') // Change this to your personal email
+            $message->to('pettyrequest@gmail.com') 
                     ->subject('Gmail Connection Test');
         });
         return "Email sent successfully! Check your inbox.";
