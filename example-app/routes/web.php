@@ -118,6 +118,8 @@ Route::middleware(['auth', 'verified', 'role:super_admin'])->group(function () {
     
     // System History Log
     Route::get('/super-admin/history', [SuperAdminController::class, 'history'])->name('superadmin.history');
+    // Update User Route
+Route::put('/super-admin/users/{id}/update', [SuperAdminController::class, 'updateUser'])->name('superadmin.update_user');
 });
 
 /*
