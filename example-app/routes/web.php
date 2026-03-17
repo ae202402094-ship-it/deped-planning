@@ -99,7 +99,7 @@ Route::middleware(['auth', 'verified', 'role:admin,super_admin'])->group(functio
     Route::get('/admin/history', [CensusController::class, 'viewHistory'])->name('admin.history');
     Route::get('/admin/schools/{id}/report', [CensusController::class, 'generateReport'])->name('schools.report');
 
-    // !!! IMPORTANT: REMOVE Route::resource('admin/schools', ...) line completely !!!
+    
 });
 
 /*

@@ -9,8 +9,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // Add the role column. This is what your registration SQL is looking for.
-            $table->string('role')->default('user')->after('password'); 
+            // Check if the column exists before adding it
+            if (!Schema::hasColumn('users', 'role')) {
+                $table->string('role')->default('user')->after('password');
+            }
         });
     }
 

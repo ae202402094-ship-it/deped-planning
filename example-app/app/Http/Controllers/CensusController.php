@@ -245,8 +245,11 @@ public function generateReport($id)
 
 public function viewHistory(Request $request)
 {
-    // Ensure we are using the detailed ActivityLog model
-    $query = ActivityLog::with('user')->latest();
+    // FILTER: Only fetch logs where the user making the change has the 'admin' role.
+    // This hides all Super Admin actions from this page.
+    $query = ActivityLog::whereHas('user', function($q) {
+        $q->where('role', 'admin');
+    })->with('user')->latest();
 
     // Omni-Search Logic
     if ($request->filled('search')) {

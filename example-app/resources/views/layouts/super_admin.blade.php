@@ -10,10 +10,62 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 
-    <style>
+  <style>
         .modal-backdrop { z-index: 1040 !important; }
         .modal { z-index: 1050 !important; }
         a { text-decoration: none; }
+
+        /* --- STRICT PROFESSIONAL PRINT LEDGER --- */
+        @media print {
+        /* 1. Hide everything unnecessary */
+        nav, aside, header, .no-print, .pagination, button, form {
+            display: none !important;
+        }
+
+        /* 2. Reset Page & Body */
+        @page { size: A4 portrait; margin: 12mm; }
+        
+        body {
+            background: white !important;
+            font-family: 'Arial', sans-serif !important;
+            font-size: 10pt;
+            color: black !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        /* 3. THE TABLE GRID (The "Make it look like this" fix) */
+        table {
+            width: 100% !important;
+            border-collapse: collapse !important; /* Forces borders to join */
+            border: 1.5pt solid #000 !important; /* Heavy outer border */
+            margin-top: 10px;
+        }
+
+        th {
+            background-color: #f2f2f2 !important; /* Light gray header */
+            border: 1pt solid #000 !important; /* Black grid lines */
+            padding: 8pt !important;
+            text-transform: uppercase;
+            font-size: 9pt;
+            font-weight: bold;
+            -webkit-print-color-adjust: exact;
+        }
+
+        td {
+            border: 1pt solid #000 !important; /* Black grid lines */
+            padding: 6pt 8pt !important;
+            vertical-align: top !important;
+            word-wrap: break-word;
+        }
+
+        /* 4. Formatting inside the table cells */
+        .print-bold { font-weight: bold !important; }
+        .print-uppercase { text-transform: uppercase !important; }
+        
+        /* Ensure rows don't split mid-page awkwardly */
+        tr { page-break-inside: avoid !important; }
+    }
     </style>
 </head>
 <body class="bg-slate-50 flex flex-col h-screen overflow-hidden">

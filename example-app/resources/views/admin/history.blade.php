@@ -111,27 +111,74 @@
                     <td class="p-5 print:p-2 uppercase text-slate-800 print:text-[9px]">{{ $log->user->name }}</td>
                     <td class="p-5 print:p-2 uppercase text-slate-800 tracking-tighter print:text-[9px]">{{ $log->target_name }}</td>
                     <td class="p-5 print:p-2 text-right">
-                        {{-- SCREEN VIEW DROPDOWN --}}
+                       
+                    {{-- SCREEN VIEW DROPDOWN --}}
                         <details class="group cursor-pointer no-print">
                             <summary class="list-none text-[9px] font-black text-red-800 uppercase tracking-widest hover:text-black transition-colors">View Shift [+]</summary>
                             <div class="mt-2 p-3 bg-slate-50 rounded-xl text-left border border-slate-200">
-                                @include('admin.partials.history_print', ['changes' => $log->changes])
+                                <div class="text-[10px] text-slate-600 font-mono">
+                                    @if(isset($log->changes['before']))
+                                        {{-- Handle Before/After nested structure --}}
+                                        <ul class="list-none pl-0 space-y-1">
+                                            @foreach($log->changes['before'] as $key => $oldValue)
+                                                @php $newValue = $log->changes['after'][$key] ?? $oldValue; @endphp
+                                                @if((string)$oldValue !== (string)$newValue)
+                                                    <li>
+                                                        <span class="font-bold text-slate-800 uppercase">{{ str_replace('_', ' ', $key) }}:</span> 
+                                                        <span class="text-red-600 line-through">{{ is_array($oldValue) ? json_encode($oldValue) : ($oldValue ?: 'Empty') }}</span> 
+                                                        <span class="text-slate-400 mx-1">→</span> 
+                                                        <span class="text-green-600 font-bold">{{ is_array($newValue) ? json_encode($newValue) : ($newValue ?: 'Empty') }}</span>
+                                                    </li>
+                                                @endif
+                                            @endforeach
+                                        </ul>
+                                    @elseif(!empty($log->changes) && (is_array($log->changes) || is_object($log->changes)))
+                                        {{-- Handle Flat Array structure (like Super Admin actions) --}}
+                                        <ul class="list-none pl-0 space-y-1">
+                                            @foreach($log->changes as $key => $value)
+                                                @if(!is_array($value))
+                                                    <li>
+                                                        <span class="font-bold text-slate-800 uppercase">{{ str_replace('_', ' ', $key) }}:</span> 
+                                                        <span class="text-slate-700">{{ $value }}</span>
+                                                    </li>
+                                                @endif
+                                            @endforeach
+                                        </ul>
+                                    @else
+                                        <span class="italic text-slate-400">No specific data changes recorded.</span>
+                                    @endif
+                                </div>
                             </div>
                         </details>
 
-                        {{-- PRINT VIEW (Concise Delta Line) --}}
+                       {{-- PRINT VIEW (Concise Delta Line) --}}
                         <div class="hidden print:block text-[8px] text-right font-mono">
-                            @php $first = true; @endphp
-                            @foreach($log->changes['before'] as $key => $oldValue)
-                                @php $newValue = $log->changes['after'][$key] ?? $oldValue; @endphp
-                                @if((string)$oldValue !== (string)$newValue)
-                                    @if(!$first) | @endif
-                                    <span class="inline-block uppercase">
-                                        {{ str_replace('_', ' ', $key) }}: {{ $oldValue }} → {{ $newValue }}
-                                    </span>
-                                    @php $first = false; @endphp
-                                @endif
-                            @endforeach
+                            @if(isset($log->changes['before']))
+                                {{-- It has before/after format --}}
+                                @php $first = true; @endphp
+                                @foreach($log->changes['before'] as $key => $oldValue)
+                                    @php $newValue = $log->changes['after'][$key] ?? $oldValue; @endphp
+                                    @if((string)$oldValue !== (string)$newValue)
+                                        @if(!$first) | @endif
+                                        <span class="inline-block uppercase">
+                                            {{ str_replace('_', ' ', $key) }}: {{ $oldValue }} → {{ $newValue }}
+                                        </span>
+                                        @php $first = false; @endphp
+                                    @endif
+                                @endforeach
+                            @elseif(is_array($log->changes) || is_object($log->changes))
+                                {{-- It is a flat data format --}}
+                                @php $first = true; @endphp
+                                @foreach($log->changes as $key => $value)
+                                    @if(!is_array($value))
+                                        @if(!$first) | @endif
+                                        <span class="inline-block uppercase">
+                                            {{ str_replace('_', ' ', $key) }}: {{ $value }}
+                                        </span>
+                                        @php $first = false; @endphp
+                                    @endif
+                                @endforeach
+                            @endif
                         </div>
                     </td>
                 </tr>
