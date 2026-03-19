@@ -37,11 +37,18 @@
                 </svg>
                 Print Registry
             </button>
+            @if(auth()->user()->role === 'admin')
+        <a href="{{ route('schools.archive') }}" class="text-[10px] font-black text-slate-400 hover:text-red-800 transition-all uppercase tracking-widest px-4 py-3 flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+            </svg>
+            Institutional Archive
+        </a>
+    @endif
 
-            {{-- Create Button --}}
-            <a href="{{ route('schools.create') }}" class="bg-red-800 text-white px-6 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition shadow-lg">
-                + Register School
-            </a>
+    <a href="{{ route('schools.create') }}" class="bg-red-800 text-white px-6 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition shadow-lg">
+        + Register School
+    </a>
             
             {{-- Search Bar --}}
             <form action="{{ route('admin.schools') }}" method="GET" class="flex gap-2">

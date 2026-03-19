@@ -10,14 +10,17 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class SchoolImportController extends Controller
 {
     public function clearAllSchools()
-    {
-        try {
-            School::truncate(); 
-            return redirect()->route('admin.schools')->with('success', 'DEBUG: School registry has been completely wiped.');
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'System Error: Wipe protocol failed.');
-        }
+{
+    try {
+        // Warning: truncate() bypasses Eloquent and deletes all rows permanently.
+        // To support soft deletes here, use:
+        School::query()->delete(); 
+        
+        return redirect()->route('admin.schools')->with('success', 'School registry has been soft-deleted.');
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', 'System Error: Wipe protocol failed.');
     }
+}   
 
     public function import(Request $request)
     {

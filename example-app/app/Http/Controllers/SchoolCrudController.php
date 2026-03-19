@@ -100,12 +100,54 @@ class SchoolCrudController extends Controller
             $school->delete();
 
             return redirect()
-                ->route('admin.schools')
-                ->with('success', "Protocol Complete: {$name} has been purged from the registry.");
+            ->route('admin.schools')
+            ->with('success', "Protocol Complete: {$name} has been moved to the archives.");
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'System Error: Deletion protocol failed.');
         }
     }
+
+public function restoreSchool($id)
+{
+    $school = School::onlyTrashed()->findOrFail($id);
+    $school->restore();
+
+    return redirect()->route('schools.archive')->with('success', "Protocol Reversal: {$school->name} has been reinstated.");
+}
+
+public function forceDeleteSchool($id)
+{
+    $school = School::onlyTrashed()->findOrFail($id);
+    $name = $school->name;
+    $school->forceDelete();
+
+    return redirect()->route('schools.archive')->with('success', "CRITICAL: {$name} has been permanently purged from the database.");
+}
+
+public function archivedSchools(Request $request) 
+{
+    // 1. Strict Authorization Check
+    // This ensures only users with the exact 'admin' role can proceed.
+    if (auth()->user()->role !== 'admin') {
+        abort(403, 'ACCESS DENIED: Institutional Archives are restricted to Admin personnel only.');
+    }
+
+    $search = $request->input('search');
+
+    // 2. Fetching Trashed Records
+    // onlyTrashed() specifically targets records where deleted_at is NOT NULL.
+    $schools = School::onlyTrashed()
+        ->when($search, function ($query, $search) {
+            return $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('school_id', 'like', "%{$search}%");
+            });
+        })
+        ->orderBy('deleted_at', 'desc')
+        ->paginate(50); 
+
+    return view('admin.schools_archive', compact('schools'));
+}
 
     public function checkDuplicate(Request $request)
     {
