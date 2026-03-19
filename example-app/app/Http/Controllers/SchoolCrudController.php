@@ -39,7 +39,18 @@ class SchoolCrudController extends Controller
         ]);
 
         try {
-            School::create($validated);
+            $school = School::create($validated);
+
+            // LOG THE CREATION
+            ActivityLog::create([
+                'user_id' => auth()->id(),
+                'action' => 'Created New School',
+                'target_name' => $school->name,
+                'changes' => [
+                    'after' => $school->toArray()
+                ]
+            ]);
+
             return redirect()->route('admin.schools')->with('success', 'New school registered successfully!');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Database Error: Could not save school.');
@@ -75,13 +86,14 @@ class SchoolCrudController extends Controller
 
         $school->update($validated);
 
+        // LOG THE UPDATE
         ActivityLog::create([
             'user_id' => auth()->id(),
             'action' => 'Updated School Profile',
             'target_name' => $school->name,
             'changes' => [
                 'before' => $oldData,
-                'after' => $request->only([
+                'after' => $school->fresh()->only([
                     'name', 'school_id', 'no_of_teachers', 
                     'no_of_enrollees', 'no_of_classrooms', 'no_of_toilets',
                     'latitude', 'longitude'
@@ -97,7 +109,19 @@ class SchoolCrudController extends Controller
         try {
             $school = School::findOrFail($id);
             $name = $school->name;
+            $oldData = $school->toArray(); // Capture data before deletion
+            
             $school->delete();
+
+            // LOG THE DELETION
+            ActivityLog::create([
+                'user_id' => auth()->id(),
+                'action' => 'Deleted School',
+                'target_name' => $name,
+                'changes' => [
+                    'before' => $oldData
+                ]
+            ]);
 
             return redirect()
                 ->route('admin.schools')
@@ -127,17 +151,46 @@ class SchoolCrudController extends Controller
         if ($request->isMethod('post')) {
             if ($request->has('update_school')) {
                 $school = School::find($request->id);
+                $oldData = $school->only(['no_of_teachers', 'no_of_enrollees', 'no_of_classrooms', 'no_of_toilets']);
+                
                 $school->update([
                     'no_of_teachers' => $request->no_of_teachers,
                     'no_of_enrollees' => $request->no_of_enrollees,
                     'no_of_classrooms' => $request->no_of_classrooms,
                     'no_of_toilets' => $request->no_of_toilets,
                 ]);
+
+                // LOG THE INVENTORY UPDATE FROM MAP/TEACHERS VIEW
+                ActivityLog::create([
+                    'user_id' => auth()->id(),
+                    'action' => 'Updated School Inventory',
+                    'target_name' => $school->name,
+                    'changes' => [
+                        'before' => $oldData,
+                        'after' => $school->fresh()->only(['no_of_teachers', 'no_of_enrollees', 'no_of_classrooms', 'no_of_toilets'])
+                    ]
+                ]);
+
                 return redirect()->back()->with('success', 'School inventory updated!');
             }
 
             if ($request->has('delete_school')) {
+                $school = School::find($request->id);
+                $name = $school->name;
+                $oldData = $school->toArray();
+                
                 School::destroy($request->id);
+
+                // LOG THE DELETION FROM MAP/TEACHERS VIEW
+                ActivityLog::create([
+                    'user_id' => auth()->id(),
+                    'action' => 'Deleted School (Inventory View)',
+                    'target_name' => $name,
+                    'changes' => [
+                        'before' => $oldData
+                    ]
+                ]);
+
                 return redirect()->back()->with('success', 'School deleted!');
             }
         }
