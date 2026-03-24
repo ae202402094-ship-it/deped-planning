@@ -10,14 +10,17 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class SchoolImportController extends Controller
 {
     public function clearAllSchools()
-    {
-        try {
-            School::truncate(); 
-            return redirect()->route('admin.schools')->with('success', 'DEBUG: School registry has been completely wiped.');
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'System Error: Wipe protocol failed.');
-        }
+{
+    try {
+        // Warning: truncate() bypasses Eloquent and deletes all rows permanently.
+        // To support soft deletes here, use:
+        School::query()->delete(); 
+        
+        return redirect()->route('admin.schools')->with('success', 'School registry has been soft-deleted.');
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', 'System Error: Wipe protocol failed.');
     }
+}   
 
     public function import(Request $request)
     {
@@ -41,10 +44,10 @@ class SchoolImportController extends Controller
                 $currentId = (string)$row[0];
                 $currentName = (string)($row[1] ?? 'N/A');
                 
-                $existingSchoolById = School::where('school_id', $currentId)->first();
-                $existingSchoolByName = School::where('name', $currentName)
-                                        ->where('school_id', '!=', $currentId)
-                                        ->first();
+                $existingSchoolById = School::withTrashed()->where('school_id', $currentId)->first();
+                $existingSchoolByName = School::withTrashed()->where('name', $currentName)
+                        ->where('school_id', '!=', $currentId)
+                        ->first();
 
                 if (isset($seenIds[$currentId])) {
                     $status = 'conflict';
@@ -88,33 +91,58 @@ class SchoolImportController extends Controller
         ));
     }
 
-    public function confirmImport(Request $request)
-    {
-        $data = session('pending_import');
-        if (!$data) {
-            return redirect()->route('admin.schools')->with('error', 'No pending data found.');
-        }
 
-        DB::transaction(function () use ($data) {
-            foreach ($data as $row) {
-                School::updateOrCreate(
-                    ['school_id' => (string)$row['school_id']], 
-                    [
-                        'name'             => (string)$row['name'],
-                        'no_of_teachers'   => (int)$row['no_of_teachers'],
-                        'no_of_enrollees'  => (int)$row['no_of_enrollees'],
-                        'no_of_classrooms' => (int)$row['no_of_classrooms'],
-                        'no_of_toilets'    => (int)$row['no_of_toilets'],
-                        'latitude'         => (float)$row['latitude'],
-                        'longitude'        => (float)$row['longitude'],
-                    ]
-                );
-            }
-        });
+// app/Http/Controllers/SchoolImportController.php
 
-        session()->forget('pending_import');
-        return redirect()->route('admin.schools')->with('success', 'Registry synchronized.');
+// app/Http/Controllers/SchoolImportController.php
+
+// app/Http/Controllers/SchoolImportController.php
+
+// app/Http/Controllers/SchoolImportController.php
+
+// app/Http/Controllers/SchoolImportController.php
+
+// app/Http/Controllers/SchoolImportController.php
+
+public function confirmImport(Request $request)
+{
+    $data = session('pending_import');
+    if (!$data) {
+        return redirect()->route('admin.schools')->with('error', 'No pending data found.');
     }
+
+    DB::transaction(function () use ($data) {
+        foreach ($data as $row) {
+            $schoolId = (string)$row['school_id'];
+
+            // 1. Check if the ID exists in the archives (Soft Deleted)
+            $archivedSchool = School::onlyTrashed()->where('school_id', $schoolId)->first();
+
+            if ($archivedSchool) {
+                // 2. PERMANENTLY DELETE from archives to clear the Unique ID constraint
+                $archivedSchool->forceDelete();
+            }
+
+            // 3. Now create or update the record as a fresh, active school
+            // Since the archive is cleared, this will not trigger a Duplicate Entry error
+            School::updateOrCreate(
+                ['school_id' => $schoolId], 
+                [
+                    'name'             => (string)$row['name'],
+                    'no_of_teachers'   => (int)$row['no_of_teachers'],
+                    'no_of_enrollees'  => (int)$row['no_of_enrollees'],
+                    'no_of_classrooms' => (int)$row['no_of_classrooms'],
+                    'no_of_toilets'    => (int)$row['no_of_toilets'],
+                    'latitude'         => (float)$row['latitude'],
+                    'longitude'        => (float)$row['longitude'],
+                ]
+            );
+        }
+    });
+
+    session()->forget('pending_import');
+    return redirect()->route('admin.schools')->with('success', 'Registry synchronized. Existing archived matches were purged and replaced.');
+}
 
     public function downloadSampleCSV(): StreamedResponse
     {

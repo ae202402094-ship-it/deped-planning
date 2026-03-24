@@ -99,12 +99,19 @@ Route::middleware(['auth', 'verified', 'role:admin,super_admin'])->group(functio
     Route::get('/admin/schools/{id}/edit', [SchoolCrudController::class, 'editSchool'])->name('schools.edit');
     Route::put('/admin/schools/{id}', [SchoolCrudController::class, 'updateSchool'])->name('schools.update');
     Route::delete('/admin/schools/{id}', [SchoolCrudController::class, 'destroySchool'])->name('schools.destroy');
+    Route::post('/admin/schools/{id}/restore', [SchoolCrudController::class, 'restoreSchool'])->name('schools.restore');
 
     // Admin Tools & Reporting
     Route::get('/admin/map', [MapController::class, 'showMap'])->name('admin.map');
     Route::get('/admin/history', [SchoolReportController::class, 'viewHistory'])->name('admin.history');
     Route::get('/admin/schools/{id}/report', [SchoolReportController::class, 'generateReport'])->name('schools.report');
+
     Route::get('/admin/reports/data-health', [SchoolReportController::class, 'dataHealthReport'])->name('admin.health_report');
+
+    Route::get('/admin/schools/archive', [SchoolCrudController::class, 'archivedSchools'])->name('schools.archive');
+    Route::post('/admin/schools/{id}/restore', [SchoolCrudController::class, 'restoreSchool'])->name('schools.restore');
+    Route::delete('/admin/schools/{id}/force-delete', [SchoolCrudController::class, 'forceDeleteSchool'])->name('schools.force_delete');
+
 });
 
 /*

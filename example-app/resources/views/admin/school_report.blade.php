@@ -82,12 +82,6 @@
 
     {{-- 5. SIGNATORY SECTION --}}
     <div class="mt-20 flex justify-between items-end">
-        <div class="w-48 text-center">
-            <div class="h-24 w-24 bg-slate-100 border border-slate-200 mb-2 mx-auto flex items-center justify-center">
-                <p class="text-[8px] text-slate-400 uppercase font-black tracking-tighter">System Generated<br>QR Verification</p>
-            </div>
-            <p class="text-[8px] font-mono text-slate-400 italic">Verify at: depedzambo.ph/verify</p>
-        </div>
         <div class="text-center border-t border-slate-900 pt-2 px-12">
             <p class="text-xs font-black uppercase">Admin Officer</p>
             <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Division Planning Officer</p>

@@ -46,6 +46,7 @@
         </div>
     @endif
 
+    {{-- Main Update Form --}}
     <form action="{{ route('schools.update', $school->id) }}" method="POST" id="editSchoolForm">
         @csrf
         @method('PUT')
@@ -182,25 +183,31 @@
                     </div>
                 </div>
 
-                <button type="submit" style="background-color: #a52a2a;" class="w-full py-6 text-white rounded-[2rem] font-black uppercase text-xs tracking-[0.2em] shadow-2xl hover:scale-[1.02] transition-all">
-        Commit Registry Changes
-    </button>
-</form> <div class="mt-20 pt-10 border-t border-slate-100 text-center">
-    <form action="{{ route('schools.destroy', $school->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to decommission this record?');">
-        @csrf
-        @method('DELETE')
-        <button type="submit" class="px-10 py-3 border border-red-200 text-red-800 rounded-2xl font-black uppercase text-[9px] tracking-widest hover:bg-red-800 hover:text-white transition-all">
-            Decommission Record
-        </button>
-    </form>
-</div>
-</div>
+                {{-- Trigger Update Modal --}}
+                <button type="button" onclick="triggerVerification()" style="background-color: #a52a2a;" 
+                        class="w-full py-6 text-white rounded-[2rem] font-black uppercase text-xs tracking-[0.2em] shadow-2xl hover:scale-[1.02] transition-all">
+                    Commit Registry Changes
+                </button>
+
+                {{-- Decommission Section --}}
+                <div class="mt-8 pt-10 border-t border-slate-100 text-center">
+                    <button type="button" onclick="openDeleteModal()" 
+                            class="w-full px-10 py-3 border border-red-200 text-red-800 rounded-2xl font-black uppercase text-[9px] tracking-widest hover:bg-red-800 hover:text-white transition-all">
+                        Decommission Record
+                    </button>
+                </div>
             </div>
         </div>
     </form>
+
+    {{-- Separate Form for Decommissioning --}}
+    <form action="{{ route('schools.destroy', $school->id) }}" method="POST" id="decommissionForm" class="hidden">
+        @csrf
+        @method('DELETE')
+    </form>
 </div>
 
-{{-- Verification Modal --}}
+{{-- 1. Verification Modal (For Updating) --}}
 <div id="verificationModal" class="fixed inset-0 z-[2000] hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
     <div class="bg-white w-full max-w-xl rounded-[3rem] shadow-2xl overflow-hidden border border-slate-200">
         <div class="bg-slate-800 p-8 text-center">
@@ -223,6 +230,31 @@
             <div class="flex flex-col gap-3">
                 <button type="button" onclick="submitOfficialForm()" class="w-full py-4 bg-red-800 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition-colors shadow-lg">Confirm & Save Registry</button>
                 <button type="button" onclick="closeVerification()" class="w-full py-3 text-slate-400 font-bold uppercase text-[9px] tracking-widest hover:text-slate-600 transition-colors">Go Back & Edit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- 2. Decommission Modal (For Deleting) --}}
+<div id="customDeleteModal" class="fixed inset-0 z-[3000] hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+    <div class="bg-white w-full max-w-md rounded-[2rem] shadow-2xl overflow-hidden border border-slate-200 animate-in fade-in zoom-in duration-200">
+        <div class="bg-slate-800 p-6 text-center">
+            <h3 class="text-white font-black uppercase tracking-widest text-xs">System Protocol: Decommission</h3>
+        </div>
+        
+        <div class="p-8 space-y-6 text-center">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
+                Confirming decommission of <span class="text-slate-800 font-black">{{ $school->name }}</span>. 
+                Record will be moved to the institutional archive.
+            </p>
+            
+            <div class="flex flex-col gap-3">
+                <button type="button" onclick="executeDecommission()" class="w-full py-4 bg-red-800 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition-colors shadow-lg">
+                    Confirm Decommission
+                </button>
+                <button type="button" onclick="closeDeleteModal()" class="w-full py-3 text-slate-400 font-bold uppercase text-[9px] tracking-widest hover:text-slate-600 transition-colors">
+                    Abort Mission
+                </button>
             </div>
         </div>
     </div>
@@ -259,10 +291,7 @@
         }
     }
 
-    document.getElementById('lat').addEventListener('input', (e) => updateMiniMap(e.target.value, document.getElementById('lng').value));
-    document.getElementById('lng').addEventListener('input', (e) => updateMiniMap(document.getElementById('lat').value, e.target.value));
-
-    // 2. VERIFICATION LOGIC
+    // 2. VERIFICATION LOGIC (Update Form)
     function triggerVerification() {
         document.getElementById('confirmName').innerText = document.querySelector('input[name="name"]').value.toUpperCase();
         document.getElementById('confirmTeachers').innerText = document.querySelector('input[name="no_of_teachers"]').value;
@@ -288,6 +317,23 @@
             el.classList.toggle('opacity-60');
             el.classList.toggle('text-red-600');
         });
+    }
+
+    // 4. DECOMMISSION LOGIC (Delete Form)
+    function openDeleteModal() {
+        document.getElementById('customDeleteModal').classList.remove('hidden');
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('customDeleteModal').classList.add('hidden');
+    }
+
+    function executeDecommission() {
+        closeDeleteModal();
+        if(document.getElementById('globalLoader')) {
+            document.getElementById('globalLoader').classList.remove('hidden');
+        }
+        document.getElementById('decommissionForm').submit();
     }
 </script>
 
