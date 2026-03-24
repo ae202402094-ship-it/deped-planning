@@ -2,16 +2,20 @@
 
 @section('content')
 
-{{-- 00. COMPACT PRINT HEADER (Institutional Ledger Style) --}}
-<div class="hidden print:block border-b-2 border-black pb-2 mb-4">
-    <div class="flex justify-between items-end">
-        <div>
-            <h1 class="text-xl font-black uppercase tracking-tighter">Registry Audit Ledger</h1>
-            <p class="text-[8px] font-bold uppercase tracking-widest text-slate-500">DepEd Division of Zamboanga City</p>
+{{-- 00. PROFESSIONAL PRINT HEADER --}}
+<div class="hidden print:block mb-8">
+    <div class="flex justify-between items-start border-b-4 border-slate-900 pb-4">
+        <div class="flex items-center gap-4">
+            {{-- Optional: Add your DepEd Logo here --}}
+            <div>
+                <h1 class="text-2xl font-black uppercase tracking-tighter leading-none">Institutional Audit Ledger</h1>
+                <p class="text-[9px] font-bold uppercase tracking-[0.3em] text-slate-500 mt-1">Registry Management System • Division of Zamboanga City</p>
+            </div>
         </div>
-        <div class="text-right text-[8px] font-mono uppercase">
-            <p>ID: LOG-{{ strtoupper(Str::random(8)) }}</p>
-            <p>DATE: {{ now()->format('m/d/Y H:i') }}</p>
+        <div class="text-right">
+            <div class="text-[10px] font-black uppercase bg-slate-900 text-white px-3 py-1 mb-2 inline-block">Official Record</div>
+            <p class="text-[8px] font-mono text-slate-500 uppercase">Generated: {{ now()->format('M d, Y | H:i A') }}</p>
+            <p class="text-[8px] font-mono text-slate-500 uppercase">Operator: {{ auth()->user()->name }}</p>
         </div>
     </div>
 </div>
@@ -90,107 +94,148 @@
         </div>
     </div>
 
-    {{-- 02. ACTIVITY LEDGER TABLE --}}
-    <div class="bg-white rounded-[2rem] border border-slate-200 shadow-xl overflow-hidden print:border-none print:shadow-none print:bg-transparent">
-        <table class="w-full text-left border-collapse">
-            <thead class="bg-slate-50 border-b border-slate-200 print:bg-transparent print:border-b-2 print:border-black">
-                <tr class="text-[10px] font-black text-slate-400 uppercase tracking-widest print:text-black print:text-[8px]">
-                    <th class="p-5 print:p-2 print:w-24">Date/Time</th>
-                    <th class="p-5 print:p-2">Admin</th>
-                    <th class="p-5 print:p-2">Institution</th>
-                    <th class="p-5 print:p-2 text-right">Modifications</th>
-                </tr>
-            </thead>
-            <tbody class="text-xs font-bold divide-y divide-slate-100 print:divide-slate-300">
-                @forelse($logs as $log)
-                <tr class="hover:bg-slate-50/50 transition-colors page-break-avoid">
-                    <td class="p-5 print:p-2 text-slate-400 font-mono text-[11px] print:text-[9px] print:text-black">
-                        {{ $log->created_at->format('m/d/y') }}
-                        <span class="block text-[9px] opacity-60 print:inline print:ml-1">{{ $log->created_at->format('H:i') }}</span>
-                    </td>
-                    <td class="p-5 print:p-2 uppercase text-slate-800 print:text-[9px]">{{ $log->user->name }}</td>
-                    <td class="p-5 print:p-2 uppercase text-slate-800 tracking-tighter print:text-[9px]">{{ $log->target_name }}</td>
-                    <td class="p-5 print:p-2 text-right">
-                       
-                    {{-- SCREEN VIEW DROPDOWN --}}
-                        <details class="group cursor-pointer no-print">
-                            <summary class="list-none text-[9px] font-black text-red-800 uppercase tracking-widest hover:text-black transition-colors">View Shift [+]</summary>
-                            <div class="mt-2 p-3 bg-slate-50 rounded-xl text-left border border-slate-200">
-                                <div class="text-[10px] text-slate-600 font-mono">
-                                    @if(isset($log->changes['before']))
-                                        {{-- Handle Before/After nested structure --}}
-                                        <ul class="list-none pl-0 space-y-1">
-                                            @foreach($log->changes['before'] as $key => $oldValue)
-                                                @php $newValue = $log->changes['after'][$key] ?? $oldValue; @endphp
-                                                @if((string)$oldValue !== (string)$newValue)
-                                                    <li>
-                                                        <span class="font-bold text-slate-800 uppercase">{{ str_replace('_', ' ', $key) }}:</span> 
-                                                        <span class="text-red-600 line-through">{{ is_array($oldValue) ? json_encode($oldValue) : ($oldValue ?: 'Empty') }}</span> 
-                                                        <span class="text-slate-400 mx-1">→</span> 
-                                                        <span class="text-green-600 font-bold">{{ is_array($newValue) ? json_encode($newValue) : ($newValue ?: 'Empty') }}</span>
-                                                    </li>
-                                                @endif
-                                            @endforeach
-                                        </ul>
-                                    @elseif(!empty($log->changes) && (is_array($log->changes) || is_object($log->changes)))
-                                        {{-- Handle Flat Array structure (like Super Admin actions) --}}
-                                        <ul class="list-none pl-0 space-y-1">
-                                            @foreach($log->changes as $key => $value)
-                                                @if(!is_array($value))
-                                                    <li>
-                                                        <span class="font-bold text-slate-800 uppercase">{{ str_replace('_', ' ', $key) }}:</span> 
-                                                        <span class="text-slate-700">{{ $value }}</span>
-                                                    </li>
-                                                @endif
-                                            @endforeach
-                                        </ul>
-                                    @else
-                                        <span class="italic text-slate-400">No specific data changes recorded.</span>
-                                    @endif
-                                </div>
-                            </div>
-                        </details>
+    {{-- 02. ACTIVITY LEDGER --}}
+<div class="bg-white rounded-[2rem] border border-slate-200 shadow-xl overflow-hidden print:border-none print:shadow-none print:rounded-none">
+    <table class="w-full text-left border-collapse">
+        {{-- Table Head: Visible on screen, subtle divider on print --}}
+        <thead class="bg-slate-50 border-b border-slate-200 print:bg-transparent print:border-b print:border-slate-300">
+            <tr class="text-[10px] font-black text-slate-400 uppercase tracking-widest print:text-slate-900">
+                <th class="p-5 print:py-3 print:px-0" style="width: 15%;">Timestamp</th>
+                <th class="p-5 print:py-3 print:px-0" style="width: 20%;">Agent</th>
+                <th class="p-5 print:py-3 print:px-0">Action & Modifications</th>
+            </tr>
+        </thead>
+        <tbody class="text-xs font-bold divide-y divide-slate-100 print:divide-slate-200">
+            @forelse($logs as $log)
+            <tr class="hover:bg-slate-50/50 transition-colors page-break-avoid">
+                
+                {{-- Column 1: Date/Time --}}
+                <td class="p-5 print:py-4 print:px-0 align-top">
+                    <div class="font-mono text-slate-600 print:text-slate-900 print:font-bold">
+                        {{ $log->created_at->format('m.d.y') }}
+                    </div>
+                    <div class="text-[9px] text-slate-400 print:text-slate-500 font-medium">
+                        {{ $log->created_at->format('H:i:s') }}
+                    </div>
+                </td>
 
-                       {{-- PRINT VIEW (Concise Delta Line) --}}
-                        <div class="hidden print:block text-[8px] text-right font-mono">
+                {{-- Column 2: Agent/Admin --}}
+                <td class="p-5 print:py-4 print:px-0 align-top">
+                    <div class="uppercase text-slate-800 print:text-slate-900 leading-tight">
+                        {{ $log->user->name ?? 'System' }}
+                    </div>
+                    <div class="text-[8px] font-black uppercase tracking-widest text-slate-300 print:text-slate-400 mt-1">
+                        {{ $log->user->role ?? 'Process' }}
+                    </div>
+                </td>
+
+                {{-- Column 3: Action Detail (The Space Saver) --}}
+                <td class="p-5 print:py-4 print:px-0 align-top">
+                    <div class="flex flex-col gap-1">
+                        <div class="flex items-center gap-2">
+                            <span class="text-red-800 font-black uppercase tracking-wider text-[11px] print:text-[10px]">{{ $log->action }}</span>
+                            <span class="text-slate-300">/</span>
+                            <span class="text-slate-600 font-bold uppercase text-[10px] print:text-slate-900">{{ $log->target_name }}</span>
+                        </div>
+
+                        {{-- Print-Only Modifications: Concise Inline Layout --}}
+                        <div class="hidden print:block mt-2">
                             @if(isset($log->changes['before']))
-                                {{-- It has before/after format --}}
-                                @php $first = true; @endphp
-                                @foreach($log->changes['before'] as $key => $oldValue)
-                                    @php $newValue = $log->changes['after'][$key] ?? $oldValue; @endphp
-                                    @if((string)$oldValue !== (string)$newValue)
-                                        @if(!$first) | @endif
-                                        <span class="inline-block uppercase">
-                                            {{ str_replace('_', ' ', $key) }}: {{ $oldValue }} → {{ $newValue }}
-                                        </span>
-                                        @php $first = false; @endphp
-                                    @endif
-                                @endforeach
-                            @elseif(is_array($log->changes) || is_object($log->changes))
-                                {{-- It is a flat data format --}}
-                                @php $first = true; @endphp
-                                @foreach($log->changes as $key => $value)
-                                    @if(!is_array($value))
-                                        @if(!$first) | @endif
-                                        <span class="inline-block uppercase">
-                                            {{ str_replace('_', ' ', $key) }}: {{ $value }}
-                                        </span>
-                                        @php $first = false; @endphp
-                                    @endif
-                                @endforeach
+                                <div class="flex flex-wrap gap-x-4 gap-y-1">
+                                    @foreach($log->changes['before'] as $key => $oldValue)
+                                        @php $newValue = $log->changes['after'][$key] ?? $oldValue; @endphp
+                                        @if((string)$oldValue !== (string)$newValue)
+                                            <div class="text-[9px] font-mono leading-none border-l-2 border-slate-200 pl-2">
+                                                <span class="text-slate-400 uppercase font-bold">{{ str_replace('_', ' ', $key) }}:</span>
+                                                <span class="text-slate-400 line-through">{{ $oldValue ?: 'Ø' }}</span>
+                                                <span class="text-slate-900 font-bold ml-1">→ {{ $newValue ?: 'Ø' }}</span>
+                                            </div>
+                                        @endif
+                                    @endforeach
+                                </div>
+                            @elseif(is_array($log->changes))
+                                <div class="text-[9px] font-mono text-slate-600 italic">
+                                    {{ json_encode($log->changes) }}
+                                </div>
                             @endif
                         </div>
-                    </td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="4" class="p-20 text-center text-slate-300 uppercase font-black tracking-[0.5em] text-xs">
-                        No activity found for selected criteria
-                    </td>
-                </tr>
-                @endforelse
-            </tbody>
-        </table>
+
+                        {{-- Screen-Only Details (Interactive) --}}
+                        <details class="group cursor-pointer no-print mt-2">
+                            <summary class="list-none text-[9px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-800">Show Data Change [+]</summary>
+                            <div class="mt-2 p-3 bg-slate-50 rounded-xl border border-slate-200 text-left font-mono text-[10px]">
+                                @include('admin.partials.history_print', ['changes' => $log->changes])
+                            </div>
+                        </details>
+                    </div>
+                </td>
+            </tr>
+            @empty
+            <tr>
+                <td colspan="3" class="p-20 text-center text-slate-300 uppercase font-black tracking-widest text-xs">No Records Found</td>
+            </tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
+
+<style>
+    @media print {
+    /* 1. Reset layouts that block page breaks */
+    body, .max-w-7xl, .bg-white, .overflow-hidden {
+        overflow: visible !important;
+        position: static !important;
+        display: block !important;
+        width: auto !important;
+        height: auto !important;
+    }
+
+    /* 2. Force the table to fit the paper width */
+    table {
+        table-layout: fixed !important;
+        width: 100% !important;
+        border-collapse: collapse !important;
+    }
+
+    /* 3. Prevent rows from being split awkwardly in half */
+    tr {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    /* 4. Hide interactive elements like the filter bar and scrollbars */
+    .no-print, .pagination,::-webkit-scrollbar {
+        display: none !important;
+    }
+}
+    @media print {
+    @page {
+        size: auto;
+        margin: 15mm 10mm;
+    }
+    
+    body {
+        background: white !important;
+        color: black !important;
+        font-size: 10pt;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+
+    .page-break-avoid {
+        page-break-inside: avoid;
+    }
+
+    /* Remove background colors and shadows for clean black/white print */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        shadow: none !important;
+    }
+}
+</style>
 
         {{-- PAGINATION --}}
         @if($logs->hasPages())

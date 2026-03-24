@@ -26,25 +26,21 @@
                             {{ $school->deleted_at->format('M d, Y') }}
                         </td>
                         <td class="p-5 text-center">
-                            {{-- We will add Restore/Force Delete logic next --}}
-                           {{-- resources/views/admin/schools_archive.blade.php --}}
-<td class="p-5 text-center">
-    <div class="flex items-center justify-center gap-4">
-        {{-- Restore Button --}}
-        <button type="button" 
-            onclick="openModal('restore', '{{ $school->name }}', '{{ route('schools.restore', $school->id) }}')"
-            class="text-[10px] font-black text-slate-800 uppercase tracking-widest hover:text-blue-600 transition-colors">
-            Restore ↺
-        </button>
+                            <div class="flex items-center justify-center gap-4">
+                                {{-- Restore Button --}}
+                                <button type="button" 
+                                    onclick="openModal('restore', '{{ $school->name }}', '{{ route('schools.restore', $school->id) }}')"
+                                    class="text-[10px] font-black text-slate-800 uppercase tracking-widest hover:text-blue-600 transition-colors">
+                                    Restore ↺
+                                </button>
 
-        {{-- Purge Button --}}
-        <button type="button" 
-            onclick="openModal('purge', '{{ $school->name }}', '{{ route('schools.force_delete', $school->id) }}')"
-            class="text-[10px] font-black text-red-800 uppercase tracking-widest hover:text-black transition-colors">
-            Purge ✖
-        </button>
-    </div>
-</td>
+                                {{-- Purge Button --}}
+                                <button type="button" 
+                                    onclick="openModal('purge', '{{ $school->name }}', '{{ route('schools.force_delete', $school->id) }}')"
+                                    class="text-[10px] font-black text-red-800 uppercase tracking-widest hover:text-black transition-colors">
+                                    Purge ✖
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 @empty
@@ -58,24 +54,27 @@
         </table>
     </div>
 </div>
+
+{{-- Single hidden form for modal submission --}}
 <form id="modal-form" method="POST" class="hidden">
     @csrf
     <div id="method-container"></div>
 </form>
 
-{{-- The Modal --}}
+{{-- The Confirmation Modal --}}
 <div id="confirmation-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-    <div class="bg-white rounded-[2rem] border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden">
+    <div class="bg-white rounded-[2rem] border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden transform transition-all">
         <div class="p-8 text-center">
             <div id="modal-icon-container" class="mx-auto flex items-center justify-center h-16 w-16 rounded-full mb-6 transition-colors">
                 <span id="modal-icon" class="text-2xl font-bold"></span>
             </div>
-            <h3 id="modal-title" class="text-xl font-black text-slate-800 uppercase tracking-tight mb-2"></h3>
+            
+            <h3 id="modal-title" class="text-xl font-black text-slate-800 uppercase tracking-tight mb-2">Confirm Action</h3>
             <p id="modal-message" class="text-sm text-slate-500 font-bold uppercase tracking-wide leading-relaxed px-4"></p>
         </div>
 
         <div class="flex border-t border-slate-100">
-            <button onclick="closeModal()" class="flex-1 p-5 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:bg-slate-50 transition-colors border-r border-slate-100">
+            <button type="button" onclick="closeModal()" class="flex-1 p-5 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:bg-slate-50 transition-colors border-r border-slate-100">
                 Cancel
             </button>
             <button id="confirm-button" class="flex items-center justify-center flex-1 p-5 text-[10px] font-black uppercase tracking-widest transition-all">
@@ -88,6 +87,7 @@
         </div>
     </div>
 </div>
+
 <script>
     const modal = document.getElementById('confirmation-modal');
     const modalForm = document.getElementById('modal-form');
@@ -101,36 +101,34 @@
     const btnText = document.getElementById('btn-text');
 
     function openModal(type, name, url) {
-        // 1. Reset everything to clean state
         resetBtnState();
         modalForm.action = url;
         methodContainer.innerHTML = ''; 
 
-        // 2. Configure for specific action
         if (type === 'purge') {
             modalTitle.innerText = "Critical Warning";
-            modalMessage.innerText = `Permanently purge ${name}? This action is irreversible.`;
+            modalMessage.innerText = `Are you sure you want to permanently purge ${name}? This action is irreversible.`;
             modalIcon.innerText = "✖";
             modalIconContainer.className = "mx-auto flex items-center justify-center h-16 w-16 rounded-full mb-6 bg-red-100 text-red-600";
             confirmBtn.className = "flex-1 p-5 text-[10px] font-black uppercase tracking-widest bg-red-600 text-white hover:bg-red-700 transition-colors flex items-center justify-center";
             btnText.innerText = "Purge Permanently";
-            methodContainer.innerHTML = '@method("DELETE")';
+            
+            // Manual method spoofing for DELETE
+            methodContainer.innerHTML = '<input type="hidden" name="_method" value="DELETE">';
         } else {
             modalTitle.innerText = "Restore Record";
-            modalMessage.innerText = `Restore ${name} to active registry?`;
+            modalMessage.innerText = `Confirm restoration of ${name} to the active registry?`;
             modalIcon.innerText = "↺";
             modalIconContainer.className = "mx-auto flex items-center justify-center h-16 w-16 rounded-full mb-6 bg-blue-100 text-blue-600";
             confirmBtn.className = "flex-1 p-5 text-[10px] font-black uppercase tracking-widest bg-slate-800 text-white hover:bg-black transition-colors flex items-center justify-center";
             btnText.innerText = "Confirm Restore";
         }
 
-        // 3. Set the action click
         confirmBtn.onclick = function() {
             setBtnLoading();
             modalForm.submit();
         };
 
-        // 4. Show modal
         modal.classList.remove('hidden');
     }
 
@@ -151,7 +149,6 @@
         modal.classList.add('hidden');
     }
 
-    // Close on backdrop click
     window.onclick = function(event) {
         if (event.target == modal) closeModal();
     }
