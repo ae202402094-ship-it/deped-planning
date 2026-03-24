@@ -186,13 +186,13 @@
                         class="w-full py-6 text-white rounded-[2rem] font-black uppercase text-xs tracking-[0.2em] shadow-2xl hover:scale-[1.02] transition-all">
                     Commit Registry Changes
                 </button>
-
+                </form>
                 {{-- 04. DECOMMISSION PROTOCOL --}}
 <div class="mt-20 pt-10 border-t border-slate-100 text-center">
-    <form action="{{ route('schools.destroy', $school->id) }}" method="POST" id="decommissionForm" onsubmit="return confirm('CRITICAL: Are you sure you want to decommission this institutional record?');">
+    <form action="{{ route('schools.destroy', $school->id) }}" method="POST" id="decommissionForm">
         @csrf
         @method('DELETE')
-        <button type="submit" 
+        <button type="button" onclick="openDeleteModal()" 
                 class="px-10 py-3 border border-red-200 text-red-800 rounded-2xl font-black uppercase text-[9px] tracking-widest hover:bg-red-800 hover:text-white transition-all">
             Decommission Record
         </button>
@@ -200,7 +200,6 @@
 </div>
             </div>
         </div>
-    </form>
 </div>
 
 {{-- Verification Modal --}}
@@ -226,6 +225,30 @@
             <div class="flex flex-col gap-3">
                 <button type="button" onclick="submitOfficialForm()" class="w-full py-4 bg-red-800 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition-colors shadow-lg">Confirm & Save Registry</button>
                 <button type="button" onclick="closeVerification()" class="w-full py-3 text-slate-400 font-bold uppercase text-[9px] tracking-widest hover:text-slate-600 transition-colors">Go Back & Edit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="customDeleteModal" class="fixed inset-0 z-[3000] hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+    <div class="bg-white w-full max-w-md rounded-[2rem] shadow-2xl overflow-hidden border border-slate-200 animate-in fade-in zoom-in duration-200">
+        <div class="bg-slate-800 p-6 text-center">
+            <h3 class="text-white font-black uppercase tracking-widest text-xs">System Protocol: Decommission</h3>
+        </div>
+        
+        <div class="p-8 space-y-6 text-center">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
+                Confirming decommission of <span class="text-slate-800 font-black">{{ $school->name }}</span>. 
+                Record will be moved to the institutional archive.
+            </p>
+            
+            <div class="flex flex-col gap-3">
+                <button type="button" onclick="executeDecommission()" class="w-full py-4 bg-red-800 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition-colors shadow-lg">
+                    Confirm Decommission
+                </button>
+                <button type="button" onclick="closeDeleteModal()" class="w-full py-3 text-slate-400 font-bold uppercase text-[9px] tracking-widest hover:text-slate-600 transition-colors">
+                    Abort Mission
+                </button>
             </div>
         </div>
     </div>
@@ -292,6 +315,27 @@
             el.classList.toggle('text-red-600');
         });
     }
+
+    // Function to show the modal
+function openDeleteModal() {
+    document.getElementById('customDeleteModal').classList.remove('hidden');
+}
+
+// Function to hide the modal
+function closeDeleteModal() {
+    document.getElementById('customDeleteModal').classList.add('hidden');
+}
+
+function executeDecommission() {
+    // Hide the confirmation modal
+    closeDeleteModal();
+    
+    // Show the global system loader
+    document.getElementById('globalLoader').classList.remove('hidden');
+    
+    // Submit the form
+    document.getElementById('decommissionForm').submit();
+}
 </script>
 
 @include('admin.partials.map_modal')

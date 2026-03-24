@@ -24,40 +24,41 @@
 <div class="max-w-7xl mx-auto px-4">
     {{-- 01. NAVIGATION & SEARCH --}}
     <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-        <div>
-            <h2 class="text-2xl font-black text-slate-800 uppercase tracking-tight">School Registry</h2>
-            <p class="text-xs text-slate-500 font-bold uppercase tracking-widest italic">Institutional Management Interface</p>
-        </div>
-
-        <div class="flex flex-wrap gap-4 items-center no-print">
-            {{-- Print Trigger --}}
-            <button onclick="window.print()" class="bg-slate-100 text-slate-800 px-6 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-slate-200 transition shadow-sm flex items-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
-                </svg>
-                Print Registry
-            </button>
-            @if(auth()->user()->role === 'admin')
-        <a href="{{ route('schools.archive') }}" class="text-[10px] font-black text-slate-400 hover:text-red-800 transition-all uppercase tracking-widest px-4 py-3 flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-            </svg>
-            Institutional Archive
-        </a>
-    @endif
-
-    <a href="{{ route('schools.create') }}" class="bg-red-800 text-white px-6 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition shadow-lg">
-        + Register School
-    </a>
-            
-            {{-- Search Bar --}}
-            <form action="{{ route('admin.schools') }}" method="GET" class="flex gap-2">
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search ID or Name..." 
-                       class="w-64 border border-slate-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-red-500 outline-none shadow-sm text-sm font-medium">
-                <button type="submit" class="bg-slate-800 text-white px-4 py-2 rounded-xl font-bold uppercase text-[10px] tracking-widest">Find</button>
-            </form>
-        </div>
+    <div>
+        <h2 class="text-2xl font-black text-slate-800 uppercase tracking-tight">School Registry</h2>
+        <p class="text-xs text-slate-500 font-bold uppercase tracking-widest italic">Institutional Management Interface</p>
     </div>
+
+    <div class="flex flex-wrap gap-4 items-center no-print">
+        {{-- Print Trigger --}}
+        <button onclick="window.print()" class="bg-slate-100 text-slate-800 px-6 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-slate-200 transition shadow-sm flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+            </svg>
+            Print Registry
+        </button>
+
+        @if(auth()->user()->role === 'admin')
+            <a href="{{ route('schools.archive') }}" class="text-[10px] font-black text-slate-400 hover:text-red-800 transition-all uppercase tracking-widest px-4 py-3 flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                </svg>
+                Institutional Archive
+            </a>
+        @endif
+
+        <a href="{{ route('schools.create') }}" class="bg-red-800 text-white px-6 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition shadow-lg">
+            + Register School
+        </a>
+        
+        {{-- Search Bar: Added 'search-form' class to prevent the loading overlay on searches --}}
+        <form action="{{ route('admin.schools') }}" method="GET" class="search-form flex gap-2">
+            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search ID or Name..." 
+                   class="w-64 border border-slate-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-red-500 outline-none shadow-sm text-sm font-medium">
+            <button type="submit" class="bg-slate-800 text-white px-4 py-2 rounded-xl font-bold uppercase text-[10px] tracking-widest">Find</button>
+        </form>
+    </div>
+</div>
 
     {{-- 02. BULK REGISTRY SYNC (CSVs) --}}
     <div class="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-xl shadow-slate-200/50 mb-12 relative overflow-hidden no-print">
