@@ -85,7 +85,7 @@ Route::middleware(['auth', 'verified', 'role:admin,super_admin'])->group(functio
     Route::post('/admin/approve/{id}', [AdminController::class, 'approve'])->name('admin.approve');
     Route::post('/admin/reject/{id}', [AdminController::class, 'reject'])->name('admin.reject');
 
-    // Data Sync & Logic Routes
+    // Data Sync & Import logic
     Route::delete('/admin/schools/clear-all', [SchoolImportController::class, 'clearAllSchools'])->name('schools.clear_all');
     Route::get('/admin/schools/download-sample', [SchoolImportController::class, 'downloadSampleCSV'])->name('schools.sample');
     Route::post('/admin/schools/import', [SchoolImportController::class, 'import'])->name('schools.import');
@@ -100,29 +100,38 @@ Route::middleware(['auth', 'verified', 'role:admin,super_admin'])->group(functio
     Route::put('/admin/schools/{id}', [SchoolCrudController::class, 'updateSchool'])->name('schools.update');
     Route::delete('/admin/schools/{id}', [SchoolCrudController::class, 'destroySchool'])->name('schools.destroy');
 
-    // Admin Tools
+    // Admin Tools & Reporting
     Route::get('/admin/map', [MapController::class, 'showMap'])->name('admin.map');
     Route::get('/admin/history', [SchoolReportController::class, 'viewHistory'])->name('admin.history');
     Route::get('/admin/schools/{id}/report', [SchoolReportController::class, 'generateReport'])->name('schools.report');
+    Route::get('/admin/reports/data-health', [SchoolReportController::class, 'dataHealthReport'])->name('admin.health_report');
 });
 
 /*
 |--------------------------------------------------------------------------
-| 5. Super Admin Only (Approvals, Notifications, History)
+| 5. Super Admin Only (Restoration, Archiving, & User Management)
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'verified', 'role:super_admin'])->group(function () {
+    // Dashboard & User Approvals
     Route::get('/super-admin/dashboard', [SuperAdminController::class, 'dashboard'])->name('superadmin.dashboard');
     Route::get('/super-admin/notifications', [SuperAdminController::class, 'notifications'])->name('superadmin.notifications');
     Route::post('/super-admin/approve/{id}', [SuperAdminController::class, 'approveUser'])->name('superadmin.approve');
     Route::delete('/super-admin/reject/{id}', [SuperAdminController::class, 'rejectUser'])->name('superadmin.reject');
+    
+    // System Oversight
     Route::get('/super-admin/history', [SuperAdminController::class, 'history'])->name('superadmin.history');
     Route::put('/super-admin/users/{id}/update', [SuperAdminController::class, 'updateUser'])->name('superadmin.update_user');
+
+    // Archiving & Data Restoration
+    Route::get('/super-admin/archive', [SuperAdminController::class, 'archive'])->name('admin.schools.archive');
+    Route::post('/super-admin/schools/{id}/restore', [SuperAdminController::class, 'restoreSchool'])->name('superadmin.restore_school');
+    Route::delete('/super-admin/schools/{id}/force-delete', [SuperAdminController::class, 'forceDeleteSchool'])->name('superadmin.force_delete_school');
 });
 
 /*
 |--------------------------------------------------------------------------
-| 6. Testing Route
+| 6. Debugging & Testing
 |--------------------------------------------------------------------------
 */
 Route::get('/test-mail', function () {
