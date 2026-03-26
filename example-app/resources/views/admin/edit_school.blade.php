@@ -1,238 +1,240 @@
 @extends('layouts.admin')
 
 @section('content')
-@php
-    $teacherLearnerRatio = $school->no_of_teachers > 0 
-        ? "1 : " . round($school->no_of_enrollees / $school->no_of_teachers) : "0 : 0";
-    $classroomLearnerRatio = $school->no_of_classrooms > 0 
-        ? "1 : " . round($school->no_of_enrollees / $school->no_of_classrooms) : "0 : 0";
-@endphp
-
-<div class="max-w-6xl mx-auto px-6 py-4">
-    {{-- Header --}}
-    <div class="mb-12 flex flex-col md:flex-row justify-between items-start md:items-end border-b border-slate-100 pb-8 gap-6">
-        <div>
-            <span class="text-[10px] font-black text-red-800 uppercase tracking-[0.4em] mb-2 block">System Protocol: Edit</span>
-            <h1 class="text-4xl font-black text-slate-800 uppercase tracking-tighter italic">{{ $school->name }}</h1>
+<div class="max-w-7xl mx-auto px-4 py-8 font-sans leading-tight">
+    {{-- Header Ribbon --}}
+    <div class="flex justify-between items-stretch bg-white border-2 border-slate-800 mb-8 shadow-[4px_4px_0px_0px_rgba(30,41,59,1)]">
+        <div class="flex items-center">
+            <div class="bg-slate-800 text-white px-6 py-4 text-xs font-black uppercase tracking-tighter border-r-2 border-slate-800">
+                Registry Edit Protocol
+            </div>
+            <h1 class="px-6 text-sm font-black text-slate-800 uppercase tracking-tight">{{ $school->name }}</h1>
         </div>
-        <div class="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-            <a href="{{ route('schools.report', $school->id) }}" target="_blank" class="px-6 py-3 border-2 border-slate-800 text-slate-800 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-slate-800 hover:text-white transition-all flex items-center justify-center gap-2 shadow-sm">
-                Generate Report Card
-            </a>
-            <a href="{{ route('admin.schools') }}" class="group flex items-center justify-center gap-2 text-[10px] font-black text-slate-400 hover:text-red-800 transition-all uppercase tracking-widest px-4 py-3">
-                <span class="group-hover:-translate-x-1 transition-transform">←</span> Return to Registry
+        <div class="flex border-l-2 border-slate-800">
+            <button type="button" onclick="openDeleteModal()" class="px-6 py-4 text-[10px] font-black uppercase text-red-600 hover:bg-red-50 transition-colors border-r-2 border-slate-800">
+                Purge Record
+            </button>
+            <a href="{{ route('admin.schools') }}" class="px-6 py-4 text-[10px] font-black uppercase text-slate-400 hover:text-slate-800 transition-colors bg-slate-50">
+                Close Window
             </a>
         </div>
     </div>
 
-    {{-- Main Update Form --}}
     <form action="{{ route('schools.update', $school->id) }}" method="POST" id="editSchoolForm">
         @csrf
         @method('PUT')
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-16">
-            {{-- Left Column --}}
-            <div class="lg:col-span-8 space-y-16">
-                
-                {{-- 01. Identification --}}
-                <section>
-                    <div class="flex items-center gap-4 mb-8">
-                        <span class="text-xs font-black text-slate-300 font-mono">01</span>
-                        <h3 class="text-[10px] font-black text-slate-800 uppercase tracking-[0.3em]">Identification & Nomenclature</h3>
-                        <div class="h-px flex-1 bg-slate-100"></div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-                        <div class="relative group">
-                            <label class="block text-[9px] font-black text-slate-400 uppercase mb-1 tracking-widest">Official School ID</label>
-                            <input type="text" name="school_id" value="{{ $school->school_id }}" class="w-full py-2 bg-transparent text-xl font-mono font-bold text-slate-700 outline-none border-b border-slate-200 focus:border-red-800 transition-all">
-                        </div>
-                        <div class="relative group">
-                            <label class="block text-[9px] font-black text-slate-400 uppercase mb-1 tracking-widest">Institutional Name</label>
-                            <input type="text" name="name" value="{{ $school->name }}" class="w-full py-2 bg-transparent text-xl font-black text-slate-800 outline-none border-b border-slate-200 focus:border-red-800 transition-all uppercase">
-                        </div>
-                    </div>
-                </section>
-
-                {{-- 02. Physical Inventory + Ratios --}}
-                <section>
-                    <div class="flex items-center gap-4 mb-6">
-                        <span class="text-xs font-black text-slate-300 font-mono">02</span>
-                        <h3 class="text-[10px] font-black text-slate-800 uppercase tracking-[0.3em]">Resource Inventory</h3>
-                        <div class="h-px flex-1 bg-slate-100"></div>
-                    </div>
-
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                        @foreach(['no_of_teachers' => 'Teachers', 'no_of_enrollees' => 'Enrollees', 'no_of_classrooms' => 'Classrooms', 'no_of_toilets' => 'Toilets'] as $field => $label)
-                        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm focus-within:border-red-800 transition-all">
-                            <label class="block text-[8px] font-black text-slate-400 uppercase mb-2 tracking-widest">{{ $label }}</label>
-                            <input type="number" name="{{ $field }}" id="input_{{ $field }}" oninput="updateRatios()" value="{{ $school->$field }}" class="w-full bg-transparent text-xl font-black text-slate-800 outline-none">
-                        </div>
-                        @endforeach
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="flex items-center justify-between px-6 py-4 bg-slate-50 rounded-2xl border border-slate-100">
-                            <div class="flex items-center gap-3">
-                                <div class="w-2 h-2 rounded-full bg-slate-300"></div>
-                                <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Teacher-Learner Ratio</span>
-                            </div>
-                            <span id="liveTeacherRatio" class="text-sm font-mono font-black text-slate-800">{{ $teacherLearnerRatio }}</span>
-                        </div>
-
-                        <div class="flex items-center justify-between px-6 py-4 bg-slate-50 rounded-2xl border border-slate-100">
-                            <div class="flex items-center gap-3">
-                                <div id="ratioIndicatorCircle" class="w-2 h-2 rounded-full bg-emerald-500"></div>
-                                <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Classroom-Learner Ratio</span>
-                            </div>
-                            <div class="flex items-center gap-3">
-                                <span id="ratioStatusLabel" class="text-[8px] font-black uppercase px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">Optimal</span>
-                                <span id="liveClassroomRatio" class="text-sm font-mono font-black text-slate-800">{{ $classroomLearnerRatio }}</span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                {{-- 03. Environmental Hazards --}}
-                <section>
-                    <div class="flex items-center gap-4 mb-8">
-                        <span class="text-xs font-black text-slate-300 font-mono">03</span>
-                        <h3 class="text-[10px] font-black text-slate-800 uppercase tracking-[0.3em]">Environmental Hazards</h3>
-                        <div class="h-px flex-1 bg-slate-100"></div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div class="space-y-4">
-                            <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest">Primary Hazard</label>
-                            <select name="hazard_type" id="hazard_type" onchange="toggleOtherHazard()" class="w-full py-4 bg-white border-b-2 border-slate-100 font-black text-xs uppercase tracking-widest focus:border-red-800 outline-none transition-all">
-                                <option value="None" {{ $school->hazard_type == 'None' ? 'selected' : '' }}>None</option>
-                                <option value="Landslide" {{ $school->hazard_type == 'Landslide' ? 'selected' : '' }}>Landslide</option>
-                                <option value="Flood" {{ $school->hazard_type == 'Flood' ? 'selected' : '' }}>Flood</option>
-                                <option value="Traffic" {{ $school->hazard_type == 'Traffic' ? 'selected' : '' }}>High Traffic</option>
-                                <option value="Others" {{ !in_array($school->hazard_type, ['None', 'Landslide', 'Flood', 'Traffic']) ? 'selected' : '' }}>Others</option>
-                            </select>
-                            <div id="other_hazard_container" class="{{ !in_array($school->hazard_type, ['None', 'Landslide', 'Flood', 'Traffic']) ? '' : 'hidden' }} mt-4">
-                                <input type="text" name="hazard_others" id="hazard_others" value="{{ !in_array($school->hazard_type, ['None', 'Landslide', 'Flood', 'Traffic']) ? $school->hazard_type : '' }}" placeholder="Specify hazard..." class="w-full py-3 border-b border-red-200 text-xs font-black uppercase outline-none focus:border-red-800">
-                            </div>
-                        </div>
-                        <div class="space-y-4">
-                            <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest">Risk Severity</label>
-                            <select name="hazard_level" id="hazard_level" class="w-full py-4 bg-white border-b-2 border-slate-100 font-black text-xs uppercase tracking-widest focus:border-red-800 outline-none transition-all">
-                                <option value="None" {{ $school->hazard_level == 'None' ? 'selected' : '' }}>None / Minimal</option>
-                                <option value="Moderate" {{ $school->hazard_level == 'Moderate' ? 'selected' : '' }}>Moderate</option>
-                                <option value="High" {{ $school->hazard_level == 'High' ? 'selected' : '' }} class="text-red-600">High Risk</option>
-                            </select>
-                        </div>
-                    </div>
-                </section>
-            </div>
-
-            {{-- Right Column --}}
-            <div class="lg:col-span-4 space-y-8">
-                <div class="bg-slate-50 rounded-[2.5rem] p-8 border border-slate-100 shadow-sm relative">
-                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] mb-6 text-center">Location</h3>
-                    <div id="miniMap" class="w-full h-48 rounded-2xl mb-6 border border-slate-200 z-0 bg-slate-100"></div>
-                    <button type="button" onclick="openMapPopup('lat', 'lng', '{{ $school->latitude }}', '{{ $school->longitude }}')" class="w-full py-4 bg-slate-800 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all">Re-Pin</button>
-                    <input type="hidden" name="latitude" id="lat" value="{{ $school->latitude }}">
-                    <input type="hidden" name="longitude" id="lng" value="{{ $school->longitude }}">
+        <div class="grid grid-cols-12 border-t-2 border-l-2 border-slate-800 shadow-xl bg-white">
+            
+            {{-- COLUMN 1: IDENTIFICATION & INVENTORY --}}
+            <div class="col-span-12 lg:col-span-4 flex flex-col border-r-2 border-slate-800">
+                <div class="bg-slate-100 border-b-2 border-slate-800 p-3 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+                    01 // Identification & Core Metrics
                 </div>
-
-                <button type="button" onclick="triggerVerification()" style="background-color: #a52a2a;" class="w-full py-6 text-white rounded-[2rem] font-black uppercase text-xs tracking-[0.2em] shadow-2xl hover:scale-[1.02] transition-all">
-                    Commit Changes
-                </button>
+                <div class="p-6 space-y-5 border-b-2 border-slate-800 flex-grow">
+                    <div>
+                        <label class="block text-[8px] font-black text-slate-400 uppercase mb-1 tracking-widest">School Reference ID</label>
+                        <input type="text" name="school_id" value="{{ $school->school_id }}" 
+                               class="w-full bg-slate-50 border border-slate-200 p-2 font-mono text-xs font-bold focus:outline-none focus:border-slate-800 focus:bg-white transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-[8px] font-black text-slate-400 uppercase mb-1 tracking-widest">Institutional Nomenclature</label>
+                        <input type="text" name="name" value="{{ $school->name }}" 
+                               class="w-full bg-slate-50 border border-slate-200 p-2 text-xs font-black uppercase focus:outline-none focus:border-slate-800 focus:bg-white transition-all">
+                    </div>
+                </div>
+                <div class="p-6 bg-slate-50/50 border-b-2 border-slate-800">
+                    <div class="grid grid-cols-2 gap-4">
+                        {{-- Added IDs to these inputs so JavaScript can find them --}}
+                        <div class="border-b border-slate-200 pb-2">
+                            <label class="block text-[7px] font-black text-slate-400 uppercase mb-1 tracking-widest">Faculty</label>
+                            <input type="number" name="no_of_teachers" id="input_no_of_teachers" value="{{ $school->no_of_teachers }}" 
+                                   class="w-full bg-transparent font-mono text-sm font-black text-slate-800 text-right outline-none">
+                        </div>
+                        <div class="border-b border-slate-200 pb-2">
+                            <label class="block text-[7px] font-black text-slate-400 uppercase mb-1 tracking-widest">Learners</label>
+                            <input type="number" name="no_of_enrollees" id="input_no_of_enrollees" value="{{ $school->no_of_enrollees }}" 
+                                   class="w-full bg-transparent font-mono text-sm font-black text-slate-800 text-right outline-none">
+                        </div>
+                        <div class="border-b border-slate-200 pb-2">
+                            <label class="block text-[7px] font-black text-slate-400 uppercase mb-1 tracking-widest">Spaces</label>
+                            <input type="number" name="no_of_classrooms" id="input_no_of_classrooms" value="{{ $school->no_of_classrooms }}" 
+                                   class="w-full bg-transparent font-mono text-sm font-black text-slate-800 text-right outline-none">
+                        </div>
+                        <div class="border-b border-slate-200 pb-2">
+                            <label class="block text-[7px] font-black text-slate-400 uppercase mb-1 tracking-widest">Sanitary</label>
+                            <input type="number" name="no_of_toilets" id="input_no_of_toilets" value="{{ $school->no_of_toilets }}" 
+                                   class="w-full bg-transparent font-mono text-sm font-black text-slate-800 text-right outline-none">
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            {{-- COLUMN 2: FACILITY & SHORTAGE AUDIT --}}
+            <div class="col-span-12 lg:col-span-4 flex flex-col border-r-2 border-slate-800">
+                <div class="bg-slate-100 border-b-2 border-slate-800 p-3 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+                    02 // Institutional Resource Audit
+                </div>
+                <div class="p-6 space-y-4 border-b-2 border-slate-800">
+                    <h3 class="text-[8px] font-black text-slate-400 uppercase mb-2">Utility Connectivity</h3>
+                    @foreach([
+                        ['name' => 'with_electricity', 'label' => 'Electricity Service', 'val' => $school->with_electricity],
+                        ['name' => 'with_potable_water', 'label' => 'Water Resource', 'val' => $school->with_potable_water],
+                        ['name' => 'with_internet', 'label' => 'Data Connectivity', 'val' => $school->with_internet]
+                    ] as $util)
+                    <div class="flex items-center justify-between border border-slate-200 p-2 bg-white">
+                        <span class="text-[9px] font-bold text-slate-600 uppercase">{{ $util['label'] }}</span>
+                        <select name="{{ $util['name'] }}" class="bg-slate-800 text-white text-[8px] font-black uppercase px-2 py-1 outline-none cursor-pointer">
+                            <option value="1" {{ $util['val'] ? 'selected' : '' }}>Functional</option>
+                            <option value="0" {{ !$util['val'] ? 'selected' : '' }}>Non-Functional</option>
+                        </select>
+                    </div>
+                    @endforeach
+                </div>
+                <div class="p-6 bg-slate-50/50 border-b-2 border-slate-800 flex-grow">
+                    <h3 class="text-[8px] font-black text-slate-400 uppercase mb-4 tracking-widest">Calculated Shortage Audit</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between group">
+                            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tight">Classroom Deficit</span>
+                            <input type="number" name="classroom_shortage" value="{{ $school->classroom_shortage ?? 0 }}" class="w-16 bg-white border border-slate-200 font-mono text-xs font-bold p-1 text-right focus:border-slate-800 outline-none">
+                        </div>
+                        <div class="flex items-center justify-between group">
+                            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tight">Furniture Deficit</span>
+                            <input type="number" name="chair_shortage" value="{{ $school->chair_shortage ?? 0 }}" class="w-16 bg-white border border-slate-200 font-mono text-xs font-bold p-1 text-right focus:border-slate-800 outline-none">
+                        </div>
+                        <div class="flex items-center justify-between group">
+                            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tight">Sanitation Deficit</span>
+                            <input type="number" name="toilet_shortage" value="{{ $school->toilet_shortage ?? 0 }}" class="w-16 bg-white border border-slate-200 font-mono text-xs font-bold p-1 text-right focus:border-slate-800 outline-none">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- COLUMN 3: GEOSPATIAL & REMARKS --}}
+            <div class="col-span-12 lg:col-span-4 flex flex-col border-r-2 border-slate-800">
+                <div class="bg-slate-100 border-b-2 border-slate-800 p-3 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+                    03 // Geospatial & Technical Remarks
+                </div>
+                <div class="p-6 border-b-2 border-slate-800">
+                    <div id="schoolMap" class="h-[200px] w-full border-2 border-slate-800 grayscale shadow-inner mb-4"></div>
+                    <div class="grid grid-cols-2 gap-2 mb-2">
+                        <div class="bg-slate-50 border border-slate-200 p-2 text-center">
+                            <span class="block text-[7px] font-black text-slate-300 uppercase">Lat</span>
+                            <input type="text" name="latitude" id="lat" value="{{ $school->latitude }}" class="w-full bg-transparent font-mono text-[10px] font-bold text-center outline-none" readonly>
+                        </div>
+                        <div class="bg-slate-50 border border-slate-200 p-2 text-center">
+                            <span class="block text-[7px] font-black text-slate-300 uppercase">Lng</span>
+                            <input type="text" name="longitude" id="lng" value="{{ $school->longitude }}" class="w-full bg-transparent font-mono text-[10px] font-bold text-center outline-none" readonly>
+                        </div>
+                    </div>
+                    <button type="button" onclick="openMapPopup('lat', 'lng', '{{ $school->latitude }}', '{{ $school->longitude }}')" 
+                            class="w-full bg-slate-800 text-white text-[9px] font-black uppercase tracking-widest p-3 hover:bg-black transition-all">
+                        Recalibrate GIS Data
+                    </button>
+                </div>
+                <div class="p-6 bg-slate-50/50 border-b-2 border-slate-800 flex-grow">
+                    <label class="block text-[8px] font-black text-slate-400 uppercase mb-2 tracking-widest">Environmental Risk Analysis</label>
+                    <textarea name="hazards" rows="5" 
+                              class="w-full p-4 border border-slate-200 font-mono text-[10px] font-bold uppercase leading-relaxed focus:outline-none focus:border-slate-800 focus:bg-white transition-all">{{ $school->hazards }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 flex justify-end">
+            <button type="button" onclick="triggerVerification()" class="bg-slate-800 text-white px-12 py-5 text-xs font-black uppercase tracking-[0.3em] hover:bg-slate-900 transition-all shadow-[6px_6px_0px_0px_rgba(203,213,225,1)] active:translate-x-1 active:translate-y-1 active:shadow-none">
+                Execute Modification Protocol
+            </button>
         </div>
     </form>
 </div>
 
 {{-- Verification Modal --}}
-<div id="verificationModal" class="fixed inset-0 z-[2000] hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-    <div class="bg-white w-full max-w-xl rounded-[3rem] shadow-2xl overflow-hidden">
-        <div class="bg-slate-800 p-8 text-center"><h3 class="text-white font-black uppercase tracking-widest text-sm">Review Changes</h3></div>
-        <div class="p-10 space-y-6 text-center">
-            <p class="text-[10px] font-bold text-slate-400 uppercase">Updating: <span id="confirmName" class="text-slate-800 font-black"></span></p>
-            <div class="grid grid-cols-4 gap-4 border-y border-slate-100 py-8 text-center">
-                <div><p class="text-[8px] font-black text-slate-400">TCH</p><p id="confirmTeachers" class="text-lg font-black">0</p></div>
-                <div><p class="text-[8px] font-black text-slate-400">ENR</p><p id="confirmEnrollees" class="text-lg font-black">0</p></div>
-                <div><p class="text-[8px] font-black text-slate-400">CLS</p><p id="confirmClassrooms" class="text-lg font-black">0</p></div>
-                <div><p class="text-[8px] font-black text-slate-400">TLT</p><p id="confirmToilets" class="text-lg font-black">0</p></div>
+<div id="verificationModal" class="fixed inset-0 z-[2000] hidden flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4">
+    <div class="bg-white border-4 border-slate-800 shadow-2xl w-full max-w-lg overflow-hidden">
+        <div class="bg-slate-800 text-white p-4 text-xs font-black uppercase tracking-widest flex justify-between items-center">
+            <span>Audit Verification Required</span>
+            <span class="text-[8px] opacity-50 font-mono">SYS_AUTH_MOD</span>
+        </div>
+        <div class="p-8">
+            <div class="border-2 border-slate-100 p-6 font-mono text-xs mb-8">
+                <div class="flex justify-between border-b border-slate-100 pb-2 mb-4">
+                    <span class="text-slate-400 uppercase">Institutional Target</span>
+                    <span id="confirmName" class="font-black text-slate-800"></span>
+                </div>
+                <div class="grid grid-cols-4 gap-4 text-center">
+                    <div><p class="text-[7px] text-slate-400 uppercase mb-1">Faculty</p><p id="confirmTCH" class="text-sm font-black text-slate-800"></p></div>
+                    <div><p class="text-[7px] text-slate-400 uppercase mb-1">Learners</p><p id="confirmENR" class="text-sm font-black text-slate-800"></p></div>
+                    <div><p class="text-[7px] text-slate-400 uppercase mb-1">Spaces</p><p id="confirmCLS" class="text-sm font-black text-slate-800"></p></div>
+                    <div><p class="text-[7px] text-slate-400 uppercase mb-1">Sanitary</p><p id="confirmTLT" class="text-sm font-black text-slate-800"></p></div>
+                </div>
             </div>
-            <div class="py-4 bg-slate-50 rounded-2xl">
-                <p class="text-[8px] font-black text-slate-400 uppercase">Hazard Status</p>
-                <p id="confirmHazardSummary" class="text-xs font-black text-red-800 uppercase mt-1"></p>
-            </div>
-            <div class="flex flex-col gap-3">
-                <button type="button" onclick="submitOfficialForm()" class="w-full py-4 bg-red-800 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition-colors">Confirm Save</button>
-                <button type="button" onclick="closeVerification()" class="w-full py-3 text-slate-400 font-bold uppercase text-[9px]">Cancel</button>
+            <div class="flex gap-4">
+                <button type="button" id="confirmSaveBtn" onclick="submitOfficialForm()" 
+        class="w-full py-4 bg-red-800 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition-all flex items-center justify-center gap-3">
+    
+    {{-- Hidden Spinner --}}
+    <svg id="saveBtnSpinner" class="hidden animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    </svg>
+
+    <span id="saveBtnText">Confirm Save</span>
+</button>
+                <button type="button" onclick="document.getElementById('verificationModal').classList.add('hidden')" class="flex-1 border-2 border-slate-800 text-slate-800 py-4 text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-colors">Abort</button>
             </div>
         </div>
     </div>
 </div>
 
+{{-- Decommission Protocol --}}
+<form action="{{ route('schools.destroy', $school->id) }}" method="POST" id="decommissionForm" class="hidden">
+    @csrf
+    @method('DELETE')
+</form>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    function updateRatios() {
-        const enrollees = parseFloat(document.getElementById('input_no_of_enrollees').value) || 0;
-        const teachers = parseFloat(document.getElementById('input_no_of_teachers').value) || 0;
-        const classrooms = parseFloat(document.getElementById('input_no_of_classrooms').value) || 0;
-
-        const tRatio = teachers > 0 ? Math.round(enrollees / teachers) : 0;
-        const cRatio = classrooms > 0 ? Math.round(enrollees / classrooms) : 0;
-
-        document.getElementById('liveTeacherRatio').innerText = `1 : ${tRatio}`;
-        document.getElementById('liveClassroomRatio').innerText = `1 : ${cRatio}`;
-
-        const statusLabel = document.getElementById('ratioStatusLabel');
-        const indicator = document.getElementById('ratioIndicatorCircle');
-
-        if (cRatio > 45) {
-            statusLabel.innerText = "Critical";
-            statusLabel.className = "text-[8px] font-black uppercase px-2 py-0.5 rounded bg-red-100 text-red-700";
-            indicator.className = "w-2 h-2 rounded-full bg-red-600 animate-pulse";
-        } else if (cRatio > 35) {
-            statusLabel.innerText = "Approaching";
-            statusLabel.className = "text-[8px] font-black uppercase px-2 py-0.5 rounded bg-amber-100 text-amber-700";
-            indicator.className = "w-2 h-2 rounded-full bg-amber-500";
-        } else {
-            statusLabel.innerText = "Optimal";
-            statusLabel.className = "text-[8px] font-black uppercase px-2 py-0.5 rounded bg-emerald-100 text-emerald-700";
-            indicator.className = "w-2 h-2 rounded-full bg-emerald-500";
-        }
-    }
-
-    function toggleOtherHazard() {
-        const typeSelect = document.getElementById('hazard_type');
-        const otherContainer = document.getElementById('other_hazard_container');
-        if (typeSelect.value === 'Others') {
-            otherContainer.classList.remove('hidden');
-            document.getElementById('hazard_others').focus();
-        } else {
-            otherContainer.classList.add('hidden');
-        }
-    }
-
     function triggerVerification() {
+        // Find inputs by name or newly added IDs
         document.getElementById('confirmName').innerText = document.querySelector('input[name="name"]').value.toUpperCase();
-        document.getElementById('confirmTeachers').innerText = document.getElementById('input_no_of_teachers').value;
-        document.getElementById('confirmEnrollees').innerText = document.getElementById('input_no_of_enrollees').value;
-        document.getElementById('confirmClassrooms').innerText = document.getElementById('input_no_of_classrooms').value;
-        document.getElementById('confirmToilets').innerText = document.getElementById('input_no_of_toilets').value;
-        
-        let hazard = document.getElementById('hazard_type').value;
-        if(hazard === 'Others') hazard = document.getElementById('hazard_others').value || 'Unspecified';
-        const severity = document.getElementById('hazard_level').value;
-        document.getElementById('confirmHazardSummary').innerText = `${hazard} — Severity: ${severity}`;
+        document.getElementById('confirmTCH').innerText = document.getElementById('input_no_of_teachers').value;
+        document.getElementById('confirmENR').innerText = document.getElementById('input_no_of_enrollees').value;
+        document.getElementById('confirmCLS').innerText = document.getElementById('input_no_of_classrooms').value;
+        document.getElementById('confirmTLT').innerText = document.getElementById('input_no_of_toilets').value;
         
         document.getElementById('verificationModal').classList.remove('hidden');
     }
 
-    function closeVerification() { document.getElementById('verificationModal').classList.add('hidden'); }
-    function submitOfficialForm() { document.getElementById('editSchoolForm').submit(); }
+    function submitOfficialForm() {
+    const btn = document.getElementById('confirmSaveBtn');
+    const spinner = document.getElementById('saveBtnSpinner');
+    const btnText = document.getElementById('saveBtnText');
+
+    // 1. Disable button to prevent double clicks
+    btn.disabled = true;
+    btn.classList.add('opacity-50', 'cursor-not-allowed');
+
+    // 2. Show loading visual
+    spinner.classList.remove('hidden');
+    btnText.innerText = "Processing Update...";
+
+    // 3. Submit the form
+    document.getElementById('editSchoolForm').submit();
+}
+    
+    function openDeleteModal() { 
+        if(confirm('WARNING: PERMANENT DECOMMISSION PROTOCOL. PROCEED?')) {
+            document.getElementById('decommissionForm').submit();
+        }
+    }
 
     document.addEventListener('DOMContentLoaded', function() {
-        const initialLat = parseFloat(document.getElementById('lat').value) || 6.9214;
-        const initialLng = parseFloat(document.getElementById('lng').value) || 122.0739;
-        const miniMap = L.map('miniMap', { zoomControl: false, dragging: false }).setView([initialLat, initialLng], 15);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMap);
-        L.marker([initialLat, initialLng]).addTo(miniMap);
-        updateRatios();
+        const map = L.map('schoolMap', { scrollWheelZoom: false, zoomControl: false, dragging: false }).setView([{{ $school->latitude }}, {{ $school->longitude }}], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        L.marker([{{ $school->latitude }}, {{ $school->longitude }}], {
+            icon: L.divIcon({ html: `<div class="bg-slate-800 w-4 h-4 border-2 border-white shadow-lg"></div>` })
+        }).addTo(map);
     });
 </script>
 

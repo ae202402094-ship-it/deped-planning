@@ -11,18 +11,24 @@ class School extends Model
     use SoftDeletes;
 
     // 1. Ensure these match your controller's updateOrCreate array
-  protected $fillable = [
-        'school_id',
-        'name',
-        'no_of_teachers',
-        'no_of_enrollees',
-        'no_of_classrooms',
-        'no_of_toilets',
-        'hazard_type',   // Added for Assessment
-        'hazard_level',  // Added for Assessment
-        'latitude',
-        'longitude',
-    ];
+  // app/Models/School.php
+protected $fillable = [
+    'school_id', 
+    'name', 
+    'no_of_teachers', 
+    'no_of_enrollees', 
+    'no_of_classrooms', 
+    'no_of_toilets', 
+    'latitude', 
+    'longitude',
+    'with_electricity',    // MUST BE ADDED
+    'with_potable_water',  // MUST BE ADDED
+    'with_internet',       // MUST BE ADDED
+    'classroom_shortage',  // MUST BE ADDED
+    'chair_shortage',      // MUST BE ADDED
+    'toilet_shortage',     // MUST BE ADDED
+    'hazards'              // MUST BE ADDED
+];
 
     public $incrementing = false; 
     protected $keyType = 'string';

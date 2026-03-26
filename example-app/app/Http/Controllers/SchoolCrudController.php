@@ -67,44 +67,47 @@ class SchoolCrudController extends Controller
         return view('admin.edit_school', compact('school'));
     }
 
-    public function updateSchool(Request $request, $id)
-    {
-        $school = School::findOrFail($id);
-        $oldData = $school->toArray();
+   public function updateSchool(Request $request, $id)
+{
+    $school = School::findOrFail($id);
+    $oldData = $school->toArray();
 
-        $validated = $request->validate([
-            'school_id' => 'required|string',
-            'name' => 'required|string',
-            'no_of_teachers' => 'required|integer|min:0',
-            'no_of_enrollees' => 'required|integer|min:0',
-            'no_of_classrooms' => 'required|integer|min:0',
-            'no_of_toilets' => 'required|integer|min:0',
-            'hazard_type' => 'required|string',
-            'hazard_level' => 'required|string',
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
-        ]);
+    $validated = $request->validate([
+        'school_id' => 'required|string',
+        'name' => 'required|string',
+        'no_of_teachers' => 'required|integer|min:0',
+        'no_of_enrollees' => 'required|integer|min:0',
+        'no_of_classrooms' => 'required|integer|min:0',
+        'no_of_toilets' => 'required|integer|min:0',
+        'latitude' => 'required|numeric',
+        'longitude' => 'required|numeric',
+        // New Audit Fields
+        'with_electricity' => 'required|boolean',
+        'with_potable_water' => 'required|boolean',
+        'with_internet' => 'required|boolean',
+        'classroom_shortage' => 'nullable|integer|min:0',
+        'chair_shortage' => 'nullable|integer|min:0',
+        'toilet_shortage' => 'nullable|integer|min:0',
+        'hazards' => 'nullable|string',
+    ]);
 
-        // Logic for "Others" hazard type
-        if ($request->hazard_type === 'Others' && $request->filled('hazard_others')) {
-            $validated['hazard_type'] = $request->hazard_others;
-        }
+    // Perform the update
+    $school->update($validated);
 
-        $school->update($validated);
+    // Activity Logging
+    ActivityLog::create([
+        'user_id' => auth()->id(),
+        'action' => 'Updated School Profile',
+        'target_name' => $school->name,
+        'changes' => [
+            'before' => $oldData,
+            'after' => $school->fresh()->toArray()
+        ]
+    ]);
 
-        ActivityLog::create([
-            'user_id' => auth()->id(),
-            'action' => 'Updated School Profile',
-            'target_name' => $school->name,
-            'changes' => [
-                'before' => $oldData,
-                'after' => $school->fresh()->toArray()
-            ]
-        ]);
-
-        return redirect()->route('admin.schools')->with('success', 'Registry synchronized successfully.');
-    }
-
+    return redirect()->route('schools.edit', $school->id)
+        ->with('success', 'Registry synchronized and updated successfully.');
+}
     public function destroySchool($id)
     {
         try {
