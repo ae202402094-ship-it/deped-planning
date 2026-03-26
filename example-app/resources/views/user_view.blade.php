@@ -145,7 +145,7 @@
                 <div class="space-y-6">
                     <div>
                         <div class="flex justify-between text-[8px] font-black uppercase mb-1">
-                            <span class="text-slate-400 tracking-widest">Learner-Classroom Ratio</span>
+                            <span class="text-slate-400 tracking-widest">Classroom-Learner Ratio</span>
                             <span class="text-slate-900 font-mono">{{ $classroomLearnerRatio }}</span>
                         </div>
                         <div class="h-1 w-full bg-slate-100 overflow-hidden">
@@ -154,7 +154,7 @@
                     </div>
                     <div>
                         <div class="flex justify-between text-[8px] font-black uppercase mb-1">
-                            <span class="text-slate-400 tracking-widest">Staffing Distribution</span>
+                            <span class="text-slate-400 tracking-widest">Teacher-Learner Ratio</span>
                             <span class="text-slate-900 font-mono">{{ $teacherLearnerRatio }}</span>
                         </div>
                         <div class="h-1 w-full bg-slate-100 overflow-hidden">
