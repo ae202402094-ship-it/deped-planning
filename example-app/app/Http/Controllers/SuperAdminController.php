@@ -13,10 +13,10 @@ class SuperAdminController extends Controller
 {
     /**
      * Super Admin Dashboard Overview
+     * Shows statistics and provides a paginated, searchable user management list.
      */
     public function dashboard(Request $request)
     {
-        // Start a query builder for Users
         $query = User::query();
 
         // 1. Search by Name or Email
@@ -42,7 +42,6 @@ class SuperAdminController extends Controller
             'pendingCount' => User::where('status', 'pending')->count(),
             'adminCount'   => User::where('role', 'admin')->count(),
             'totalSchools' => School::count(), 
-            // We replaced recentUsers with paginated $users so the search bar works!
             'users'        => $query->latest()->paginate(10)->withQueryString(), 
         ]);
     }
@@ -54,17 +53,14 @@ class SuperAdminController extends Controller
     {
         $user = User::findOrFail($id);
         
-        // Capture old data before updating for the log
         $oldRole = $user->role;
         $oldStatus = $user->status;
         
-        // Update the user's data
         $user->update([
             'role'   => $request->role,
             'status' => $request->status,
         ]);
 
-        // Record this action in the Super Admin history
         $this->logAction('Updated User Account', $user->name, [
             'role' => "Changed from {$oldRole} to {$user->role}",
             'status' => "Changed from {$oldStatus} to {$user->status}"
@@ -73,51 +69,21 @@ class SuperAdminController extends Controller
         return back()->with('success', "{$user->name}'s account has been successfully updated.");
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Account Approvals & Notifications
+    |--------------------------------------------------------------------------
+    */
+
     /**
      * Notification Center (Pending Requests)
      */
     public function notifications()
     {
-        // Fetch only users waiting for approval
         $notifications = User::where('status', 'pending')->latest()->get();
         return view('admin.pending_approvals', compact('notifications'));
     }
 
-    /**
-     * System History (Audit Log of Super Admin Actions)
-     */
-   /**
-     * System History (Audit Log of ALL Actions for Super Admin)
-     */
-    public function history(Request $request)
-    {
-        // 1. Fetch ALL logs (Admin AND Super Admin)
-        $query = ActivityLog::with('user')->latest();
-
-        // 2. Omni-Search Logic (Searches Action, Target, or User Name)
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('target_name', 'LIKE', "%{$search}%")
-                  ->orWhere('action', 'LIKE', "%{$search}%")
-                  ->orWhereHas('user', function($u) use ($search) {
-                      $u->where('name', 'LIKE', "%{$search}%");
-                  });
-            });
-        }
-
-        // 3. Date Range Filter
-        if ($request->filled('from_date')) {
-            $query->whereDate('created_at', '>=', $request->from_date);
-        }
-        if ($request->filled('to_date')) {
-            $query->whereDate('created_at', '<=', $request->to_date);
-        }
-
-        $logs = $query->paginate(40)->withQueryString();
-
-        return view('admin.super_history', compact('logs'));
-    }
     /**
      * Action: Approve User
      */
@@ -127,10 +93,8 @@ class SuperAdminController extends Controller
         $user->status = 'approved';
         $user->save();
 
-        // Send the email notification
         $user->notify(new AccountApproved());
 
-        // RECORD THIS ACTION FOR THE HISTORY TABLE
         $this->logAction('Approved Account Request', $user->name, [
             'status' => 'Changed from pending to approved',
             'email' => $user->email
@@ -145,14 +109,11 @@ class SuperAdminController extends Controller
     public function rejectUser($id)
     {
         $user = User::findOrFail($id);
-        
-        // Store details before deleting so we can log them
         $userName = $user->name;
         $userEmail = $user->email;
         
-        $user->delete(); // Removes the pending request entirely
+        $user->delete();
 
-        // RECORD THIS ACTION FOR THE HISTORY TABLE
         $this->logAction('Rejected & Deleted User Request', $userName, [
             'email' => $userEmail,
             'status' => 'Account request deleted permanently'
@@ -161,13 +122,97 @@ class SuperAdminController extends Controller
         return back()->with('error', "Request for {$userName} has been rejected and deleted.");
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Archiving & Data Restoration
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Action: View Archived Schools
+     */
+    public function archive()
+    {
+        $archivedSchools = School::onlyTrashed()->latest('deleted_at')->get();
+        return view('admin.archive', compact('archivedSchools'));
+    }
+
+    /**
+     * Action: Restore Deleted School
+     */
+    public function restoreSchool($id)
+    {
+        $school = School::withTrashed()->findOrFail($id);
+        $school->restore();
+
+        $this->logAction('Restored School', $school->name, [
+            'status' => 'Restored from archived records'
+        ]);
+
+        return back()->with('success', "{$school->name} has been successfully restored.");
+    }
+
+    /**
+     * Action: Permanently Delete School from Archive
+     */
+    public function forceDeleteSchool($id)
+    {
+        $school = School::withTrashed()->findOrFail($id);
+        $schoolName = $school->name;
+
+        $school->forceDelete();
+
+        $this->logAction('Permanently Purged School', $schoolName, [
+            'status' => 'Record erased from database'
+        ]);
+
+        return back()->with('success', "{$schoolName} has been permanently removed from the system.");
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | System Oversight & Helpers
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * System History
+     * Audit Log of ALL actions performed by Admins and Super Admins.
+     */
+    public function history(Request $request)
+    {
+        $query = ActivityLog::with('user')->latest();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('target_name', 'LIKE', "%{$search}%")
+                  ->orWhere('action', 'LIKE', "%{$search}%")
+                  ->orWhereHas('user', function($u) use ($search) {
+                      $u->where('name', 'LIKE', "%{$search}%");
+                  });
+            });
+        }
+
+        if ($request->filled('from_date')) {
+            $query->whereDate('created_at', '>=', $request->from_date);
+        }
+        if ($request->filled('to_date')) {
+            $query->whereDate('created_at', '<=', $request->to_date);
+        }
+
+        $logs = $query->paginate(40)->withQueryString();
+
+        return view('admin.super_history', compact('logs'));
+    }
+
     /**
      * PRIVATE HELPER: Record actions to the activity_logs table
      */
     private function logAction($action, $targetName, $changes = [])
     {
         ActivityLog::create([
-            'user_id' => Auth::id(), // Uses imported Auth facade
+            'user_id' => Auth::id(),
             'action' => $action,
             'target_name' => $targetName,
             'changes' => $changes

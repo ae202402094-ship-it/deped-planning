@@ -32,10 +32,27 @@
     </div>
 
     <div class="col-md-3">
+        <div class="card p-4 h-100 bg-transparent shadow-sm" style="border: 2px solid #dc3545; border-radius: 8px;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h6 class="text-uppercase small fw-bold mb-1 text-muted" style="letter-spacing: 0.5px;">Archived</h6>
+                    <h2 class="mb-0 fw-bolder text-dark">{{ \App\Models\School::onlyTrashed()->count() }}</h2>
+                </div>
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; background-color: rgba(220, 53, 69, 0.1); color: #dc3545;">
+                    <i class="bi bi-archive fs-4"></i>
+                </div>
+            </div>
+            <a href="{{ route('admin.schools.archive') }}" class="fw-semibold text-decoration-none small d-flex align-items-center mt-auto text-danger">
+                View Archive <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+
+    <div class="col-md-3">
         <div class="card p-4 h-100 bg-transparent shadow-sm" style="border: 2px solid #a52a2a; border-radius: 8px;">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div>
-                    <h6 class="text-uppercase small fw-bold mb-1 text-muted" style="letter-spacing: 0.5px;">Pending Requests</h6>
+                    <h6 class="text-uppercase small fw-bold mb-1 text-muted" style="letter-spacing: 0.5px;">Pending</h6>
                     <h2 class="mb-0 fw-bolder text-dark">{{ $pendingCount }}</h2>
                 </div>
                 <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; background-color: rgba(165, 42, 42, 0.1); color: #a52a2a;">
@@ -52,33 +69,19 @@
         <div class="card p-4 h-100 bg-transparent shadow-sm" style="border: 2px solid #a52a2a; border-radius: 8px;">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h6 class="text-uppercase small fw-bold mb-1 text-muted" style="letter-spacing: 0.5px;">Active Admins</h6>
-                    <h2 class="mb-0 fw-bolder text-dark">{{ $adminCount }}</h2>
-                </div>
-                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; background-color: rgba(165, 42, 42, 0.1); color: #a52a2a;">
-                    <i class="bi bi-shield-check fs-4"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="card p-4 h-100 bg-transparent shadow-sm" style="border: 2px solid #a52a2a; border-radius: 8px;">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h6 class="text-uppercase small fw-bold mb-1 text-muted" style="letter-spacing: 0.5px;">Total Accounts</h6>
+                    <h6 class="text-uppercase small fw-bold mb-1 text-muted" style="letter-spacing: 0.5px;">Total Users</h6>
                     <h2 class="mb-0 fw-bolder text-dark">{{ $totalUsers }}</h2>
                 </div>
                 <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; background-color: rgba(165, 42, 42, 0.1); color: #a52a2a;">
                     <i class="bi bi-people-fill fs-4"></i>
                 </div>
             </div>
+            <div class="small text-muted mt-auto">Admins: {{ $adminCount }}</div>
         </div>
     </div>
 </div>
 
 <div class="card shadow-sm rounded-3" style="border: 1px solid #e2e8f0;">
-    
     <div class="card-header bg-white py-4 border-bottom-0">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
@@ -133,11 +136,6 @@
             <tbody class="border-top-0 bg-white">
                 @forelse($users as $user)
                 <tr>
-                    <form id="edit-form-{{ $user->id }}" action="{{ route('superadmin.update_user', $user->id) }}" method="POST">
-                        @csrf
-                        @method('PUT')
-                    </form>
-
                     <td class="px-4 py-3">
                         <div class="d-flex align-items-center">
                             <div class="text-white rounded-circle d-flex justify-content-center align-items-center me-3 shadow-sm" style="width: 40px; height: 40px; background-color: #a52a2a;">
@@ -150,27 +148,31 @@
                         </div>
                     </td>
                     
-                    <td class="py-3">
-                        <select form="edit-form-{{ $user->id }}" name="role" class="form-select form-select-sm shadow-sm border-secondary-subtle" style="width: 140px;">
-                            <option value="user" {{ $user->role == 'user' ? 'selected' : '' }}>User</option>
-                            <option value="admin" {{ $user->role == 'admin' ? 'selected' : '' }}>Admin</option>
-                            <option value="super_admin" {{ $user->role == 'super_admin' ? 'selected' : '' }}>Super Admin</option>
-                        </select>
-                    </td>
+                    <form id="edit-form-{{ $user->id }}" action="{{ route('superadmin.update_user', $user->id) }}" method="POST">
+                        @csrf
+                        @method('PUT')
+                        <td class="py-3">
+                            <select name="role" class="form-select form-select-sm shadow-sm border-secondary-subtle" style="width: 140px;">
+                                <option value="user" {{ $user->role == 'user' ? 'selected' : '' }}>User</option>
+                                <option value="admin" {{ $user->role == 'admin' ? 'selected' : '' }}>Admin</option>
+                                <option value="super_admin" {{ $user->role == 'super_admin' ? 'selected' : '' }}>Super Admin</option>
+                            </select>
+                        </td>
 
-                    <td class="py-3">
-                        <select form="edit-form-{{ $user->id }}" name="status" class="form-select form-select-sm shadow-sm border-secondary-subtle" style="width: 140px;">
-                            <option value="pending" {{ $user->status == 'pending' ? 'selected' : '' }}>Pending</option>
-                            <option value="approved" {{ $user->status == 'approved' ? 'selected' : '' }}>Approved</option>
-                            <option value="rejected" {{ $user->status == 'rejected' ? 'selected' : '' }}>Rejected</option>
-                        </select>
-                    </td>
+                        <td class="py-3">
+                            <select name="status" class="form-select form-select-sm shadow-sm border-secondary-subtle" style="width: 140px;">
+                                <option value="pending" {{ $user->status == 'pending' ? 'selected' : '' }}>Pending</option>
+                                <option value="approved" {{ $user->status == 'approved' ? 'selected' : '' }}>Approved</option>
+                                <option value="rejected" {{ $user->status == 'rejected' ? 'selected' : '' }}>Rejected</option>
+                            </select>
+                        </td>
 
-                    <td class="px-4 py-3 text-end">
-                        <button form="edit-form-{{ $user->id }}" type="submit" class="btn btn-sm btn-success fw-bold shadow-sm px-3">
-                            <i class="bi bi-save me-1"></i> Save
-                        </button>
-                    </td>
+                        <td class="px-4 py-3 text-end">
+                            <button type="submit" class="btn btn-sm btn-success fw-bold shadow-sm px-3">
+                                <i class="bi bi-save me-1"></i> Save
+                            </button>
+                        </td>
+                    </form>
                 </tr>
                 @empty
                 <tr>

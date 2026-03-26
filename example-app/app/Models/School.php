@@ -7,19 +7,22 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class School extends Model
 {
-    use HasFactory, SoftDeletes; // Enable Soft Deletes
+    use HasFactory;
+    use SoftDeletes;
 
-    protected $fillable = [
-    'school_id', 
-    'name', 
-    'no_of_teachers', 
-    'no_of_enrollees', 
-    'no_of_classrooms', 
-    'no_of_toilets', 
-    'latitude', 
-    'longitude',
-    'deleted_at' // CRITICAL: Add this to allow the importer to clear the archive status
-];
+    // 1. Ensure these match your controller's updateOrCreate array
+  protected $fillable = [
+        'school_id',
+        'name',
+        'no_of_teachers',
+        'no_of_enrollees',
+        'no_of_classrooms',
+        'no_of_toilets',
+        'hazard_type',   // Added for Assessment
+        'hazard_level',  // Added for Assessment
+        'latitude',
+        'longitude',
+    ];
 
     public $incrementing = false; 
     protected $keyType = 'string';

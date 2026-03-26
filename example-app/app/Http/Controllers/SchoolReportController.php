@@ -48,4 +48,43 @@ class SchoolReportController extends Controller
 
         return view('admin.history', compact('logs'));
     }
+
+    public function dataHealthReport()
+{
+    $schools = School::all();
+    $flaggedSchools = [];
+
+    foreach ($schools as $school) {
+        $issues = [];
+
+        // 1. Automated Infrastructure Health Check
+        if ($school->no_of_classrooms > 0 && ($school->no_of_enrollees / $school->no_of_classrooms) > 50) {
+            $issues[] = "Infrastructure: High Congestion (Over 50 students/classroom).";
+        }
+        if ($school->no_of_enrollees > 0 && $school->no_of_toilets == 0) {
+            $issues[] = "Sanitation: Critical (0 toilets reported).";
+        }
+
+        // 2. Hazard Identification
+        if ($school->hazard_landslide === 'High') {
+            $issues[] = "Hazard: High Landslide Susceptibility.";
+        }
+        if ($school->hazard_flood === 'High') {
+            $issues[] = "Hazard: High Flood Risk Area.";
+        }
+        if ($school->hazard_traffic === 'High') {
+            $issues[] = "Hazard: Dangerous Traffic/Road Safety Risk.";
+        }
+
+        if (!empty($issues)) {
+            $flaggedSchools[] = [
+                'school' => $school,
+                'issues' => $issues
+            ];
+        }
+    }
+
+    return view('admin.data_health', compact('flaggedSchools'));
+}
+
 }

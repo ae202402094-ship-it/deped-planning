@@ -26,14 +26,23 @@
         </li>
 
         <li class="nav-item mb-2">
-            <a href="{{ route('superadmin.history') }}" 
-               class="nav-link text-white {{ request()->routeIs('superadmin.history') ? 'active bg-primary' : '' }}">
-                <i class="bi bi-clock-history me-2"></i> User History Log
+            <a href="{{ route('admin.schools.archive') }}" 
+               class="nav-link text-white {{ request()->routeIs('admin.schools.archive') ? 'active bg-primary' : '' }}">
+                <i class="bi bi-archive me-2"></i> School Archive
             </a>
         </li>
 
-        <hr class="bg-secondary">
-        <small class="text-uppercase text-muted fw-bold mb-2 d-block px-3">Data Management</small>
+      
+
+        <li class="nav-item mb-2">
+            <a href="{{ route('superadmin.history') }}" 
+               class="nav-link text-white {{ request()->routeIs('superadmin.history') ? 'active bg-primary' : '' }}">
+                <i class="bi bi-clock-history me-2"></i> System History
+            </a>
+        </li>
+
+        <hr class="bg-secondary mt-3">
+        <small class="text-uppercase text-muted fw-bold mb-2 d-block px-3">Registry Management</small>
 
         <li class="nav-item mb-2">
             <a href="{{ route('admin.schools') }}" 
