@@ -112,6 +112,7 @@ Route::middleware(['auth', 'verified', 'role:admin,super_admin'])->group(functio
     Route::post('/admin/schools/{id}/restore', [SchoolCrudController::class, 'restoreSchool'])->name('schools.restore');
     Route::delete('/admin/schools/{id}/force-delete', [SchoolCrudController::class, 'forceDeleteSchool'])->name('schools.force_delete');
 
+    Route::get('/admin/reports/data-health', [SchoolReportController::class, 'dataHealthReport'])->name('admin.health_report');
 });
 
 /*

@@ -2,32 +2,21 @@
 
 @section('content')
 @php
-    // 1. Core Ratio Calculations
     $teacherLearnerRatio = $school->no_of_teachers > 0 
-        ? "1 : " . round($school->no_of_enrollees / $school->no_of_teachers) 
-        : "0 : 0";
-
+        ? "1 : " . round($school->no_of_enrollees / $school->no_of_teachers) : "0 : 0";
     $classroomLearnerRatio = $school->no_of_classrooms > 0 
-        ? "1 : " . round($school->no_of_enrollees / $school->no_of_classrooms) 
-        : "0 : 0";
-
-    $rawClassroomRatio = $school->no_of_classrooms > 0 
-        ? round($school->no_of_enrollees / $school->no_of_classrooms) 
-        : 0;
+        ? "1 : " . round($school->no_of_enrollees / $school->no_of_classrooms) : "0 : 0";
 @endphp
 
 <div class="max-w-6xl mx-auto px-6 py-4">
-    {{-- Top Navigation & Title --}}
+    {{-- Header --}}
     <div class="mb-12 flex flex-col md:flex-row justify-between items-start md:items-end border-b border-slate-100 pb-8 gap-6">
         <div>
             <span class="text-[10px] font-black text-red-800 uppercase tracking-[0.4em] mb-2 block">System Protocol: Edit</span>
             <h1 class="text-4xl font-black text-slate-800 uppercase tracking-tighter italic">{{ $school->name }}</h1>
         </div>
-        
         <div class="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-            <a href="{{ route('schools.report', $school->id) }}" target="_blank"
-               class="px-6 py-3 border-2 border-slate-800 text-slate-800 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-slate-800 hover:text-white transition-all flex items-center justify-center gap-2 shadow-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a4 4 0 00-4-4H5m11 4v2a4 4 0 004 4h1m-4-4l-4-4m4 4l4-4"/></svg>
+            <a href="{{ route('schools.report', $school->id) }}" target="_blank" class="px-6 py-3 border-2 border-slate-800 text-slate-800 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-slate-800 hover:text-white transition-all flex items-center justify-center gap-2 shadow-sm">
                 Generate Report Card
             </a>
             <a href="{{ route('admin.schools') }}" class="group flex items-center justify-center gap-2 text-[10px] font-black text-slate-400 hover:text-red-800 transition-all uppercase tracking-widest px-4 py-3">
@@ -35,16 +24,6 @@
             </a>
         </div>
     </div>
-
-    @if ($errors->any())
-        <div class="mb-8 p-6 bg-red-50 border-l-4 border-red-800 rounded-2xl shadow-sm animate-pulse">
-            <ul class="list-none">
-                @foreach ($errors->all() as $error)
-                    <li class="text-[11px] font-bold text-red-600 uppercase tracking-tight italic">{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
 
     {{-- Main Update Form --}}
     <form action="{{ route('schools.update', $school->id) }}" method="POST" id="editSchoolForm">
@@ -54,6 +33,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-16">
             {{-- Left Column --}}
             <div class="lg:col-span-8 space-y-16">
+                
                 {{-- 01. Identification --}}
                 <section>
                     <div class="flex items-center gap-4 mb-8">
@@ -61,280 +41,199 @@
                         <h3 class="text-[10px] font-black text-slate-800 uppercase tracking-[0.3em]">Identification & Nomenclature</h3>
                         <div class="h-px flex-1 bg-slate-100"></div>
                     </div>
-
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
                         <div class="relative group">
                             <label class="block text-[9px] font-black text-slate-400 uppercase mb-1 tracking-widest">Official School ID</label>
-                            <input type="text" name="school_id" value="{{ $school->school_id }}" 
-                                   class="w-full py-2 bg-transparent text-xl font-mono font-bold text-slate-700 outline-none border-b border-slate-200 focus:border-transparent transition-all">
-                            <div class="absolute bottom-0 left-0 w-0 h-0.5 bg-red-800 transition-all duration-500 group-focus-within:w-full"></div>
+                            <input type="text" name="school_id" value="{{ $school->school_id }}" class="w-full py-2 bg-transparent text-xl font-mono font-bold text-slate-700 outline-none border-b border-slate-200 focus:border-red-800 transition-all">
                         </div>
-
                         <div class="relative group">
                             <label class="block text-[9px] font-black text-slate-400 uppercase mb-1 tracking-widest">Institutional Name</label>
-                            <input type="text" name="name" value="{{ $school->name }}" 
-                                   class="w-full py-2 bg-transparent text-xl font-black text-slate-800 outline-none border-b border-slate-200 focus:border-transparent transition-all uppercase tracking-tight">
-                            <div class="absolute bottom-0 left-0 w-0 h-0.5 bg-red-800 transition-all duration-500 group-focus-within:w-full"></div>
+                            <input type="text" name="name" value="{{ $school->name }}" class="w-full py-2 bg-transparent text-xl font-black text-slate-800 outline-none border-b border-slate-200 focus:border-red-800 transition-all uppercase">
                         </div>
                     </div>
                 </section>
 
-                {{-- 02. Physical Inventory --}}
+                {{-- 02. Physical Inventory + Ratios --}}
                 <section>
                     <div class="flex items-center gap-4 mb-6">
                         <span class="text-xs font-black text-slate-300 font-mono">02</span>
-                        <h3 class="text-[10px] font-black text-slate-800 uppercase tracking-[0.3em]">Inventory Spreadsheet View</h3>
+                        <h3 class="text-[10px] font-black text-slate-800 uppercase tracking-[0.3em]">Resource Inventory</h3>
                         <div class="h-px flex-1 bg-slate-100"></div>
                     </div>
 
-                    <div class="overflow-hidden bg-white rounded-2xl border border-slate-200 shadow-sm">
-                        <table class="w-full text-left border-collapse">
-                            <thead class="bg-slate-50 border-b border-slate-200 text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                                <tr>
-                                    <th class="p-4 border-r border-slate-200 text-center">Teachers</th>
-                                    <th class="p-4 border-r border-slate-200 text-center">Enrollees</th>
-                                    <th class="p-4 border-r border-slate-200 text-center">Classrooms</th>
-                                    <th class="p-4 text-center">Toilets</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td class="p-0 border-r border-slate-100">
-                                        <input type="number" name="no_of_teachers" value="{{ $school->no_of_teachers }}" class="w-full p-4 bg-transparent outline-none font-black text-xl tabular-nums text-center focus:bg-red-50/30">
-                                    </td>
-                                    <td class="p-0 border-r border-slate-100">
-                                        <input type="number" name="no_of_enrollees" value="{{ $school->no_of_enrollees }}" class="w-full p-4 bg-transparent outline-none font-black text-xl tabular-nums text-center focus:bg-red-50/30">
-                                    </td>
-                                    <td class="p-0 border-r border-slate-100">
-                                        <input type="number" name="no_of_classrooms" value="{{ $school->no_of_classrooms }}" class="w-full p-4 bg-transparent outline-none font-black text-xl tabular-nums text-center focus:bg-red-50/30">
-                                    </td>
-                                    <td class="p-0">
-                                        <input type="number" name="no_of_toilets" value="{{ $school->no_of_toilets }}" class="w-full p-4 bg-transparent outline-none font-black text-xl tabular-nums text-center focus:bg-red-50/30">
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        @foreach(['no_of_teachers' => 'Teachers', 'no_of_enrollees' => 'Enrollees', 'no_of_classrooms' => 'Classrooms', 'no_of_toilets' => 'Toilets'] as $field => $label)
+                        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm focus-within:border-red-800 transition-all">
+                            <label class="block text-[8px] font-black text-slate-400 uppercase mb-2 tracking-widest">{{ $label }}</label>
+                            <input type="number" name="{{ $field }}" id="input_{{ $field }}" oninput="updateRatios()" value="{{ $school->$field }}" class="w-full bg-transparent text-xl font-black text-slate-800 outline-none">
+                        </div>
+                        @endforeach
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="flex items-center justify-between px-6 py-4 bg-slate-50 rounded-2xl border border-slate-100">
+                            <div class="flex items-center gap-3">
+                                <div class="w-2 h-2 rounded-full bg-slate-300"></div>
+                                <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Teacher-Learner Ratio</span>
+                            </div>
+                            <span id="liveTeacherRatio" class="text-sm font-mono font-black text-slate-800">{{ $teacherLearnerRatio }}</span>
+                        </div>
+
+                        <div class="flex items-center justify-between px-6 py-4 bg-slate-50 rounded-2xl border border-slate-100">
+                            <div class="flex items-center gap-3">
+                                <div id="ratioIndicatorCircle" class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                                <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Classroom-Learner Ratio</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span id="ratioStatusLabel" class="text-[8px] font-black uppercase px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">Optimal</span>
+                                <span id="liveClassroomRatio" class="text-sm font-mono font-black text-slate-800">{{ $classroomLearnerRatio }}</span>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
-                {{-- Analytical Insights --}}
+                {{-- 03. Environmental Hazards --}}
                 <section>
-                    <div class="space-y-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="p-6 bg-slate-50 rounded-3xl border border-slate-100 shadow-sm">
-                                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Teacher : Learner Ratio</p>
-                                <p class="text-2xl font-black text-slate-800 tracking-tighter">{{ $teacherLearnerRatio }}</p>
-                            </div>
-                            <div class="p-6 bg-slate-50 rounded-3xl border border-slate-100 shadow-sm">
-                                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Classroom : Learner Ratio</p>
-                                <p class="text-2xl font-black text-slate-800 tracking-tighter">{{ $classroomLearnerRatio }}</p>
+                    <div class="flex items-center gap-4 mb-8">
+                        <span class="text-xs font-black text-slate-300 font-mono">03</span>
+                        <h3 class="text-[10px] font-black text-slate-800 uppercase tracking-[0.3em]">Environmental Hazards</h3>
+                        <div class="h-px flex-1 bg-slate-100"></div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="space-y-4">
+                            <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest">Primary Hazard</label>
+                            <select name="hazard_type" id="hazard_type" onchange="toggleOtherHazard()" class="w-full py-4 bg-white border-b-2 border-slate-100 font-black text-xs uppercase tracking-widest focus:border-red-800 outline-none transition-all">
+                                <option value="None" {{ $school->hazard_type == 'None' ? 'selected' : '' }}>None</option>
+                                <option value="Landslide" {{ $school->hazard_type == 'Landslide' ? 'selected' : '' }}>Landslide</option>
+                                <option value="Flood" {{ $school->hazard_type == 'Flood' ? 'selected' : '' }}>Flood</option>
+                                <option value="Traffic" {{ $school->hazard_type == 'Traffic' ? 'selected' : '' }}>High Traffic</option>
+                                <option value="Others" {{ !in_array($school->hazard_type, ['None', 'Landslide', 'Flood', 'Traffic']) ? 'selected' : '' }}>Others</option>
+                            </select>
+                            <div id="other_hazard_container" class="{{ !in_array($school->hazard_type, ['None', 'Landslide', 'Flood', 'Traffic']) ? '' : 'hidden' }} mt-4">
+                                <input type="text" name="hazard_others" id="hazard_others" value="{{ !in_array($school->hazard_type, ['None', 'Landslide', 'Flood', 'Traffic']) ? $school->hazard_type : '' }}" placeholder="Specify hazard..." class="w-full py-3 border-b border-red-200 text-xs font-black uppercase outline-none focus:border-red-800">
                             </div>
                         </div>
-
-                        <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">
-                            <div class="flex items-center gap-5">
-                                <div class="h-12 w-1.5 {{ $rawClassroomRatio > 40 ? 'bg-red-600' : 'bg-green-500' }} rounded-full"></div>
-                                <div>
-                                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Capacity Verification Status</p>
-                                    <p class="text-lg font-black text-slate-800">
-                                        {{ $rawClassroomRatio > 40 ? 'Action Required: High Congestion' : 'Nominal Capacity: Standard' }}
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="hidden sm:block">
-                                <span class="px-4 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest {{ $rawClassroomRatio > 40 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600' }}">
-                                    {{ $rawClassroomRatio > 40 ? 'Overcrowded' : 'Optimal' }}
-                                </span>
-                            </div>
+                        <div class="space-y-4">
+                            <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest">Risk Severity</label>
+                            <select name="hazard_level" id="hazard_level" class="w-full py-4 bg-white border-b-2 border-slate-100 font-black text-xs uppercase tracking-widest focus:border-red-800 outline-none transition-all">
+                                <option value="None" {{ $school->hazard_level == 'None' ? 'selected' : '' }}>None / Minimal</option>
+                                <option value="Moderate" {{ $school->hazard_level == 'Moderate' ? 'selected' : '' }}>Moderate</option>
+                                <option value="High" {{ $school->hazard_level == 'High' ? 'selected' : '' }} class="text-red-600">High Risk</option>
+                            </select>
                         </div>
                     </div>
                 </section>
             </div>
 
-            {{-- Right Column: GPS & Minimap --}}
+            {{-- Right Column --}}
             <div class="lg:col-span-4 space-y-8">
-                <div class="bg-slate-50 rounded-[2.5rem] p-8 border border-slate-100 shadow-sm relative overflow-hidden">
-                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] mb-6 text-center">Satellite Verification</h3>
-                    
-                    <div id="miniMap" class="w-full h-48 rounded-2xl mb-6 border border-slate-200 shadow-inner z-0 overflow-hidden bg-slate-100"></div>
-
-                    <div class="space-y-6 mb-4 font-mono">
-                        <div class="relative flex justify-between items-center border-b border-slate-200 pb-2">
-                            <span id="lat_status" class="text-[9px] font-black text-slate-300 uppercase tracking-widest transition-colors">Latitude</span>
-                            <input type="text" name="latitude" id="lat" value="{{ $school->latitude }}" readonly 
-                                   class="bg-transparent text-right text-xs font-bold text-slate-700 outline-none border-none cursor-not-allowed opacity-60">
-                        </div>
-                        <div class="relative flex justify-between items-center border-b border-slate-200 pb-2">
-                            <span id="lng_status" class="text-[9px] font-black text-slate-300 uppercase tracking-widest transition-colors">Longitude</span>
-                            <input type="text" name="longitude" id="lng" value="{{ $school->longitude }}" readonly 
-                                   class="bg-transparent text-right text-xs font-bold text-slate-700 outline-none border-none cursor-not-allowed opacity-60">
-                        </div>
-                    </div>
-
-                    <div class="flex gap-4">
-                        <button type="button" onclick="openMapPopup('lat', 'lng', '{{ $school->latitude }}', '{{ $school->longitude }}')" 
-                                class="flex-1 py-4 bg-slate-800 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all">
-                            Re-Pin
-                        </button>
-                        <button type="button" onclick="toggleManualEntry()" 
-                                class="flex-1 py-4 bg-white border border-slate-200 text-slate-400 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:border-red-800 hover:text-red-800 transition-all">
-                            Manual
-                        </button>
-                    </div>
+                <div class="bg-slate-50 rounded-[2.5rem] p-8 border border-slate-100 shadow-sm relative">
+                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] mb-6 text-center">Location</h3>
+                    <div id="miniMap" class="w-full h-48 rounded-2xl mb-6 border border-slate-200 z-0 bg-slate-100"></div>
+                    <button type="button" onclick="openMapPopup('lat', 'lng', '{{ $school->latitude }}', '{{ $school->longitude }}')" class="w-full py-4 bg-slate-800 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all">Re-Pin</button>
+                    <input type="hidden" name="latitude" id="lat" value="{{ $school->latitude }}">
+                    <input type="hidden" name="longitude" id="lng" value="{{ $school->longitude }}">
                 </div>
 
-                {{-- Trigger Update Modal --}}
-                <button type="button" onclick="triggerVerification()" style="background-color: #a52a2a;" 
-                        class="w-full py-6 text-white rounded-[2rem] font-black uppercase text-xs tracking-[0.2em] shadow-2xl hover:scale-[1.02] transition-all">
-                    Commit Registry Changes
+                <button type="button" onclick="triggerVerification()" style="background-color: #a52a2a;" class="w-full py-6 text-white rounded-[2rem] font-black uppercase text-xs tracking-[0.2em] shadow-2xl hover:scale-[1.02] transition-all">
+                    Commit Changes
                 </button>
-
-                {{-- Decommission Section --}}
-                <div class="mt-8 pt-10 border-t border-slate-100 text-center">
-                    <button type="button" onclick="openDeleteModal()" 
-                            class="w-full px-10 py-3 border border-red-200 text-red-800 rounded-2xl font-black uppercase text-[9px] tracking-widest hover:bg-red-800 hover:text-white transition-all">
-                        Decommission Record
-                    </button>
-                </div>
             </div>
         </div>
     </form>
-
-    {{-- Separate Form for Decommissioning --}}
-    <form action="{{ route('schools.destroy', $school->id) }}" method="POST" id="decommissionForm" class="hidden">
-        @csrf
-        @method('DELETE')
-    </form>
 </div>
 
-{{-- 1. Verification Modal (For Updating) --}}
+{{-- Verification Modal --}}
 <div id="verificationModal" class="fixed inset-0 z-[2000] hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-    <div class="bg-white w-full max-w-xl rounded-[3rem] shadow-2xl overflow-hidden border border-slate-200">
-        <div class="bg-slate-800 p-8 text-center">
-            <div class="inline-flex p-3 bg-red-800/20 rounded-2xl mb-4">
-                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-            </div>
-            <h3 class="text-white font-black uppercase tracking-widest text-sm">Official Data Verification</h3>
-        </div>
-        
+    <div class="bg-white w-full max-w-xl rounded-[3rem] shadow-2xl overflow-hidden">
+        <div class="bg-slate-800 p-8 text-center"><h3 class="text-white font-black uppercase tracking-widest text-sm">Review Changes</h3></div>
         <div class="p-10 space-y-6 text-center">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Verify the counts for: <span id="confirmName" class="text-slate-800 font-black"></span></p>
-            <div class="grid grid-cols-4 gap-4 border-y border-slate-100 py-8">
-                <div><p class="text-[8px] font-black text-slate-400 uppercase">TCH</p><p id="confirmTeachers" class="text-xl font-black">0</p></div>
-                <div><p class="text-[8px] font-black text-slate-400 uppercase">ENR</p><p id="confirmEnrollees" class="text-xl font-black">0</p></div>
-                <div><p class="text-[8px] font-black text-slate-400 uppercase">CLS</p><p id="confirmClassrooms" class="text-xl font-black">0</p></div>
-                <div><p class="text-[8px] font-black text-slate-400 uppercase">TLT</p><p id="confirmToilets" class="text-xl font-black">0</p></div>
+            <p class="text-[10px] font-bold text-slate-400 uppercase">Updating: <span id="confirmName" class="text-slate-800 font-black"></span></p>
+            <div class="grid grid-cols-4 gap-4 border-y border-slate-100 py-8 text-center">
+                <div><p class="text-[8px] font-black text-slate-400">TCH</p><p id="confirmTeachers" class="text-lg font-black">0</p></div>
+                <div><p class="text-[8px] font-black text-slate-400">ENR</p><p id="confirmEnrollees" class="text-lg font-black">0</p></div>
+                <div><p class="text-[8px] font-black text-slate-400">CLS</p><p id="confirmClassrooms" class="text-lg font-black">0</p></div>
+                <div><p class="text-[8px] font-black text-slate-400">TLT</p><p id="confirmToilets" class="text-lg font-black">0</p></div>
+            </div>
+            <div class="py-4 bg-slate-50 rounded-2xl">
+                <p class="text-[8px] font-black text-slate-400 uppercase">Hazard Status</p>
+                <p id="confirmHazardSummary" class="text-xs font-black text-red-800 uppercase mt-1"></p>
             </div>
             <div class="flex flex-col gap-3">
-                <button type="button" onclick="submitOfficialForm()" class="w-full py-4 bg-red-800 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition-colors shadow-lg">Confirm & Save Registry</button>
-                <button type="button" onclick="closeVerification()" class="w-full py-3 text-slate-400 font-bold uppercase text-[9px] tracking-widest hover:text-slate-600 transition-colors">Go Back & Edit</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-{{-- 2. Decommission Modal (For Deleting) --}}
-<div id="customDeleteModal" class="fixed inset-0 z-[3000] hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-    <div class="bg-white w-full max-w-md rounded-[2rem] shadow-2xl overflow-hidden border border-slate-200 animate-in fade-in zoom-in duration-200">
-        <div class="bg-slate-800 p-6 text-center">
-            <h3 class="text-white font-black uppercase tracking-widest text-xs">System Protocol: Decommission</h3>
-        </div>
-        
-        <div class="p-8 space-y-6 text-center">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
-                Confirming decommission of <span class="text-slate-800 font-black">{{ $school->name }}</span>. 
-                Record will be moved to the institutional archive.
-            </p>
-            
-            <div class="flex flex-col gap-3">
-                <button type="button" onclick="executeDecommission()" class="w-full py-4 bg-red-800 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition-colors shadow-lg">
-                    Confirm Decommission
-                </button>
-                <button type="button" onclick="closeDeleteModal()" class="w-full py-3 text-slate-400 font-bold uppercase text-[9px] tracking-widest hover:text-slate-600 transition-colors">
-                    Abort Mission
-                </button>
+                <button type="button" onclick="submitOfficialForm()" class="w-full py-4 bg-red-800 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition-colors">Confirm Save</button>
+                <button type="button" onclick="closeVerification()" class="w-full py-3 text-slate-400 font-bold uppercase text-[9px]">Cancel</button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // 1. MINIMAP INITIALIZATION
-    let miniMap, miniMarker;
-    
-    document.addEventListener('DOMContentLoaded', function() {
-        const initialLat = parseFloat(document.getElementById('lat').value) || 6.9214;
-        const initialLng = parseFloat(document.getElementById('lng').value) || 122.0739;
+    function updateRatios() {
+        const enrollees = parseFloat(document.getElementById('input_no_of_enrollees').value) || 0;
+        const teachers = parseFloat(document.getElementById('input_no_of_teachers').value) || 0;
+        const classrooms = parseFloat(document.getElementById('input_no_of_classrooms').value) || 0;
 
-        miniMap = L.map('miniMap', {
-            zoomControl: false,
-            dragging: false,
-            touchZoom: false,
-            scrollWheelZoom: false,
-            doubleClickZoom: false
-        }).setView([initialLat, initialLng], 15);
+        const tRatio = teachers > 0 ? Math.round(enrollees / teachers) : 0;
+        const cRatio = classrooms > 0 ? Math.round(enrollees / classrooms) : 0;
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap'
-        }).addTo(miniMap);
+        document.getElementById('liveTeacherRatio').innerText = `1 : ${tRatio}`;
+        document.getElementById('liveClassroomRatio').innerText = `1 : ${cRatio}`;
 
-        miniMarker = L.marker([initialLat, initialLng]).addTo(miniMap);
-    });
+        const statusLabel = document.getElementById('ratioStatusLabel');
+        const indicator = document.getElementById('ratioIndicatorCircle');
 
-    function updateMiniMap(lat, lng) {
-        if (miniMap && miniMarker) {
-            const newPos = [parseFloat(lat), parseFloat(lng)];
-            miniMarker.setLatLng(newPos);
-            miniMap.panTo(newPos);
+        if (cRatio > 45) {
+            statusLabel.innerText = "Critical";
+            statusLabel.className = "text-[8px] font-black uppercase px-2 py-0.5 rounded bg-red-100 text-red-700";
+            indicator.className = "w-2 h-2 rounded-full bg-red-600 animate-pulse";
+        } else if (cRatio > 35) {
+            statusLabel.innerText = "Approaching";
+            statusLabel.className = "text-[8px] font-black uppercase px-2 py-0.5 rounded bg-amber-100 text-amber-700";
+            indicator.className = "w-2 h-2 rounded-full bg-amber-500";
+        } else {
+            statusLabel.innerText = "Optimal";
+            statusLabel.className = "text-[8px] font-black uppercase px-2 py-0.5 rounded bg-emerald-100 text-emerald-700";
+            indicator.className = "w-2 h-2 rounded-full bg-emerald-500";
         }
     }
 
-    // 2. VERIFICATION LOGIC (Update Form)
+    function toggleOtherHazard() {
+        const typeSelect = document.getElementById('hazard_type');
+        const otherContainer = document.getElementById('other_hazard_container');
+        if (typeSelect.value === 'Others') {
+            otherContainer.classList.remove('hidden');
+            document.getElementById('hazard_others').focus();
+        } else {
+            otherContainer.classList.add('hidden');
+        }
+    }
+
     function triggerVerification() {
         document.getElementById('confirmName').innerText = document.querySelector('input[name="name"]').value.toUpperCase();
-        document.getElementById('confirmTeachers').innerText = document.querySelector('input[name="no_of_teachers"]').value;
-        document.getElementById('confirmEnrollees').innerText = document.querySelector('input[name="no_of_enrollees"]').value;
-        document.getElementById('confirmClassrooms').innerText = document.querySelector('input[name="no_of_classrooms"]').value;
-        document.getElementById('confirmToilets').innerText = document.querySelector('input[name="no_of_toilets"]').value;
+        document.getElementById('confirmTeachers').innerText = document.getElementById('input_no_of_teachers').value;
+        document.getElementById('confirmEnrollees').innerText = document.getElementById('input_no_of_enrollees').value;
+        document.getElementById('confirmClassrooms').innerText = document.getElementById('input_no_of_classrooms').value;
+        document.getElementById('confirmToilets').innerText = document.getElementById('input_no_of_toilets').value;
+        
+        let hazard = document.getElementById('hazard_type').value;
+        if(hazard === 'Others') hazard = document.getElementById('hazard_others').value || 'Unspecified';
+        const severity = document.getElementById('hazard_level').value;
+        document.getElementById('confirmHazardSummary').innerText = `${hazard} — Severity: ${severity}`;
+        
         document.getElementById('verificationModal').classList.remove('hidden');
     }
 
     function closeVerification() { document.getElementById('verificationModal').classList.add('hidden'); }
     function submitOfficialForm() { document.getElementById('editSchoolForm').submit(); }
 
-    // 3. MANUAL OVERRIDE LOGIC
-    function toggleManualEntry() {
-        const lat = document.getElementById('lat');
-        const lng = document.getElementById('lng');
-        const isReadOnly = lat.readOnly;
-        lat.readOnly = !isReadOnly;
-        lng.readOnly = !isReadOnly;
-
-        [lat, lng].forEach(el => {
-            el.classList.toggle('cursor-not-allowed');
-            el.classList.toggle('opacity-60');
-            el.classList.toggle('text-red-600');
-        });
-    }
-
-    // 4. DECOMMISSION LOGIC (Delete Form)
-    function openDeleteModal() {
-        document.getElementById('customDeleteModal').classList.remove('hidden');
-    }
-
-    function closeDeleteModal() {
-        document.getElementById('customDeleteModal').classList.add('hidden');
-    }
-
-    function executeDecommission() {
-        closeDeleteModal();
-        if(document.getElementById('globalLoader')) {
-            document.getElementById('globalLoader').classList.remove('hidden');
-        }
-        document.getElementById('decommissionForm').submit();
-    }
+    document.addEventListener('DOMContentLoaded', function() {
+        const initialLat = parseFloat(document.getElementById('lat').value) || 6.9214;
+        const initialLng = parseFloat(document.getElementById('lng').value) || 122.0739;
+        const miniMap = L.map('miniMap', { zoomControl: false, dragging: false }).setView([initialLat, initialLng], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMap);
+        L.marker([initialLat, initialLng]).addTo(miniMap);
+        updateRatios();
+    });
 </script>
 
 @include('admin.partials.map_modal')

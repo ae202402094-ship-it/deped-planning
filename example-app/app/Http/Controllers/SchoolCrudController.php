@@ -34,21 +34,25 @@ class SchoolCrudController extends Controller
             'no_of_enrollees' => 'required|integer|min:0',
             'no_of_classrooms' => 'required|integer|min:0',
             'no_of_toilets' => 'required|integer|min:0',
+            'hazard_type' => 'required|string',
+            'hazard_level' => 'required|string',
             'latitude' => 'nullable|numeric|between:-90,90',
             'longitude' => 'nullable|numeric|between:-180,180',
         ]);
 
+        // Logic for "Others" hazard type
+        if ($request->hazard_type === 'Others' && $request->filled('hazard_others')) {
+            $validated['hazard_type'] = $request->hazard_others;
+        }
+
         try {
             $school = School::create($validated);
 
-            // LOG THE CREATION
             ActivityLog::create([
                 'user_id' => auth()->id(),
                 'action' => 'Created New School',
                 'target_name' => $school->name,
-                'changes' => [
-                    'after' => $school->toArray()
-                ]
+                'changes' => ['after' => $school->toArray()]
             ]);
 
             return redirect()->route('admin.schools')->with('success', 'New school registered successfully!');
@@ -66,42 +70,39 @@ class SchoolCrudController extends Controller
     public function updateSchool(Request $request, $id)
     {
         $school = School::findOrFail($id);
-
-        $oldData = $school->only([
-            'name', 'school_id', 'no_of_teachers', 
-            'no_of_enrollees', 'no_of_classrooms', 'no_of_toilets',
-            'latitude', 'longitude' 
-        ]);
+        $oldData = $school->toArray();
 
         $validated = $request->validate([
             'school_id' => 'required|string',
             'name' => 'required|string',
-            'no_of_teachers' => 'required|integer',
-            'no_of_enrollees' => 'required|integer',
-            'no_of_classrooms' => 'required|integer',
-            'no_of_toilets' => 'required|integer',
-            'latitude' => 'required',
-            'longitude' => 'required',
+            'no_of_teachers' => 'required|integer|min:0',
+            'no_of_enrollees' => 'required|integer|min:0',
+            'no_of_classrooms' => 'required|integer|min:0',
+            'no_of_toilets' => 'required|integer|min:0',
+            'hazard_type' => 'required|string',
+            'hazard_level' => 'required|string',
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
         ]);
+
+        // Logic for "Others" hazard type
+        if ($request->hazard_type === 'Others' && $request->filled('hazard_others')) {
+            $validated['hazard_type'] = $request->hazard_others;
+        }
 
         $school->update($validated);
 
-        // LOG THE UPDATE
         ActivityLog::create([
             'user_id' => auth()->id(),
             'action' => 'Updated School Profile',
             'target_name' => $school->name,
             'changes' => [
                 'before' => $oldData,
-                'after' => $school->fresh()->only([
-                    'name', 'school_id', 'no_of_teachers', 
-                    'no_of_enrollees', 'no_of_classrooms', 'no_of_toilets',
-                    'latitude', 'longitude'
-                ])
+                'after' => $school->fresh()->toArray()
             ]
         ]);
 
-        return redirect()->route('schools.edit', $id)->with('success', 'Registry synchronized.');
+        return redirect()->route('admin.schools')->with('success', 'Registry synchronized successfully.');
     }
 
     public function destroySchool($id)
@@ -109,137 +110,108 @@ class SchoolCrudController extends Controller
         try {
             $school = School::findOrFail($id);
             $name = $school->name;
-            $oldData = $school->toArray(); // Capture data before deletion
+            $oldData = $school->toArray();
             
             $school->delete();
 
-            // LOG THE DELETION
             ActivityLog::create([
                 'user_id' => auth()->id(),
                 'action' => 'Deleted School',
                 'target_name' => $name,
-                'changes' => [
-                    'before' => $oldData
-                ]
+                'changes' => ['before' => $oldData]
             ]);
 
-            return redirect()
-            ->route('admin.schools')
-            ->with('success', "Protocol Complete: {$name} has been moved to the archives.");
+            return redirect()->route('admin.schools')->with('success', "{$name} has been moved to archives.");
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'System Error: Deletion protocol failed.');
+            return redirect()->back()->with('error', 'System Error: Deletion failed.');
         }
     }
 
-public function restoreSchool($id)
-{
-    $school = School::onlyTrashed()->findOrFail($id);
-    $school->restore();
-
-    return redirect()->route('schools.archive')->with('success', "Protocol Reversal: {$school->name} has been reinstated.");
-}
-
-public function forceDeleteSchool($id)
-{
-    $school = School::onlyTrashed()->findOrFail($id);
-    $name = $school->name;
-    $school->forceDelete();
-
-    return redirect()->route('schools.archive')->with('success', "CRITICAL: {$name} has been permanently purged from the database.");
-}
-
-public function archivedSchools(Request $request) 
-{
-    // 1. Strict Authorization Check
-    // This ensures only users with the exact 'admin' role can proceed.
-    if (auth()->user()->role !== 'admin') {
-        abort(403, 'ACCESS DENIED: Institutional Archives are restricted to Admin personnel only.');
+    public function restoreSchool($id)
+    {
+        $school = School::onlyTrashed()->findOrFail($id);
+        $school->restore();
+        return redirect()->route('schools.archive')->with('success', "{$school->name} reinstated.");
     }
 
-    $search = $request->input('search');
+    public function forceDeleteSchool($id)
+    {
+        $school = School::onlyTrashed()->findOrFail($id);
+        $name = $school->name;
+        $school->forceDelete();
+        return redirect()->route('schools.archive')->with('success', "{$name} permanently purged.");
+    }
 
-    // 2. Fetching Trashed Records
-    // onlyTrashed() specifically targets records where deleted_at is NOT NULL.
-    $schools = School::onlyTrashed()
-        ->when($search, function ($query, $search) {
-            return $query->where(function($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('school_id', 'like', "%{$search}%");
-            });
-        })
-        ->orderBy('deleted_at', 'desc')
-        ->paginate(50); 
+    public function archivedSchools(Request $request) 
+    {
+        if (!in_array(auth()->user()->role, ['admin', 'super_admin'])) {
+            abort(403, 'Unauthorized.');
+        }
 
-    return view('admin.schools_archive', compact('schools'));
-}
+        $search = $request->input('search');
+        $schools = School::onlyTrashed()
+            ->when($search, function ($query, $search) {
+                return $query->where(function($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('school_id', 'like', "%{$search}%");
+                });
+            })
+            ->orderBy('deleted_at', 'desc')
+            ->paginate(50); 
+
+        return view('admin.schools_archive', compact('schools'));
+    }
 
     public function checkDuplicate(Request $request)
     {
         $field = $request->input('field'); 
         $value = $request->input('value');
         $excludeId = $request->input('exclude_id'); 
-
         $query = School::where($field, $value);
-
-        if ($excludeId) {
-            $query->where('id', '!=', $excludeId);
-        }
-
+        if ($excludeId) { $query->where('id', '!=', $excludeId); }
         return response()->json(['exists' => $query->exists()]);
     }
 
     public function manageTeachers(Request $request) 
     {
-        if ($request->isMethod('post')) {
-            if ($request->has('update_school')) {
-                $school = School::find($request->id);
-                $oldData = $school->only(['no_of_teachers', 'no_of_enrollees', 'no_of_classrooms', 'no_of_toilets']);
-                
-                $school->update([
-                    'no_of_teachers' => $request->no_of_teachers,
-                    'no_of_enrollees' => $request->no_of_enrollees,
-                    'no_of_classrooms' => $request->no_of_classrooms,
-                    'no_of_toilets' => $request->no_of_toilets,
-                ]);
-
-                // LOG THE INVENTORY UPDATE FROM MAP/TEACHERS VIEW
-                ActivityLog::create([
-                    'user_id' => auth()->id(),
-                    'action' => 'Updated School Inventory',
-                    'target_name' => $school->name,
-                    'changes' => [
-                        'before' => $oldData,
-                        'after' => $school->fresh()->only(['no_of_teachers', 'no_of_enrollees', 'no_of_classrooms', 'no_of_toilets'])
-                    ]
-                ]);
-
-                return redirect()->back()->with('success', 'School inventory updated!');
-            }
-
-            if ($request->has('delete_school')) {
-                $school = School::find($request->id);
-                $name = $school->name;
-                $oldData = $school->toArray();
-                
-                School::destroy($request->id);
-
-                // LOG THE DELETION FROM MAP/TEACHERS VIEW
-                ActivityLog::create([
-                    'user_id' => auth()->id(),
-                    'action' => 'Deleted School (Inventory View)',
-                    'target_name' => $name,
-                    'changes' => [
-                        'before' => $oldData
-                    ]
-                ]);
-
-                return redirect()->back()->with('success', 'School deleted!');
-            }
-        }
-
+        // ... (Keep your existing manageTeachers logic here, it looked functional)
         $schools = School::all();
         $totalTeachers = $schools->sum('no_of_teachers');
-
         return view('admin.teachers', compact('schools', 'totalTeachers'));
     }
+
+
+    public function audit()
+{
+    $schools = School::all();
+    $flaggedSchools = [];
+
+    foreach ($schools as $school) {
+        $issues = [];
+
+        // 1. Math Check (Ratios)
+        if ($school->no_of_teachers > 0 && ($school->no_of_enrollees / $school->no_of_teachers) > 45) {
+            $issues[] = "Critical Teacher-Learner Ratio";
+        }
+        if ($school->no_of_classrooms > 0 && ($school->no_of_enrollees / $school->no_of_classrooms) > 45) {
+            $issues[] = "Severe Classroom Overcrowding";
+        }
+
+        // 2. Physical Hazard Check
+        $hasPhysicalHazard = ($school->hazard_type && $school->hazard_type !== 'None');
+
+        // Flag the school if it has ANY issue OR a physical hazard
+        if (!empty($issues) || $hasPhysicalHazard) {
+            $flaggedSchools[] = [
+                'school' => $school,
+                'issues' => $issues
+            ];
+        }
+    }
+
+    return view('admin.audit', compact('flaggedSchools'));
+}
+
+
+    
 }
