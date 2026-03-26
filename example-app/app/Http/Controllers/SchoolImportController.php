@@ -10,17 +10,14 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class SchoolImportController extends Controller
 {
     public function clearAllSchools()
-{
-    try {
-        // Warning: truncate() bypasses Eloquent and deletes all rows permanently.
-        // To support soft deletes here, use:
-        School::query()->delete(); 
-        
-        return redirect()->route('admin.schools')->with('success', 'School registry has been soft-deleted.');
-    } catch (\Exception $e) {
-        return redirect()->back()->with('error', 'System Error: Wipe protocol failed.');
-    }
-}   
+    {
+        try {
+            School::query()->delete(); 
+            return redirect()->route('admin.schools')->with('success', 'School registry has been soft-deleted.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'System Error: Wipe protocol failed.');
+        }
+    }   
 
     public function import(Request $request)
     {
@@ -63,18 +60,31 @@ class SchoolImportController extends Controller
                 $seenIds[$currentId] = true;
 
                 $formattedData[] = [
-                    'school_id'        => $currentId,
-                    'name'             => $currentName,
-                    'no_of_teachers'   => (int)($row[2] ?? 0),
-                    'no_of_enrollees'  => (int)($row[3] ?? 0),
-                    'no_of_classrooms' => (int)($row[4] ?? 0),
-                    'no_of_toilets'    => (int)($row[5] ?? 0),
-                    'latitude'         => !empty($row[6]) ? (float)$row[6] : 6.9214,
-                    'longitude'        => !empty($row[7]) ? (float)$row[7] : 122.0739,
-                    'status'           => $status,
-                    'exists_in_db'     => (bool)$existingSchoolById,
-                    'mismatch_id'      => $existingSchoolByName ? $existingSchoolByName->school_id : null,
-                    'old_values'       => $existingSchoolById ? [
+                    'school_id'          => $currentId,
+                    'name'               => $currentName,
+                    'no_of_teachers'     => (int)($row[2] ?? 0),
+                    'no_of_enrollees'    => (int)($row[3] ?? 0),
+                    'no_of_classrooms'   => (int)($row[4] ?? 0),
+                    'no_of_toilets'      => (int)($row[5] ?? 0),
+                    'no_of_chairs'       => (int)($row[6] ?? 0), // NEW
+                    'latitude'           => !empty($row[7]) ? (float)$row[7] : 6.9214,
+                    'longitude'          => !empty($row[8]) ? (float)$row[8] : 122.0739,
+                    
+                    // NEW: Utilities (Accepts 'true', '1', 'yes')
+                    'with_electricity'   => filter_var($row[9] ?? false, FILTER_VALIDATE_BOOLEAN),
+                    'with_potable_water' => filter_var($row[10] ?? false, FILTER_VALIDATE_BOOLEAN),
+                    'with_internet'      => filter_var($row[11] ?? false, FILTER_VALIDATE_BOOLEAN),
+                    
+                    // NEW: Shortages
+                    'classroom_shortage' => (int)($row[12] ?? 0),
+                    'chair_shortage'     => (int)($row[13] ?? 0),
+                    'toilet_shortage'    => (int)($row[14] ?? 0),
+                    'hazards'            => (string)($row[15] ?? ''),
+                    
+                    'status'             => $status,
+                    'exists_in_db'       => (bool)$existingSchoolById,
+                    'mismatch_id'        => $existingSchoolByName ? $existingSchoolByName->school_id : null,
+                    'old_values'         => $existingSchoolById ? [
                         'no_of_teachers'  => $existingSchoolById->no_of_teachers,
                         'no_of_enrollees' => $existingSchoolById->no_of_enrollees,
                         'name'            => $existingSchoolById->name,
@@ -91,58 +101,48 @@ class SchoolImportController extends Controller
         ));
     }
 
-
-// app/Http/Controllers/SchoolImportController.php
-
-// app/Http/Controllers/SchoolImportController.php
-
-// app/Http/Controllers/SchoolImportController.php
-
-// app/Http/Controllers/SchoolImportController.php
-
-// app/Http/Controllers/SchoolImportController.php
-
-// app/Http/Controllers/SchoolImportController.php
-
-public function confirmImport(Request $request)
-{
-    $data = session('pending_import');
-    if (!$data) {
-        return redirect()->route('admin.schools')->with('error', 'No pending data found.');
-    }
-
-    DB::transaction(function () use ($data) {
-        foreach ($data as $row) {
-            $schoolId = (string)$row['school_id'];
-
-            // 1. Check if the ID exists in the archives (Soft Deleted)
-            $archivedSchool = School::onlyTrashed()->where('school_id', $schoolId)->first();
-
-            if ($archivedSchool) {
-                // 2. PERMANENTLY DELETE from archives to clear the Unique ID constraint
-                $archivedSchool->forceDelete();
-            }
-
-            // 3. Now create or update the record as a fresh, active school
-            // Since the archive is cleared, this will not trigger a Duplicate Entry error
-            School::updateOrCreate(
-                ['school_id' => $schoolId], 
-                [
-                    'name'             => (string)$row['name'],
-                    'no_of_teachers'   => (int)$row['no_of_teachers'],
-                    'no_of_enrollees'  => (int)$row['no_of_enrollees'],
-                    'no_of_classrooms' => (int)$row['no_of_classrooms'],
-                    'no_of_toilets'    => (int)$row['no_of_toilets'],
-                    'latitude'         => (float)$row['latitude'],
-                    'longitude'        => (float)$row['longitude'],
-                ]
-            );
+    public function confirmImport(Request $request)
+    {
+        $data = session('pending_import');
+        if (!$data) {
+            return redirect()->route('admin.schools')->with('error', 'No pending data found.');
         }
-    });
 
-    session()->forget('pending_import');
-    return redirect()->route('admin.schools')->with('success', 'Registry synchronized. Existing archived matches were purged and replaced.');
-}
+        DB::transaction(function () use ($data) {
+            foreach ($data as $row) {
+                $schoolId = (string)$row['school_id'];
+
+                $archivedSchool = School::onlyTrashed()->where('school_id', $schoolId)->first();
+                if ($archivedSchool) {
+                    $archivedSchool->forceDelete();
+                }
+
+                School::updateOrCreate(
+                    ['school_id' => $schoolId], 
+                    [
+                        'name'               => (string)$row['name'],
+                        'no_of_teachers'     => (int)$row['no_of_teachers'],
+                        'no_of_enrollees'    => (int)$row['no_of_enrollees'],
+                        'no_of_classrooms'   => (int)$row['no_of_classrooms'],
+                        'no_of_toilets'      => (int)$row['no_of_toilets'],
+                        'no_of_chairs'       => (int)$row['no_of_chairs'], // NEW
+                        'latitude'           => (float)$row['latitude'],
+                        'longitude'          => (float)$row['longitude'],
+                        'with_electricity'   => (bool)$row['with_electricity'], // NEW
+                        'with_potable_water' => (bool)$row['with_potable_water'], // NEW
+                        'with_internet'      => (bool)$row['with_internet'], // NEW
+                        'classroom_shortage' => (int)$row['classroom_shortage'], // NEW
+                        'chair_shortage'     => (int)$row['chair_shortage'], // NEW
+                        'toilet_shortage'    => (int)$row['toilet_shortage'], // NEW
+                        'hazards'            => (string)$row['hazards'], // NEW
+                    ]
+                );
+            }
+        });
+
+        session()->forget('pending_import');
+        return redirect()->route('admin.schools')->with('success', 'Registry synchronized.');
+    }
 
     public function downloadSampleCSV(): StreamedResponse
     {
@@ -150,13 +150,18 @@ public function confirmImport(Request $request)
             $handle = fopen('php://output', 'w');
             fputcsv($handle, [
                 'school_id', 'name', 'no_of_teachers', 'no_of_enrollees', 
-                'no_of_classrooms', 'no_of_toilets', 'latitude', 'longitude'
+                'no_of_classrooms', 'no_of_toilets', 'no_of_chairs', 
+                'latitude', 'longitude', 'with_electricity', 'with_potable_water', 
+                'with_internet', 'classroom_shortage', 'chair_shortage', 'toilet_shortage', 'hazards'
             ]);
-            fputcsv($handle, ['123456', 'SAMPLE SCHOOL', '20', '500', '15', '8', '6.9214', '122.0739']);
+            fputcsv($handle, [
+                '123456', 'SAMPLE SCHOOL', '20', '500', '15', '8', '450', 
+                '6.9214', '122.0739', 'yes', 'yes', 'no', '0', '50', '2', 'Flood prone area'
+            ]);
             fclose($handle);
         }, 200, [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="deped_census_map_template.csv"',
+            'Content-Disposition' => 'attachment; filename="deped_census_full_template.csv"',
         ]);
     }
 }
