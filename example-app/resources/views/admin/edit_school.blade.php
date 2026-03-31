@@ -64,7 +64,7 @@
                 </div>
                 <div class="p-6 space-y-4 border-b-2 border-slate-100 bg-white">
                     <h3 class="text-[8px] font-black text-slate-400 uppercase mb-2">Utility Connectivity</h3>
-                    @foreach([['name' => 'with_electricity', 'label' => 'Electricity Service', 'val' => $school->with_electricity], ['name' => 'with_potable_water', 'label' => 'Water Resource', 'val' => $school->with_potable_water], ['name' => 'with_internet', 'label' => 'Data Connectivity', 'val' => $school->with_internet]] as $util)
+                    @foreach([['name' => 'with_electricity', 'label' => 'Electricity Service', 'val' => $school->with_electricity], ['name' => 'with_potable_water', 'label' => 'Water Resource', 'val' => $school->with_potable_water], ['name' => 'with_internet', 'label' => 'Internet Connectivity', 'val' => $school->with_internet]] as $util)
                     <div class="flex items-center justify-between border border-slate-200 p-2 bg-white">
                         <span class="text-[9px] font-bold text-slate-600 uppercase">{{ $util['label'] }}</span>
                         {{-- CHANGED: Dropdown is now Auburn --}}
