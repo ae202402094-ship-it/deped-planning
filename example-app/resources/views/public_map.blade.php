@@ -86,8 +86,8 @@
                     <h4 class="font-bold text-slate-800 text-sm mb-0.5">{{ $school->name }}</h4>
                     <p class="text-[10px] text-slate-400 mb-3 font-medium uppercase">ID: {{ $school->school_id }}</p>
                     <a href="{{ route('public.view', ['id' => $school->id]) }}" 
-                       class="inline-block py-2 px-5 bg-[#a52a2a] text-white rounded-full text-[10px] font-bold no-underline hover:bg-slate-900 transition-colors shadow-sm">
-                        View Profile
+                    class="inline-block py-2 px-5 bg-[#a52a2a] !text-white rounded-full text-[10px] font-bold no-underline hover:bg-slate-900 transition-colors shadow-sm">
+                    View Profile
                     </a>
                 </div>
             `);
