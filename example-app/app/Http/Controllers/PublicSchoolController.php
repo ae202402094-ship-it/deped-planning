@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\School;
-use Illuminate\Http\Request; // Critical import for search/filtering
+use Illuminate\Http\Request;
 
 class PublicSchoolController extends Controller
 {
@@ -28,9 +28,9 @@ class PublicSchoolController extends Controller
             $query->where('district', $request->district);
         }
 
-        // 3. Paginate results (this fixes the 'appends' error)
+        // 3. Paginate results updated to 10
         // withQueryString() ensures filters stay active when clicking next page
-        $schools = $query->latest()->paginate(15)->withQueryString();
+        $schools = $query->latest()->paginate(10)->withQueryString();
 
         return view('schools_list', compact('schools'));
     }
@@ -40,7 +40,6 @@ class PublicSchoolController extends Controller
      */
     public function showPublicDetail($id) 
     {
-        // findOrFail automatically throws a 404 if the school is missing
         $school = School::findOrFail($id); 
         
         return view('user_view', compact('school'));

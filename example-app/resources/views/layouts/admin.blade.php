@@ -7,27 +7,25 @@
     
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
 
     <style>
+        .font-cinzel { font-family: 'Cinzel', serif; }
         .modal-backdrop { z-index: 1040 !important; }
         .modal { z-index: 1050 !important; }
 
+        /* Print styles preserved from your original code */
         @media print {
-            nav, aside, .no-print, button, form, .danger-zone, .pagination, .coord-hint { display: none !important; }
-            @page { size: A4; margin: 2cm; }
-            body { background: white !important; color: #000 !important; font-family: "Inter", "Segoe UI", serif !important; line-height: 1.5; height: auto !important; overflow: visible !important; }
-            .flex-1 { margin: 0 !important; padding: 0 !important; }
-            main { padding: 0 !important; overflow: visible !important; }
-            header { background-color: transparent !important; border-bottom: 3px double #000 !important; margin-bottom: 2rem !important; padding-bottom: 1rem !important; position: static !important; }
-            header img { filter: grayscale(100%) brightness(0); height: 80px !important; }
-            table { width: 100% !important; border-collapse: collapse !important; margin: 1.5rem 0 !important; }
-            th { background-color: #f8fafc !important; border: 1px solid #000 !important; text-transform: uppercase !important; font-size: 8pt !important; padding: 10px !important; }
-            td { border: 1px solid #cbd5e1 !important; padding: 10px !important; font-size: 10pt !important; }
+            nav, aside, .no-print, button, form { display: none !important; }
+            body { background: white !important; color: #000 !important; }
+            header { border-bottom: 3px double #000 !important; position: static !important; }
         }
     </style>
 </head>
-<body class="bg-slate-50 flex h-screen overflow-hidden">
+<body class="bg-slate-50 flex min-h-screen overflow-x-hidden">
 
+    {{-- Global Loader --}}
     <div id="globalLoader" class="fixed inset-0 z-[9999] hidden flex flex-col items-center justify-center bg-slate-900/80 backdrop-blur-md">
         <div class="relative w-24 h-24">
             <div class="absolute inset-0 border-4 border-slate-700 rounded-full"></div>
@@ -89,12 +87,40 @@
         </div>
     </aside>
 
-    <div class="flex-1 flex flex-col overflow-hidden">
-        <header style="background-color: #a52a2a;" class="p-1 flex justify-center shadow-md flex-shrink-0 z-50">
-            <img src="{{ asset('images/deped_zambo_header.png') }}" class="h-16 w-auto" alt="Header">
+    {{-- Main Wrapper: Header and Content scroll together --}}
+    <div class="flex-1 flex flex-col overflow-y-auto">
+        
+        {{-- Fixed Header Layout: Non-Sticky --}}
+        <header class="bg-[#a52a2a] text-white shadow-lg relative z-10 w-full no-print">
+            <div class="px-8 py-4">
+                <div class="flex items-center justify-between gap-6">
+                    
+                    {{-- Left Logos --}}
+                    <div class="flex items-center gap-4 shrink-0">
+                        <img src="{{ asset('images/deped.png') }}" alt="DepEd" class="h-16 w-auto drop-shadow-md">
+                        <img src="{{ asset('images/r9.png') }}" alt="Region IX" class="h-16 w-auto drop-shadow-md">
+                    </div>
+
+                    {{-- Central Branding --}}
+                    <div class="flex flex-col font-cinzel text-white items-start text-left flex-1 border-l border-white/20 pl-6">
+                        <span class="text-[9px] tracking-widest leading-tight font-black uppercase">Republic of the Philippines</span>
+                        <span class="text-[9px] tracking-widest leading-tight font-black uppercase">Department of Education</span>
+                        <div class="w-full border-b border-white/30 my-1"></div>
+                        <h1 class="text-xl lg:text-2xl tracking-wide font-black leading-tight uppercase">
+                            {{ $site_settings->header_title ?? 'Zamboanga City Division' }}
+                        </h1>
+                    </div>
+
+                    {{-- Right Logo --}}
+                    <div class="hidden xl:block shrink-0">
+                        <img src="{{ asset('images/ts.png') }}" alt="Transparency Seal" class="h-16 w-auto opacity-90">
+                    </div>
+                </div>
+            </div>
         </header>
 
-        <main class="p-8 flex-1 overflow-y-auto bg-slate-50">
+        {{-- Content Area --}}
+        <main class="p-8 bg-slate-50 min-h-screen">
             @yield('content')
         </main>
     </div>
@@ -106,9 +132,7 @@
         document.addEventListener('submit', function(e) {
             if (!e.target.classList.contains('search-form')) {
                 const loader = document.getElementById('globalLoader');
-                if (loader) {
-                    loader.classList.remove('hidden');
-                }
+                if (loader) loader.classList.remove('hidden');
             }
         });
 

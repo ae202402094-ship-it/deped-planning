@@ -6,10 +6,33 @@
     <title>Login | DepEd Zamboanga City</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
-<body class="bg-slate-50 font-sans text-slate-900 flex flex-col min-h-screen">
+<body class="bg-slate-50 text-slate-900" x-data="{ mobileMenu: false }">
+    <header class="bg-[#a52a2a] text-white shadow-lg relative z-50">
+        <div class="container mx-auto px-4 py-3 md:py-6">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                
+                {{-- Left Logos: Hidden on extra small, shown from small up --}}
+                <div class="flex items-center gap-2 md:gap-4 shrink-0">
+                    <img src="{{ asset('images/deped.png') }}" alt="DepEd" class="h-10 sm:h-12 md:h-20 w-auto">
+                    <img src="{{ asset('images/r9.png') }}" alt="Region IX" class="h-10 sm:h-12 md:h-20 w-auto">
+                </div>
 
-    <header style="background-color: #a52a2a;" class="fixed p-1 flex justify-center z-40 w-full items-center shadow-md">
-        <img src="{{ asset('images/deped_zambo_header.png') }}" class="w-full max-w-4xl h-auto" alt="Header">
+                {{-- Central Branding: Text sizes adjust based on screen width --}}
+                <div class="flex flex-col font-cinzel items-center md:items-start text-center md:text-left flex-1 px-2">
+                    <span class="text-[8px] sm:text-[10px] md:text-sm tracking-widest font-black uppercase">Republic of the Philippines</span>
+                    <span class="text-[8px] sm:text-[10px] md:text-sm tracking-widest font-black uppercase">Department of Education</span>
+                    <div class="w-full border-b border-white/30 my-1 md:my-2"></div>
+                    <h1 class="text-xs sm:text-lg md:text-2xl lg:text-3xl font-black leading-tight tracking-wide">
+                        {{ $site_settings->header_title ?? 'Zamboanga City Division' }}
+                    </h1>
+                </div>
+
+                {{-- Right Logos: Hidden on mobile to save space, visible on MD+ --}}
+                <div class="hidden md:flex items-center gap-4 shrink-0">
+                    <img src="{{ asset('images/ts.png') }}" alt="Transparency Seal" class="h-16 lg:h-20 w-auto opacity-90">
+                </div>
+            </div>
+        </div>
     </header>
 
     <main class="flex-grow flex items-center justify-center px-4 pt-32 pb-12">
@@ -93,9 +116,120 @@
         </div>
     </main>
 
-    <footer class="py-4 text-center text-slate-400 text-[10px] uppercase tracking-widest">
-        &copy; {{ date('Y') }} DepEd Zamboanga City Planning Module
-    </footer>
+    <footer class="bg-[#f2f2f2] text-gray-700 pt-10 pb-12 md:pt-16 md:pb-16 border-t border-gray-300 mt-auto relative" x-data="{ activeSection: null }">
+    <div class="container mx-auto px-4 md:px-6 lg:px-20">
+        <div class="flex flex-col lg:flex-row items-center lg:items-start gap-10 justify-between">
+            
+            {{-- 1. Left Section: Logo --}}
+            <div class="w-full lg:w-auto flex justify-center lg:justify-start flex-shrink-0">
+                @php $footerLeftLogos = isset($site_logos) ? $site_logos->where('position', 'footer_left') : collect(); @endphp
+                @forelse($footerLeftLogos as $logo)
+                    <img src="{{ asset('storage/' . $logo->image_path) }}" alt="{{ $logo->name }}" class="w-[100px] md:w-[150px] h-auto object-contain">
+                @empty
+                    <img src="{{ asset('images/rnp.png') }}" alt="PH Seal" class="w-[100px] md:w-[150px] h-auto object-contain">
+                @endforelse
+            </div>
+
+            {{-- 2. Middle Sections: Accordion on Mobile, Grid on Desktop --}}
+            <div class="w-full flex-grow grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-8 lg:mx-10">
+                
+                {{-- Republic Info --}}
+                <div class="border-b border-gray-200 md:border-none">
+                    <button @click="activeSection = (activeSection === 'rep' ? null : 'rep')" 
+                            class="w-full py-4 md:py-0 flex justify-between items-center md:block text-left outline-none">
+                        <h2 class="font-bold text-[11px] md:text-sm uppercase tracking-wider text-gray-800">Republic of the Philippines</h2>
+                        <i class="bi bi-chevron-down md:hidden transition-transform" :class="activeSection === 'rep' ? 'rotate-180' : ''"></i>
+                    </button>
+                    <div class="overflow-hidden transition-all md:max-h-none" :class="activeSection === 'rep' ? 'max-h-40 pb-4' : 'max-h-0 md:mt-4'">
+                        <p class="text-[13px] leading-relaxed whitespace-pre-line text-gray-600">
+                            {{ $site_settings->footer_about ?? 'All content is in the public domain unless otherwise stated.' }}
+                        </p>
+                    </div>
+                </div>
+
+                {{-- Dynamic Footer Sections (About GOVPH / Custom) --}}
+                <div class="border-b border-gray-200 md:border-none">
+                    @if(!empty($site_settings->footer_sections))
+                        @foreach($site_settings->footer_sections as $index => $section)
+                            <button @click="activeSection = (activeSection === 'sec'+{{ $index }} ? null : 'sec'+{{ $index }})" 
+                                    class="w-full py-4 md:py-0 flex justify-between items-center md:block text-left outline-none">
+                                <h2 class="font-bold text-[11px] md:text-sm uppercase tracking-wider text-gray-800">{{ $section['title'] }}</h2>
+                                <i class="bi bi-chevron-down md:hidden transition-transform" :class="activeSection === 'sec'+{{ $index }} ? 'rotate-180' : ''"></i>
+                            </button>
+                            <div class="overflow-hidden transition-all md:max-h-none" :class="activeSection === 'sec'+{{ $index }} ? 'max-h-60 pb-4' : 'max-h-0 md:mt-4'">
+                                @if(!empty($section['content']))
+                                    <p class="text-[13px] leading-relaxed mb-3 whitespace-pre-line text-gray-600">{{ $section['content'] }}</p>
+                                @endif
+                                @if(!empty($section['links']))
+                                    <ul class="text-[13px] space-y-2">
+                                        @foreach($section['links'] as $link)
+                                            <li><a href="{{ $link['url'] ?? '#' }}" class="text-gray-500 hover:text-red-700 transition-colors">{{ $link['label'] }}</a></li>
+                                        @endforeach
+                                    </ul>
+                                @endif
+                            </div>
+                        @endforeach
+                    @else
+                        <button @click="activeSection = (activeSection === 'gov' ? null : 'gov')" 
+                                class="w-full py-4 md:py-0 flex justify-between items-center md:block text-left outline-none">
+                            <h2 class="font-bold text-[11px] md:text-sm uppercase tracking-wider text-gray-800">About GOVPH</h2>
+                            <i class="bi bi-chevron-down md:hidden transition-transform" :class="activeSection === 'gov' ? 'rotate-180' : ''"></i>
+                        </button>
+                        <div class="overflow-hidden transition-all md:max-h-none" :class="activeSection === 'gov' ? 'max-h-40 pb-4' : 'max-h-0 md:mt-4'">
+                            <ul class="text-[13px] space-y-2">
+                                <li><a href="https://www.gov.ph" target="_blank" class="text-gray-500 hover:text-red-700 transition-colors">GOV.PH</a></li>
+                                <li><a href="#" class="text-gray-500 hover:text-red-700 transition-colors">Open Data Portal</a></li>
+                                <li><a href="#" class="text-gray-500 hover:text-red-700 transition-colors">Official Gazette</a></li>
+                            </ul>
+                        </div>
+                    @endif
+                </div>
+
+                {{-- Contact Section --}}
+                <div class="border-b border-gray-200 md:border-none">
+                    <button @click="activeSection = (activeSection === 'contact' ? null : 'contact')" 
+                            class="w-full py-4 md:py-0 flex justify-between items-center md:block text-left outline-none">
+                        <h2 class="font-bold text-[11px] md:text-sm uppercase tracking-wider text-gray-800">Contact Us</h2>
+                        <i class="bi bi-chevron-down md:hidden transition-transform" :class="activeSection === 'contact' ? 'rotate-180' : ''"></i>
+                    </button>
+                    <div class="overflow-hidden transition-all md:max-h-none" :class="activeSection === 'contact' ? 'max-h-80 pb-4' : 'max-h-0 md:mt-4'">
+                        <div class="text-[13px] space-y-4 text-gray-600">
+                            @if(!empty($site_settings->address))
+                                <div><strong>Address:</strong><br>
+                                    @foreach($site_settings->address as $address) <span class="block">{{ $address }}</span> @endforeach
+                                </div>
+                            @endif
+                            @if(!empty($site_settings->contact_email))
+                                <div><strong>Email:</strong><br>
+                                    @foreach($site_settings->contact_email as $email) 
+                                        <a href="mailto:{{ $email }}" class="block hover:text-red-700 transition-colors">{{ $email }}</a> 
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- 3. Right Section: Logo --}}
+            <div class="w-full lg:w-auto flex justify-center lg:justify-end flex-shrink-0 mt-4 lg:mt-0">
+                @php $footerRightLogos = isset($site_logos) ? $site_logos->where('position', 'footer_right') : collect(); @endphp
+                @forelse($footerRightLogos as $logo)
+                    <img src="{{ asset('storage/' . $logo->image_path) }}" alt="{{ $logo->name }}" class="w-[100px] md:w-[150px] h-auto object-contain">
+                @empty
+                    <img src="{{ asset('images/foi.png') }}" alt="FOI Logo" class="w-[100px] md:w-[150px] h-auto object-contain">
+                @endforelse
+            </div>
+        </div>
+
+        {{-- Bottom Copyright & Admin Toggle --}}
+        <div class="container mx-auto px-4 mt-10 pt-6 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p class="text-[10px] text-gray-400 uppercase tracking-widest text-center md:text-left">
+                &copy; 2026 Department of Education - Zamboanga City Division
+            </p>
+        </div>
+    </div>
+</footer>
 
     <script>
         document.getElementById('togglePassword').addEventListener('click', function () {
