@@ -18,16 +18,17 @@ protected $fillable = [
     'no_of_teachers', 
     'no_of_enrollees', 
     'no_of_classrooms', 
+    'no_of_chairs', // Added
     'no_of_toilets', 
     'latitude', 
     'longitude',
-    'with_electricity',    // MUST BE ADDED
-    'with_potable_water',  // MUST BE ADDED
-    'with_internet',       // MUST BE ADDED
-    'classroom_shortage',  // MUST BE ADDED
-    'chair_shortage',      // MUST BE ADDED
-    'toilet_shortage',     // MUST BE ADDED
-    'hazards'              // MUST BE ADDED
+    'with_electricity', 
+    'with_potable_water', 
+    'with_internet',
+    'classroom_shortage', 
+    'chair_shortage', 
+    'toilet_shortage',
+    'hazards'
 ];
 
     public $incrementing = false; 

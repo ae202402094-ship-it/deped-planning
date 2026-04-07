@@ -73,24 +73,29 @@ class SchoolCrudController extends Controller
     $oldData = $school->toArray();
 
     $validated = $request->validate([
-        'school_id' => 'required|string',
-        'name' => 'required|string',
+        'school_id' => 'required|unique:schools,school_id,' . $school->id,
+        'name' => 'required|string|max:255',
         'no_of_teachers' => 'required|integer|min:0',
         'no_of_enrollees' => 'required|integer|min:0',
         'no_of_classrooms' => 'required|integer|min:0',
+        'no_of_chairs' => 'required|integer|min:0',
         'no_of_toilets' => 'required|integer|min:0',
-        'latitude' => 'required|numeric',
-        'longitude' => 'required|numeric',
-        // New Audit Fields
-        'with_electricity' => 'required|string', // Changed from boolean to string
+        'with_electricity' => 'required|string',
         'with_potable_water' => 'required|boolean',
         'with_internet' => 'required|boolean',
         'classroom_shortage' => 'nullable|integer|min:0',
         'chair_shortage' => 'nullable|integer|min:0',
         'toilet_shortage' => 'nullable|integer|min:0',
-        'hazards' => 'nullable|string',
+        'latitude' => 'required|numeric',
+        'longitude' => 'required|numeric',
+        'hazard_type' => 'required|string', // Capture the dropdown
+        'hazards' => 'nullable|string',     // Capture the textarea
     ]);
 
+    if ($request->hazard_type !== 'Others') {
+        $validated['hazards'] = $request->hazard_type;
+    }
+    
     // Perform the update
     $school->update($validated);
 

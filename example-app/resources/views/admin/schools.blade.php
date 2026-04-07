@@ -1,8 +1,9 @@
-@extends(auth()->user()->role === 'super_admin' ? 'layouts.super_admin' : 'layouts.admin')
+@extends('layouts.admin')
 
 @section('content')
+<div class="max-w-7xl mx-auto px-4 py-8">
 
-{{-- 00. PROFESSIONAL PRINT HEADER (Visible on Paper Only) --}}
+    {{-- 00. PROFESSIONAL PRINT HEADER (Visible on Paper Only) --}}
     <div class="hidden print:block mb-10 border-b-2 border-slate-900 pb-8">
         <div class="flex justify-between items-start mb-6">
             <div class="flex items-center gap-6">
@@ -25,14 +26,10 @@
         </div>
 
         {{-- Executive Summary Block for Print --}}
-            <div class="mt-10 grid grid-cols-2 md:grid-cols-4 print:grid-cols-4 gap-4 border-y-2 border-slate-100 py-8">
-    <div class="text-center print:border-r print:border-slate-100">
-        <p class="text-[9px] font-black uppercase text-slate-400">Total Institutions</p>
-        <p class="text-2xl font-black text-slate-900">{{ $schools->total() }}</p>
-    </div>
+        <div class="mt-10 grid grid-cols-4 gap-6 border-y-2 border-slate-100 py-8">
             <div class="text-center border-r border-slate-100">
-                <p class="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-2">Registry District</p>
-                <p class="text-lg font-bold text-slate-900">{{ request('district') ?? 'City-Wide' }}</p>
+                <p class="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-2">Total Institutions</p>
+                <p class="text-2xl font-black text-slate-900">{{ $schools->total() }}</p>
             </div>
             <div class="text-center border-r border-slate-100">
                 <p class="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-2">Authorized By</p>
@@ -45,159 +42,101 @@
         </div>
     </div>
 
-<div class="max-w-7xl mx-auto px-4">
-    {{-- 01. NAVIGATION & SEARCH --}}
-    <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-    <div>
-        <h2 class="text-2xl font-black text-slate-800 uppercase tracking-tight">School Registry</h2>
-        <p class="text-xs text-slate-500 font-bold uppercase tracking-widest italic">Institutional Management Interface</p>
-    </div>
-
-    <div class="flex flex-wrap gap-4 items-center no-print">
-        {{-- Print Trigger --}}
-        <button onclick="window.print()" class="bg-slate-100 text-slate-800 px-6 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-slate-200 transition shadow-sm flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
-            </svg>
-            Print Registry
-        </button>
-
-        @if(auth()->user()->role === 'admin')
-            <a href="{{ route('schools.archive') }}" class="text-[10px] font-black text-slate-400 hover:text-red-800 transition-all uppercase tracking-widest px-4 py-3 flex items-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                </svg>
-                Institutional Archive
+    {{-- 01. INTERACTIVE PAGE HEADER (Hidden on Print) --}}
+    <div class="no-print flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
+        <div>
+            <h2 class="text-3xl font-black text-slate-800 uppercase tracking-tight">School Registry</h2>
+            <p class="text-sm text-slate-500 font-bold uppercase tracking-widest italic">Manage Institutional Data & Verification</p>
+        </div>
+        <div class="flex flex-wrap gap-3">
+            <button onclick="window.print()" class="bg-white border-2 border-slate-200 text-slate-600 px-6 py-3 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-slate-50 transition-all flex items-center gap-2">
+                <i class="bi bi-printer-fill"></i> Generate Report
+            </button>
+            <a href="{{ route('schools.create') }}" class="bg-[#a52a2a] text-white px-8 py-3 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-red-900/20 hover:bg-black transition-all">
+                Add New School
             </a>
-        @endif
-
-        <a href="{{ route('schools.create') }}" class="bg-red-800 text-white px-6 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition shadow-lg">
-            + Register School
-        </a>
-        
-        {{-- Search Bar: Added 'search-form' class to prevent the loading overlay on searches --}}
-        <form action="{{ route('admin.schools') }}" method="GET" class="search-form flex gap-2">
-            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search ID or Name..." 
-                   class="w-64 border border-slate-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-red-500 outline-none shadow-sm text-sm font-medium">
-            <button type="submit" class="bg-slate-800 text-white px-4 py-2 rounded-xl font-bold uppercase text-[10px] tracking-widest">Find</button>
-        </form>
-    </div>
-</div>
-
-    {{-- 02. BULK REGISTRY SYNC (CSVs) --}}
-    <div class="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-xl shadow-slate-200/50 mb-12 relative overflow-hidden no-print">
-        <div class="relative flex flex-col lg:flex-row items-center justify-between gap-8">
-            <div class="max-w-md">
-                <div class="flex items-center gap-3 mb-3">
-                    <div class="w-1.5 h-6 bg-red-800 rounded-full"></div>
-                    <h3 class="text-[11px] font-black text-slate-800 uppercase tracking-[0.4em]">Bulk Registry Sync</h3>
-                </div>
-                <p class="text-sm text-slate-500 font-medium mb-4">
-                    Automate updates by uploading a structured dataset. 
-                    <span class="block mt-2">
-                        <a href="{{ route('schools.sample') }}" class="text-red-800 font-bold text-xs uppercase tracking-widest border-b-2 border-red-200 hover:border-red-800 transition-all">
-                            Download Master Template
-                        </a>
-                    </span>
-                </p>
-            </div>
-            
-            <form action="{{ route('schools.import') }}" method="POST" enctype="multipart/form-data" class="w-full lg:w-auto">
-                @csrf
-                <div class="flex flex-col sm:flex-row items-stretch gap-4">
-                    <div class="relative flex-1 group">
-                        <input type="file" name="csv_file" accept=".csv" required 
-                               onchange="document.getElementById('fileNameDisplay').innerText = this.files[0].name"
-                               class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
-                        <div class="bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl px-6 py-4 flex items-center gap-4 group-hover:border-red-300 transition-all">
-                            <div class="text-left">
-                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Select File</p>
-                                <p id="fileNameDisplay" class="text-xs font-bold text-slate-600 truncate max-w-[150px]">Choose CSV...</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="px-8 py-4 bg-slate-900 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-red-800 transition-all">
-                        Execute Protocol
-                    </button>
-                </div>
-            </form>
         </div>
     </div>
 
-    {{-- 03. MAIN DATA TABLE --}}
-    <div class="bg-white rounded-[2rem] border border-slate-200 shadow-xl overflow-hidden print:border-slate-900">
+    {{-- 02. REGISTRY TABLE --}}
+    <div class="bg-white rounded-[2.5rem] border border-slate-200 shadow-2xl shadow-slate-200/50 overflow-hidden print:border-slate-900 print:shadow-none print:rounded-none">
         <table class="w-full text-left border-collapse">
-            <thead class="bg-slate-50 border-b border-slate-200 print:bg-transparent">
-                <tr class="text-[10px] font-black text-slate-400 uppercase tracking-widest print:text-black">
-                    <th class="p-5 border-r border-slate-200">School ID</th>
-                    <th class="p-5 border-r border-slate-200">Institutional Name</th>
-                    <th class="p-5 border-r border-slate-200 text-center">Teachers</th>
-                    <th class="p-5 border-r border-slate-200 text-center">Enrollees</th>
-                    <th class="p-5 text-center no-print">Actions</th>
+            <thead class="bg-slate-50 border-b border-slate-200 print:bg-slate-100">
+                <tr class="text-[10px] font-black text-slate-400 uppercase tracking-widest print:text-slate-900">
+                    <th class="p-6 border-r border-slate-200/50 print:border-slate-300">ID CODE</th>
+                    <th class="p-6 border-r border-slate-200/50 print:border-slate-300">Institutional Entity</th>
+                    <th class="p-6 border-r border-slate-200/50 print:border-slate-300 text-center">Faculty</th>
+                    <th class="p-6 border-r border-slate-200/50 print:border-slate-300 text-center">Enrollees</th>
+                    <th class="p-6 text-center no-print">Operations</th>
                 </tr>
             </thead>
             <tbody class="text-sm">
                 @forelse($schools as $school)
-                    <tr class="border-b border-slate-50 print:border-slate-200">
-    {{-- ID CODE --}}
-    <td class="p-4 print:p-2 font-mono font-bold text-slate-500 print:text-black">
-        #{{ $school->school_id }}
-    </td>
-    
-    {{-- INSTITUTIONAL ENTITY --}}
-    <td class="p-4 print:p-2">
-        <span class="font-black text-slate-800 uppercase tracking-tight print:text-xs">
-            {{ $school->name }}
-        </span>
-    </td>
-
-    {{-- DISTRICT --}}
-    <td class="p-4 print:p-2 text-center">
-        <span class="text-[10px] font-bold uppercase text-slate-500">
-            {{ $school->district }}
-        </span>
-    </td>
-
-    {{-- FACULTY / ENROLLEES --}}
-    <td class="p-4 print:p-2 text-center font-bold tabular-nums">
-        {{ number_format($school->no_of_teachers) }}
-    </td>
-    <td class="p-4 print:p-2 text-center font-bold tabular-nums">
-        {{ number_format($school->no_of_enrollees) }}
-    </td>
-</tr>
+                    <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors print:border-slate-200">
+                        <td class="p-6 border-r border-slate-50 print:border-slate-200 font-mono font-bold text-slate-500 print:text-black">
+                            #{{ $school->school_id }}
+                        </td>
+                        <td class="p-6 border-r border-slate-50 print:border-slate-200">
+                            <span class="font-black text-slate-800 uppercase tracking-tight block">{{ $school->name }}</span>
+                        </td>
+                        <td class="p-6 border-r border-slate-50 print:border-slate-200 text-center font-bold tabular-nums">
+                            {{ number_format($school->no_of_teachers) }}
+                        </td>
+                        <td class="p-6 border-r border-slate-50 print:border-slate-200 text-center font-bold tabular-nums">
+                            {{ number_format($school->no_of_enrollees) }}
+                        </td>
+                        <td class="p-6 text-center no-print">
+                            <div class="flex justify-center items-center gap-4">
+                                <a href="{{ route('schools.edit', $school->id) }}" 
+                                   class="inline-flex items-center gap-1.5 text-[#a52a2a] hover:text-black font-black text-[10px] uppercase tracking-tighter transition-colors">
+                                    <i class="bi bi-pencil-square"></i>
+                                    Edit Profile
+                                </a>
+                                <form action="{{ route('schools.destroy', $school->id) }}" method="POST" onsubmit="return confirm('Archive this institution?')">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="text-slate-300 hover:text-red-600 font-black text-[10px] uppercase tracking-tighter transition-colors">
+                                        Archive
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="p-20 text-center text-slate-400 uppercase font-black tracking-widest text-xs">
-                            No Institutional Records Found
-                        </td>
+                        <td colspan="6" class="p-20 text-center uppercase font-black text-slate-200 tracking-[1em]">No Registry Data found</td>
                     </tr>
                 @endforelse
             </tbody>
         </table>
 
-        {{-- Pagination --}}
+        {{-- 03. PAGINATION (Hidden on Print) --}}
         @if($schools->hasPages())
-            <div class="p-6 bg-slate-50 border-t border-slate-200 no-print">
+            <div class="p-8 bg-slate-50 border-t border-slate-200 no-print">
                 {{ $schools->links() }}
             </div>
         @endif
     </div>
 
-    {{-- 04. EMERGENCY CONTROLS --}}
-    <div class="mt-12 flex flex-col items-center gap-4 no-print">
-        <form action="{{ route('schools.clear_all') }}" method="POST" onsubmit="return confirm('CRITICAL WARNING: This will wipe the entire registry. Proceed?');">
-            @csrf
-            @method('DELETE')
-            <button type="submit" class="text-[9px] font-bold text-slate-300 uppercase tracking-[0.2em] hover:text-red-800 transition-colors">
-                ⚠ Emergency Wipe Protocol
-            </button>
-        </form>
+    {{-- 04. VALIDATION FOOTER (Visible on Paper Only) --}}
+    <div class="hidden print:block mt-24">
+        <div class="flex justify-between items-end px-12">
+            <div class="text-center w-72">
+                <div class="border-b-2 border-slate-900 mb-3"></div>
+                <p class="text-[10px] font-black uppercase tracking-widest">Certified Correct By:</p>
+                <p class="text-[9px] text-slate-500 font-bold uppercase mt-1">Division Planning Officer</p>
+            </div>
+            <div class="text-center w-72">
+                <div class="border-b-2 border-slate-900 mb-3"></div>
+                <p class="text-[10px] font-black uppercase tracking-widest">Approved For Release:</p>
+                <p class="text-[9px] text-slate-500 font-bold uppercase mt-1">Schools Division Superintendent</p>
+            </div>
+        </div>
         
-        <p class="text-[9px] font-black text-slate-200 uppercase tracking-[0.5em] mt-4">
-            Division of Zamboanga City Data Systems
-        </p>
+        <div class="mt-24 flex flex-col items-center gap-2">
+            <p class="text-[9px] font-black text-slate-300 uppercase tracking-[0.5em]">End of Institutional Registry Summary</p>
+            <p class="text-[8px] text-slate-400 italic">System-generated document. Electronic verification code: {{ strtoupper(Str::random(12)) }}</p>
+        </div>
     </div>
+
 </div>
 @endsection
