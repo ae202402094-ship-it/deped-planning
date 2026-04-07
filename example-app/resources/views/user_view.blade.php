@@ -4,13 +4,18 @@
 @php
     $teacherLearnerRatio = $school->no_of_teachers > 0 ? "1 : " . round($school->no_of_enrollees / $school->no_of_teachers) : "0 : 0";
     $classroomLearnerRatio = $school->no_of_classrooms > 0 ? "1 : " . round($school->no_of_enrollees / $school->no_of_classrooms) : "0 : 0";
+    
+    // NEW: Chair Ratio Calculation
+    $chairLearnerRatio = ($school->no_of_chairs > 0) ? "1 : " . round($school->no_of_enrollees / $school->no_of_chairs, 1) : "0 : 0";
+    $rawChairRatio = ($school->no_of_chairs > 0) ? ($school->no_of_enrollees / $school->no_of_chairs) : 0;
+
     $rawClassroomRatio = $school->no_of_classrooms > 0 ? round($school->no_of_enrollees / $school->no_of_classrooms) : 0;
     $rawTeacherRatio = $school->no_of_teachers > 0 ? round($school->no_of_enrollees / $school->no_of_teachers) : 0;
 
     $isHighRisk = ($school->hazard_level === 'High');
     if ($isHighRisk) {
         $statusLabel = 'Critical Risk';
-        $statusColor = 'bg-red-600';
+        $statusColor = 'bg-[#a52a2a]';
     } elseif ($rawClassroomRatio > 50) {
         $statusLabel = 'Overcrowded';
         $statusColor = 'bg-rose-500';
@@ -43,21 +48,22 @@
     </div>
 
     {{-- Section 01: Core Demographics --}}
-    <div class="grid grid-cols-2 md:grid-cols-4 border border-slate-200 mb-12">
+    <div class="grid grid-cols-2 md:grid-cols-5 border border-slate-200 mb-12">
         @foreach([
-            ['label' => 'Total Instructional Personnel', 'value' => $school->no_of_teachers],
-            ['label' => 'Total Registered Enrollees', 'value' => $school->no_of_enrollees],
+            ['label' => 'Instructional Personnel', 'value' => $school->no_of_teachers],
+            ['label' => 'Registered Enrollees', 'value' => $school->no_of_enrollees],
             ['label' => 'Instructional Spaces', 'value' => $school->no_of_classrooms],
             ['label' => 'Sanitary Facilities', 'value' => $school->no_of_toilets],
+            ['label' => 'Chair Inventory', 'value' => $school->no_of_chairs],
         ] as $metric)
             <div class="p-6 border-r border-slate-100 last:border-none bg-white">
                 <p class="text-[7px] font-black text-slate-400 uppercase tracking-widest mb-2 leading-tight h-4">{{ $metric['label'] }}</p>
-                <p class="text-3xl font-black text-slate-900 tabular-nums tracking-tighter">{{ number_format($metric['value']) }}</p>
+                <p class="text-2xl font-black text-slate-900 tabular-nums tracking-tighter">{{ number_format($metric['value']) }}</p>
             </div>
         @endforeach
     </div>
 
-    {{-- Section 02: Resource & Utility Audit (MOVED UP) --}}
+    {{-- Section 02: Infrastructure Audit --}}
     <div class="mb-16">
         <div class="flex items-center gap-3 mb-8">
             <span class="text-[9px] font-black text-slate-900 uppercase tracking-widest">01 / Infrastructure & Resource Audit</span>
@@ -69,8 +75,17 @@
             <div class="space-y-4">
                 <h3 class="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100 pb-2">Utilities Matrix</h3>
                 <div class="space-y-4">
+                    {{-- Electricity (Showing Specific Source) --}}
+                    <div class="flex items-center justify-between border-b border-slate-50 pb-2">
+                        <span class="text-[9px] font-bold text-slate-600 uppercase flex items-center gap-2">
+                            <span class="{{ $school->with_electricity != 'None' ? 'opacity-100' : 'opacity-20 grayscale' }}">⚡</span> 
+                            Electricity
+                        </span>
+                        <span class="text-[8px] font-black uppercase tracking-tighter {{ $school->with_electricity != 'None' ? 'text-emerald-700' : 'text-rose-700' }}">
+                            {{ $school->with_electricity }}
+                        </span>
+                    </div>
                     @foreach([
-                        ['label' => 'Electricity', 'status' => $school->with_electricity, 'icon' => '⚡'],
                         ['label' => 'Potable Water', 'status' => $school->with_potable_water, 'icon' => '💧'],
                         ['label' => 'Connectivity', 'status' => $school->with_internet, 'icon' => '🌐']
                     ] as $util)
@@ -98,7 +113,7 @@
                     ] as $short)
                         <div class="flex justify-between items-end border-b border-slate-50 pb-2">
                             <span class="text-[9px] font-bold text-slate-500 uppercase">{{ $short['label'] }}</span>
-                            <span class="text-xs font-black {{ ($short['val'] ?? 0) > 0 ? 'text-rose-800' : 'text-slate-400' }} font-mono">
+                            <span class="text-xs font-black {{ ($short['val'] ?? 0) > 0 ? 'text-[#a52a2a]' : 'text-slate-400' }} font-mono">
                                 {{ number_format($short['val'] ?? 0) }}
                             </span>
                         </div>
@@ -114,21 +129,18 @@
                         {{ $school->hazards ?: 'No high-priority geospatial hazards identified in the current registry cycle.' }}
                     </p>
                 </div>
-                <div class="text-right">
-                    <span class="text-[7px] font-black text-slate-300 uppercase italic">Ref: Audit_Log_Zambo_City</span>
-                </div>
             </div>
         </div>
     </div>
 
-    {{-- Section 03: Geospatial & Analytics (MOVED DOWN) --}}
+    {{-- Section 03: Geospatial & Analytics --}}
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
         <div class="lg:col-span-8">
             <div class="flex items-center gap-3 mb-4">
                 <span class="text-[9px] font-black text-slate-900 uppercase tracking-widest">02 / Geospatial Mapping</span>
                 <div class="h-px flex-1 bg-slate-200"></div>
             </div>
-            <div id="schoolMap" class="h-[350px] w-full border border-slate-200 grayscale shadow-sm"></div>
+            <div id="schoolMap" class="h-[350px] w-full border border-slate-200 shadow-sm"></div>
             <div class="mt-3 flex justify-between items-center text-[8px] font-mono text-slate-400 uppercase">
                 <span>Lat: {{ $school->latitude }}</span>
                 <span>Lng: {{ $school->longitude }}</span>
@@ -139,10 +151,11 @@
             {{-- Efficiency Metrics --}}
             <div>
                 <div class="flex items-center gap-3 mb-6">
-                    <span class="text-[9px] font-black text-slate-900 uppercase tracking-widest">03 / Efficiency</span>
+                    <span class="text-[9px] font-black text-slate-900 uppercase tracking-widest">03 / Efficiency Metrics</span>
                     <div class="h-px flex-1 bg-slate-200"></div>
                 </div>
                 <div class="space-y-6">
+                    {{-- Classroom Ratio --}}
                     <div>
                         <div class="flex justify-between text-[8px] font-black uppercase mb-1">
                             <span class="text-slate-400 tracking-widest">Classroom-Learner Ratio</span>
@@ -152,6 +165,8 @@
                             <div class="h-full bg-slate-900" style="width: {{ min(($rawClassroomRatio / 60) * 100, 100) }}%"></div>
                         </div>
                     </div>
+                    
+                    {{-- Teacher Ratio --}}
                     <div>
                         <div class="flex justify-between text-[8px] font-black uppercase mb-1">
                             <span class="text-slate-400 tracking-widest">Teacher-Learner Ratio</span>
@@ -161,14 +176,25 @@
                             <div class="h-full bg-slate-400" style="width: {{ min(($rawTeacherRatio / 50) * 100, 100) }}%"></div>
                         </div>
                     </div>
+
+                    {{-- NEW: Chair-Learner Ratio (Turns Red if > 1 student per chair) --}}
+                    <div>
+                        <div class="flex justify-between text-[8px] font-black uppercase mb-1">
+                            <span class="text-slate-400 tracking-widest">Learner-Chair Ratio</span>
+                            <span class="{{ $rawChairRatio > 1 ? 'text-[#a52a2a]' : 'text-slate-900' }} font-mono">{{ $chairLearnerRatio }}</span>
+                        </div>
+                        <div class="h-1 w-full bg-slate-100 overflow-hidden">
+                            <div class="h-full {{ $rawChairRatio > 1 ? 'bg-[#a52a2a]' : 'bg-emerald-600' }}" style="width: {{ min(($rawChairRatio / 2) * 100, 100) }}%"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             {{-- Hazard Assessment --}}
-            <div class="bg-slate-50 p-6 border-l-2 border-slate-900">
+            <div class="bg-slate-50 p-6 border-l-2 border-[#a52a2a]">
                 <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-4">DRRM Hazard Assessment</span>
                 <div class="flex items-center gap-4">
-                    <i class="bi bi-shield-shaded text-xl text-slate-900"></i>
+                    <i class="bi bi-shield-shaded text-xl text-[#a52a2a]"></i>
                     <div>
                         <p class="text-[10px] font-black text-slate-900 uppercase tracking-tighter">{{ $school->hazard_type ?: 'NO SPECIFIC THREATS' }}</p>
                         <p class="text-[8px] text-slate-500 font-bold uppercase tracking-widest">{{ $school->hazard_level }} Priority Level</p>
@@ -179,8 +205,8 @@
     </div>
 
     <div class="mt-24 text-center border-t border-slate-100 pt-8 no-print">
-        <a href="{{ route('public.map') }}" class="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] hover:text-red-800 transition-colors">
-            ← Archive Return Protocol
+        <a href="{{ route('public.map') }}" class="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] hover:text-[#a52a2a] transition-colors">
+            ← Registry Return Protocol
         </a>
     </div>
 </div>
@@ -194,7 +220,7 @@
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
         L.marker([lat, lng], {
             icon: L.divIcon({
-                html: `<div style="background-color: #0f172a; width: 30px; height: 30px; border: 3px solid white; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);"></div>`,
+                html: `<div style="background-color: #a52a2a; width: 30px; height: 30px; border: 3px solid white; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);"></div>`,
                 iconSize: [30, 30], iconAnchor: [15, 15]
             })
         }).addTo(map);

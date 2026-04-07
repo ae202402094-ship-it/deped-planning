@@ -5,13 +5,14 @@
     {{-- Header Ribbon: Auburn (#a52a2a) Structure --}}
     <div class="flex justify-between items-stretch bg-white border-2 border-[#a52a2a] mb-8 shadow-[4px_4px_0px_0px_rgba(165,42,42,1)]">
         <div class="flex items-center">
-            {{-- CHANGED: Black box is now Auburn --}}
+            {{-- Auburn Protocol Box --}}
             <div class="bg-[#a52a2a] text-white px-6 py-4 text-xs font-black uppercase tracking-tighter border-r-2 border-[#a52a2a]">
                 Registry Edit Protocol
             </div>
             <h1 class="px-6 text-sm font-black text-[#a52a2a] uppercase tracking-tight">{{ $school->name }}</h1>
         </div>
         <div class="flex border-l-2 border-[#a52a2a]">
+            {{-- Purge Button in Auburn --}}
             <button type="button" onclick="openDeleteModal()" class="px-6 py-4 text-[10px] font-black uppercase text-[#a52a2a] hover:bg-red-50 transition-colors border-r-2 border-[#a52a2a]">
                 Purge Record
             </button>
@@ -25,10 +26,10 @@
         @csrf
         @method('PUT')
 
-        <div class="grid grid-cols-12 border-t-2 border-l-2 border-[black] shadow-xl bg-white">
+        <div class="grid grid-cols-12 border-t-2 border-l-2 border-black shadow-xl bg-white">
             
-            {{-- COLUMN 1 --}}
-            <div class="col-span-12 lg:col-span-4 flex flex-col border-r-2 border-[black] border-b-2 lg:border-b-0">
+            {{-- COLUMN 1: IDENTIFICATION --}}
+            <div class="col-span-12 lg:col-span-4 flex flex-col border-r-2 border-black border-b-2 lg:border-b-0">
                 <div class="bg-[#fdf2f2] border-b-2 border-black p-3 text-[10px] font-black text-[#a52a2a] uppercase tracking-[0.2em]">
                     01 // Identification & Core Metrics
                 </div>
@@ -36,12 +37,12 @@
                     <div>
                         <label class="block text-[8px] font-black text-slate-400 uppercase mb-1 tracking-widest">School Reference ID</label>
                         <input type="text" name="school_id" value="{{ $school->school_id }}" 
-                               class="w-full bg-white border border-slate-200 p-2 font-mono text-xs font-bold focus:outline-none focus:border-[black] transition-all">
+                               class="w-full bg-white border border-slate-200 p-2 font-mono text-xs font-bold focus:outline-none focus:border-[#a52a2a] transition-all">
                     </div>
                     <div>
                         <label class="block text-[8px] font-black text-slate-400 uppercase mb-1 tracking-widest">Institutional Nomenclature</label>
                         <input type="text" name="name" value="{{ $school->name }}" 
-                               class="w-full bg-white border border-slate-200 p-2 text-xs font-black uppercase focus:outline-none focus:border-[black] transition-all">
+                               class="w-full bg-white border border-slate-200 p-2 text-xs font-black uppercase focus:outline-none focus:border-[#a52a2a] transition-all">
                     </div>
                 </div>
                 <div class="p-6 bg-slate-50/30">
@@ -57,24 +58,37 @@
                 </div>
             </div>
 
-            {{-- COLUMN 2 --}}
-            <div class="col-span-12 lg:col-span-4 flex flex-col border-r-2 border-[black] border-b-2 lg:border-b-0">
-                <div class="bg-[#fdf2f2] border-b-2 border-[black] p-3 text-[10px] font-black text-[#a52a2a] uppercase tracking-[0.2em]">
+            {{-- COLUMN 2: UTILITIES & DEFICITS --}}
+            <div class="col-span-12 lg:col-span-4 flex flex-col border-r-2 border-[#a52a2a] border-b-2 lg:border-b-0">
+                <div class="bg-[#fdf2f2] border-b-2 border-[#a52a2a] p-3 text-[10px] font-black text-[#a52a2a] uppercase tracking-[0.2em]">
                     02 // Resource & Shortage Audit
                 </div>
                 <div class="p-6 space-y-4 border-b-2 border-slate-100 bg-white">
                     <h3 class="text-[8px] font-black text-slate-400 uppercase mb-2">Utility Connectivity</h3>
-                    @foreach([['name' => 'with_electricity', 'label' => 'Electricity Service', 'val' => $school->with_electricity], ['name' => 'with_potable_water', 'label' => 'Water Resource', 'val' => $school->with_potable_water], ['name' => 'with_internet', 'label' => 'Internet Connectivity', 'val' => $school->with_internet]] as $util)
+                    
+                    {{-- Power Supply Dropdown (Auburn) --}}
+                    <div class="border border-slate-200 p-2 bg-white">
+                        <span class="text-[9px] font-bold text-slate-600 uppercase block mb-2">Power Supply Type</span>
+                        <select name="with_electricity" class="w-full bg-[#a52a2a] text-white text-[8px] font-black uppercase px-2 py-2 outline-none cursor-pointer hover:bg-black transition-colors">
+                            <option value="None" {{ $school->with_electricity == 'None' ? 'selected' : '' }}>No Electricity (Off-Grid)</option>
+                            <option value="Grid Connection" {{ $school->with_electricity == 'Grid Connection' ? 'selected' : '' }}>Direct Grid Connection</option>
+                            <option value="Solar Powered" {{ $school->with_electricity == 'Solar Powered' ? 'selected' : '' }}>Solar / Renewable (Off-Grid)</option>
+                            <option value="Generator" {{ $school->with_electricity == 'Generator' ? 'selected' : '' }}>Generator Set Only</option>
+                            <option value="Hybrid" {{ $school->with_electricity == 'Hybrid' ? 'selected' : '' }}>Hybrid (Grid + Solar)</option>
+                        </select>
+                    </div>
+
+                    @foreach([['name' => 'with_potable_water', 'label' => 'Water Resource'], ['name' => 'with_internet', 'label' => 'Data Connectivity']] as $util)
                     <div class="flex items-center justify-between border border-slate-200 p-2 bg-white">
                         <span class="text-[9px] font-bold text-slate-600 uppercase">{{ $util['label'] }}</span>
-                        {{-- CHANGED: Dropdown is now Auburn --}}
-                        <select name="{{ $util['name'] }}" class="bg-[#a52a2a] text-white text-[8px] font-black uppercase px-2 py-1 outline-none cursor-pointer hover:[#a52a2a] transition-colors">
-                            <option value="1" {{ $util['val'] ? 'selected' : '' }}>Functional</option>
-                            <option value="0" {{ !$util['val'] ? 'selected' : '' }}>Non-Functional</option>
+                        <select name="{{ $util['name'] }}" class="bg-[#a52a2a] text-white text-[8px] font-black uppercase px-2 py-1 outline-none cursor-pointer hover:bg-black transition-colors">
+                            <option value="1" {{ $school->{$util['name']} ? 'selected' : '' }}>Functional</option>
+                            <option value="0" {{ !$school->{$util['name']} ? 'selected' : '' }}>Non-Functional</option>
                         </select>
                     </div>
                     @endforeach
                 </div>
+                
                 <div class="p-6 bg-slate-50/30 flex-grow">
                     <h3 class="text-[8px] font-black text-slate-400 uppercase mb-4 tracking-widest">Calculated Deficits</h3>
                     <div class="space-y-4">
@@ -82,20 +96,20 @@
                         <div class="flex items-center justify-between border-b border-slate-200 pb-2">
                             <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tight">{{ $short['label'] }}</span>
                             <input type="number" name="{{ $short['name'] }}" id="input_{{ $short['name'] }}" value="{{ $school->{$short['name']} ?? 0 }}" 
-                                   class="w-16 bg-white border border-slate-200 font-mono text-xs font-bold p-1 text-right focus:border-[black] outline-none text-[#a52a2a]">
+                                   class="w-16 bg-white border border-slate-200 font-mono text-xs font-bold p-1 text-right focus:border-[#a52a2a] outline-none text-[#a52a2a]">
                         </div>
                         @endforeach
                     </div>
                 </div>
             </div>
 
-            {{-- COLUMN 3 --}}
-            <div class="col-span-12 lg:col-span-4 flex flex-col border-r-2 border-[black] bg-white">
-                <div class="bg-[#fdf2f2] border-b-2 border-[black] p-3 text-[10px] font-black text-[#a52a2a] uppercase tracking-[0.2em]">
+            {{-- COLUMN 3: GEOSPATIAL & HAZARDS --}}
+            <div class="col-span-12 lg:col-span-4 flex flex-col border-r-2 border-black bg-white">
+                <div class="bg-[#fdf2f2] border-b-2 border-black p-3 text-[10px] font-black text-[#a52a2a] uppercase tracking-[0.2em]">
                     03 // Geospatial & Technical
                 </div>
                 <div class="p-6 border-b-2 border-slate-100 bg-white">
-                    <div id="schoolMap" class="h-[200px] w-full border-2 border-[black] shadow-inner mb-4"></div>
+                    <div id="schoolMap" class="h-[200px] w-full border-2 border-[#a52a2a] shadow-inner mb-4"></div>
                     <button type="button" onclick="openMapPopup('lat', 'lng', '{{ $school->latitude }}', '{{ $school->longitude }}')" 
                             class="w-full bg-[#a52a2a] text-white text-[9px] font-black uppercase tracking-widest p-3 hover:bg-black transition-all">
                         Recalibrate GIS Data
@@ -115,7 +129,6 @@
                 <div class="p-6 bg-slate-50/30 flex-grow space-y-4">
                     <div>
                         <label class="block text-[8px] font-black text-slate-400 uppercase mb-2 tracking-widest">Risk Category</label>
-                        {{-- CHANGED: Risk selector dropdown to Auburn --}}
                         <select id="hazard_selector" name="hazard_type" onchange="toggleHazardInput(this.value)" 
                                 class="w-full bg-[#a52a2a] text-white border border-[#a52a2a] p-3 text-[10px] font-bold uppercase focus:outline-none">
                             <option value="None" {{ $school->hazard_type == 'None' ? 'selected' : '' }}>No Significant Hazards</option>
@@ -207,7 +220,7 @@
     function updateIndicator(id, value) {
         const el = document.getElementById(id);
         el.innerText = value;
-        el.style.color = parseInt(value) > 0 ? '#a52a2a' : '#059669';
+        el.style.color = parseInt(value) > 0 ? '#a52a2a' : '#059669'; // Auburn if shortage, Green if OK
     }
 
     function submitOfficialForm() {

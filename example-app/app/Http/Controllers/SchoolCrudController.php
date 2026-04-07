@@ -82,7 +82,7 @@ class SchoolCrudController extends Controller
         'latitude' => 'required|numeric',
         'longitude' => 'required|numeric',
         // New Audit Fields
-        'with_electricity' => 'required|boolean',
+        'with_electricity' => 'required|string', // Changed from boolean to string
         'with_potable_water' => 'required|boolean',
         'with_internet' => 'required|boolean',
         'classroom_shortage' => 'nullable|integer|min:0',
