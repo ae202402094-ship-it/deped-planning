@@ -22,11 +22,11 @@
                     <h2 class="mb-0 fw-bolder text-dark">{{ $totalSchools ?? 0 }}</h2>
                 </div>
                 <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; background-color: rgba(165, 42, 42, 0.1); color: #a52a2a;">
-                    <i class="bi bi-building fs-4"></i>
+                    <i data-lucide="school"></i>
                 </div>
             </div>
             <a href="{{ route('admin.schools') }}" class="fw-semibold text-decoration-none small d-flex align-items-center mt-auto" style="color: #a52a2a;">
-                Manage Data <i class="bi bi-arrow-right ms-1"></i>
+                Manage Data <i data-lucide="arrow-right" class="ms-1" style="width: 14px; height: 14px;"></i>
             </a>
         </div>
     </div>
@@ -39,11 +39,11 @@
                     <h2 class="mb-0 fw-bolder text-dark">{{ \App\Models\School::onlyTrashed()->count() }}</h2>
                 </div>
                 <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; background-color: rgba(220, 53, 69, 0.1); color: #dc3545;">
-                    <i class="bi bi-archive fs-4"></i>
+                    <i data-lucide="archive"></i>
                 </div>
             </div>
             <a href="{{ route('admin.schools.archive') }}" class="fw-semibold text-decoration-none small d-flex align-items-center mt-auto text-danger">
-                View Archive <i class="bi bi-arrow-right ms-1"></i>
+                View Archive <i data-lucide="arrow-right" class="ms-1" style="width: 14px; height: 14px;"></i>
             </a>
         </div>
     </div>
@@ -56,11 +56,11 @@
                     <h2 class="mb-0 fw-bolder text-dark">{{ $pendingCount }}</h2>
                 </div>
                 <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; background-color: rgba(165, 42, 42, 0.1); color: #a52a2a;">
-                    <i class="bi bi-person-plus-fill fs-4"></i>
+                    <i data-lucide="user-plus"></i>
                 </div>
             </div>
             <a href="{{ route('superadmin.notifications') }}" class="fw-semibold text-decoration-none small d-flex align-items-center mt-auto" style="color: #a52a2a;">
-                Review Requests <i class="bi bi-arrow-right ms-1"></i>
+                Review Requests <i data-lucide="arrow-right" class="ms-1" style="width: 14px; height: 14px;"></i>
             </a>
         </div>
     </div>
@@ -73,7 +73,7 @@
                     <h2 class="mb-0 fw-bolder text-dark">{{ $totalUsers }}</h2>
                 </div>
                 <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; background-color: rgba(165, 42, 42, 0.1); color: #a52a2a;">
-                    <i class="bi bi-people-fill fs-4"></i>
+                    <i data-lucide="users"></i>
                 </div>
             </div>
             <div class="small text-muted mt-auto">Admins: {{ $adminCount }}</div>
