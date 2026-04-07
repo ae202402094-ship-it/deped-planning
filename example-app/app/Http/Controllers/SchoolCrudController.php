@@ -15,7 +15,7 @@ class SchoolCrudController extends Controller
         $schools = School::when($search, function ($query, $search) {
             return $query->where('name', 'like', "%{$search}%")
                          ->orWhere('school_id', 'like', "%{$search}%");
-        })->orderBy('name', 'asc')->paginate(50); 
+        })->orderBy('name', 'asc')->paginate(10); 
 
         return view('admin.schools', compact('schools'));
     }
@@ -160,7 +160,7 @@ class SchoolCrudController extends Controller
                 });
             })
             ->orderBy('deleted_at', 'desc')
-            ->paginate(50); 
+            ->paginate(10); 
 
         return view('admin.schools_archive', compact('schools'));
     }
