@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - DepEd</title>
     
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
 
@@ -35,29 +37,50 @@
         </div>
     </div>
 
-    {{-- Sidebar: Stays on the left --}}
-    <aside class="w-64 text-white flex flex-col flex-shrink-0 z-40 shadow-lg no-print" style="background-color: #a52a2a;">
-        <div class="p-6 font-bold text-xl text-white border-b border-white/20 uppercase tracking-widest">
-            Admin Panel
-        </div>
+<aside class="w-64 text-white min-h-screen no-print flex flex-col flex-shrink-0 z-40 shadow-lg" style="background-color: #a52a2a;">
+    <div class="p-6 font-bold text-xl text-white border-b border-white/20 uppercase tracking-widest flex items-center gap-2">
+        <i data-lucide="user-round" class="w-5 h-5"></i>
+        Admin Panel
+    </div>
         
         <nav class="mt-4 flex-grow overflow-y-auto">
             <div class="px-6 py-2 text-[9px] font-black uppercase text-white/40 tracking-[0.2em]">Management</div>
-            <a href="{{ route('admin.schools') }}" class="block px-6 py-3 text-white hover:bg-black/10 transition {{ request()->routeIs('admin.schools') ? 'bg-black/20 font-black' : '' }}">Manage Schools</a>
-            <a href="{{ route('admin.history') }}" class="block px-6 py-3 text-white/80 hover:text-white hover:bg-black/10 transition">Audit Logs</a>
+            
+            <a href="{{ route('admin.schools') }}" class="flex items-center gap-3 px-6 py-3 text-white hover:bg-black/10 transition {{ request()->routeIs('admin.schools') ? 'bg-black/20 font-black' : '' }}">
+                <i data-lucide="school" class="w-4 h-4 text-white/70"></i>
+                <span>Manage Schools</span>
+            </a>
+            
+            <a href="{{ route('admin.history') }}" class="flex items-center gap-3 px-6 py-3 text-white/80 hover:text-white hover:bg-black/10 transition">
+                <i data-lucide="clipboard-list" class="w-4 h-4 text-white/70"></i>
+                <span>Audit Logs</span>
+            </a>
 
             <div class="mt-6 px-6 py-2 text-[9px] font-black uppercase text-white/40 tracking-[0.2em]">Live Tools</div>
-            <a href="{{ route('admin.map') }}" class="block px-6 py-3 text-white/80 hover:text-white hover:bg-black/10 transition {{ request()->routeIs('admin.map') ? 'bg-black/20 font-black' : '' }}">Registry Map</a>
+            
+            <a href="{{ route('admin.map') }}" class="flex items-center gap-3 px-6 py-3 text-white/80 hover:text-white hover:bg-black/10 transition {{ request()->routeIs('admin.map') ? 'bg-black/20 font-black' : '' }}">
+                <i data-lucide="map" class="w-4 h-4 text-white/70"></i>
+                <span>Registry Map</span>
+            </a>
             
             <div class="mt-6 px-6 py-2 text-[9px] font-black uppercase text-white/40 tracking-[0.2em]">Public Preview</div>
-            <a href="{{ route('public.map') }}" target="_blank" class="block px-6 py-3 text-white/80 hover:text-white hover:bg-black/10 transition">View Interactive Map</a>
-            <a href="{{ route('public.schools') }}" target="_blank" class="block px-6 py-3 text-white/80 hover:text-white hover:bg-black/10 transition">View Directory</a>
+            
+            <a href="{{ route('public.map') }}" target="_blank" class="flex items-center gap-3 px-6 py-3 text-white/80 hover:text-white hover:bg-black/10 transition">
+                <i data-lucide="external-link" class="w-4 h-4 text-white/70"></i>
+                <span>View Interactive Map</span>
+            </a>
+            
+            <a href="{{ route('public.schools') }}" target="_blank" class="flex items-center gap-3 px-6 py-3 text-white/80 hover:text-white hover:bg-black/10 transition">
+                <i data-lucide="search" class="w-4 h-4 text-white/70"></i>
+                <span>View Directory</span>
+            </a>
         </nav>
 
         <div class="mt-auto border-t border-white/20">
             <form method="POST" action="{{ route('logout') }}" class="w-full">
                 @csrf
-                <button type="submit" class="w-full text-left px-6 py-4 text-white hover:bg-black/10 font-bold transition-all cursor-pointer">
+                <button type="submit" class="w-full flex items-center gap-3 px-6 py-4 text-white hover:bg-black/10 font-bold transition-all cursor-pointer">
+                    <i data-lucide="log-out" class="w-4 h-4"></i>
                     Logout
                 </button>
             </form>
@@ -100,11 +123,12 @@
         <main class="p-8 bg-slate-50 min-h-screen">
             @yield('content')
         </main>
-
     </div>
 
     <script>
-        {{-- Preserved Form Interceptor from your original code --}}
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
         document.addEventListener('submit', function(e) {
             if (!e.target.classList.contains('search-form')) {
                 const loader = document.getElementById('globalLoader');
