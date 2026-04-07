@@ -6,131 +6,180 @@
     <title>Super Admin Dashboard - DepEd</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 
     <style>
+        :root {
+            --deped-red: #a52a2a;
+            --sidebar-width: 240px;
+        }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            font-size: 13px; /* Smaller base font for professional look */
+        }
+        .font-cinzel { font-family: 'Cinzel', serif; }
         .modal-backdrop { z-index: 1040 !important; }
         .modal { z-index: 1050 !important; }
-        a { text-decoration: none; }
+        a { text-decoration: none !important; }
+        
+        /* Custom scrollbar for professional feel */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #999; }
 
-        /* --- STRICT PROFESSIONAL PRINT LEDGER --- */
         @media print {
-            nav, aside, header, .no-print, .pagination, button, form {
-                display: none !important;
-            }
-            @page { size: A4 portrait; margin: 12mm; }
-            body {
-                background: white !important;
-                font-family: 'Arial', sans-serif !important;
-                font-size: 10pt;
-                color: black !important;
-                margin: 0 !important;
-                padding: 0 !important;
-            }
-            table {
-                width: 100% !important;
-                border-collapse: collapse !important;
-                border: 1.5pt solid #000 !important;
-                margin-top: 10px;
-            }
-            th {
-                background-color: #f2f2f2 !important;
-                border: 1pt solid #000 !important;
-                padding: 8pt !important;
-                text-transform: uppercase;
-                font-size: 9pt;
-                font-weight: bold;
-                -webkit-print-color-adjust: exact;
-            }
-            td {
-                border: 1pt solid #000 !important;
-                padding: 6pt 8pt !important;
-                vertical-align: top !important;
-                word-wrap: break-word;
-            }
-            tr { page-break-inside: avoid !important; }
+            nav, aside, .no-print, button, form { display: none !important; }
+            body { background: white !important; color: #000 !important; font-size: 10pt; }
+            header { border-bottom: 2px solid #000 !important; position: static !important; background: white !important; color: black !important;}
         }
     </style>
 </head>
-<body class="bg-slate-50 flex flex-col h-screen overflow-hidden">
-    
-    <header style="background-color: #a52a2a;" class="p-1 flex justify-center shadow-md flex-shrink-0 z-50 relative">
-        <img src="{{ asset('images/deped_zambo_header.png') }}" class="h-16 w-auto" alt="Header">
-    </header>
+<body class="bg-slate-50 flex min-h-screen overflow-x-hidden text-slate-700">
 
-    <div class="flex flex-1 overflow-hidden">
-        
-        <aside class="w-64 text-white flex flex-col flex-shrink-0 shadow-lg z-40" style="background-color: #a52a2a;">
-            
-            <div class="p-6 font-bold text-xl text-white border-b uppercase tracking-widest" style="border-color: rgba(255,255,255,0.1);">
-                Super Admin
-            </div>
-            
-            <nav class="mt-4 flex-grow overflow-y-auto">
-                
-                <a href="{{ route('superadmin.dashboard') }}" 
-                   class="block px-6 py-3 transition {{ request()->routeIs('superadmin.dashboard') ? 'bg-black/20 text-white font-semibold shadow-inner' : 'text-white hover:bg-black/10' }}">
-                    <i class="bi bi-speedometer2 me-2"></i> Dashboard
-                </a>
-
-                <a href="{{ route('superadmin.notifications') }}" 
-                   class="flex items-center justify-between px-6 py-3 transition {{ request()->routeIs('superadmin.notifications') ? 'bg-black/20 text-white font-semibold shadow-inner' : 'text-white hover:bg-black/10' }}">
-                    <span><i class="bi bi-person-lines-fill me-2"></i> Account Requests</span>
-                    
-                    @php $pendingCount = \App\Models\User::where('status', 'pending')->count(); @endphp
-                    @if($pendingCount > 0)
-                        <span class="bg-white text-xs font-bold px-2 py-1 rounded-full shadow-sm" style="color: #a52a2a;">{{ $pendingCount }}</span>
-                    @endif
-                </a>
-
-                <a href="{{ route('admin.schools.archive') }}" 
-                   class="block px-6 py-3 transition {{ request()->routeIs('admin.schools.archive') ? 'bg-black/20 text-white font-semibold shadow-inner' : 'text-white hover:bg-black/10' }}">
-                    <i class="bi bi-archive me-2"></i> School Archive
-                </a>
-
-                <a href="{{ route('admin.health_report') }}" 
-                   class="block px-6 py-3 transition {{ request()->routeIs('admin.health_report') ? 'bg-black/20 text-white font-semibold shadow-inner' : 'text-white hover:bg-black/10' }}">
-                    <i class="bi bi-heart-pulse me-2"></i> Data Health Report
-                </a>
-
-                <a href="{{ route('superadmin.history') }}" 
-                   class="block px-6 py-3 transition {{ request()->routeIs('superadmin.history') ? 'bg-black/20 text-white font-semibold shadow-inner' : 'text-white hover:bg-black/10' }}">
-                    <i class="bi bi-clock-history me-2"></i> System History
-                </a>
-
-                <div class="px-6 py-3 mt-4 text-xs font-bold uppercase tracking-wider text-white opacity-75">
-                    Data Management
-                </div>
-
-                <a href="{{ route('admin.schools') }}" 
-                   class="block px-6 py-3 transition {{ request()->routeIs('admin.schools') ? 'bg-black/20 text-white font-semibold shadow-inner' : 'text-white hover:bg-black/10' }}">
-                    <i class="bi bi-building me-2"></i> Manage Schools
-                </a>
-
-                <a href="{{ route('admin.map') }}" 
-                   class="block px-6 py-3 transition {{ request()->routeIs('admin.map') ? 'bg-black/20 text-white font-semibold shadow-inner' : 'text-white hover:bg-black/10' }}">
-                    <i class="bi bi-geo-alt-fill me-2"></i> View School Map
-                </a>
-            </nav>
-
-            <div class="mt-auto border-t" style="border-color: rgba(255,255,255,0.1);">
-                <form method="POST" action="{{ route('logout') }}" class="w-full">
-                    @csrf
-                    <button type="submit" class="w-full text-left px-6 py-4 font-bold transition-all cursor-pointer text-white hover:bg-black/10">
-                        <i class="bi bi-box-arrow-right me-2"></i> Logout
-                    </button>
-                </form>
-            </div>
-        </aside>
-
-        <main class="p-8 overflow-y-auto flex-1 bg-slate-50">
-            @yield('content')
-        </main>
-
+    {{-- Global Loader --}}
+    <div id="globalLoader" class="fixed inset-0 z-[9999] hidden flex flex-col items-center justify-center bg-slate-900/80 backdrop-blur-sm">
+        <div class="relative w-16 h-16">
+            <div class="absolute inset-0 border-2 border-slate-700 rounded-full"></div>
+            <div class="absolute inset-0 border-2 border-white rounded-full border-t-transparent animate-spin"></div>
+        </div>
+        <div class="mt-4 text-center">
+            <p class="text-white font-bold uppercase text-[10px] tracking-[0.2em] animate-pulse">Authenticating...</p>
+        </div>
     </div>
 
+    {{-- Sidebar --}}
+   {{-- Sidebar --}}
+<aside class="w-[240px] text-white min-h-screen no-print flex flex-col flex-shrink-0 z-40 shadow-xl" style="background-color: var(--deped-red);">
+    <div class="p-5 font-bold text-lg text-white border-b border-white/10 uppercase tracking-tighter flex items-center gap-3">
+        <i data-lucide="shield-check" class="w-5 h-5 text-white/80"></i>
+        <span class="font-cinzel">Super Admin</span>
+    </div>
+        
+    <nav class="mt-2 flex-grow overflow-y-auto text-[12px]">
+        <div class="px-5 py-3 text-[9px] font-black uppercase text-white/40 tracking-[0.15em]">Main Hub</div>
+        
+        {{-- Updated the text color classes here from text-white/90 to just text-white to ensure maximum contrast against the red --}}
+        <a href="{{ route('superadmin.dashboard') }}" class="flex items-center gap-3 px-5 py-2.5 text-white hover:bg-black/10 transition-all {{ request()->routeIs('superadmin.dashboard') ? 'bg-black/20 font-semibold border-r-4 border-white' : '' }}">
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+            <span>Dashboard</span>
+        </a>
+
+        <a href="{{ route('superadmin.notifications') }}" class="flex items-center justify-between px-5 py-2.5 text-white hover:bg-black/10 transition-all {{ request()->routeIs('superadmin.notifications') ? 'bg-black/20 font-semibold border-r-4 border-white' : '' }}">
+            <div class="flex items-center gap-3">
+                <i data-lucide="user-plus" class="w-4 h-4"></i>
+                <span>Account Requests</span>
+            </div>
+            @php $pendingCount = \App\Models\User::where('status', 'pending')->count(); @endphp
+            @if($pendingCount > 0)
+                <span class="bg-white text-red-900 text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm">{{ $pendingCount }}</span>
+            @endif
+        </a>
+
+        <div class="mt-4 px-5 py-3 text-[9px] font-black uppercase text-white/40 tracking-[0.15em]">Inventory & Data</div>
+
+        <a href="{{ route('admin.schools') }}" class="flex items-center gap-3 px-5 py-2.5 text-white hover:bg-black/10 transition-all {{ request()->routeIs('admin.schools') ? 'bg-black/20 font-semibold border-r-4 border-white' : '' }}">
+            <i data-lucide="school" class="w-4 h-4"></i>
+            <span>Manage Schools</span>
+        </a>
+
+        {{-- Note the change from text-white/80 to text-white --}}
+        <a href="{{ route('admin.schools.archive') }}" class="flex items-center gap-3 px-5 py-2.5 text-white hover:bg-black/10 transition-all {{ request()->routeIs('admin.schools.archive') ? 'bg-black/20 font-semibold border-r-4 border-white' : '' }}">
+            <i data-lucide="archive" class="w-4 h-4"></i>
+            <span>School Archive</span>
+        </a>
+
+        <div class="mt-4 px-5 py-3 text-[9px] font-black uppercase text-white/40 tracking-[0.15em]">Governance</div>
+        
+        <a href="{{ route('admin.health_report') }}" class="flex items-center gap-3 px-5 py-2.5 text-white hover:bg-black/10 transition-all {{ request()->routeIs('admin.health_report') ? 'bg-black/20 font-semibold border-r-4 border-white' : '' }}">
+            <i data-lucide="activity" class="w-4 h-4"></i>
+            <span>Health Report</span>
+        </a>
+
+        <a href="{{ route('superadmin.history') }}" class="flex items-center gap-3 px-5 py-2.5 text-white hover:bg-black/10 transition-all {{ request()->routeIs('superadmin.history') ? 'bg-black/20 font-semibold border-r-4 border-white' : '' }}">
+            <i data-lucide="history" class="w-4 h-4"></i>
+            <span>System History</span>
+        </a>
+
+        <a href="{{ route('admin.map') }}" class="flex items-center gap-3 px-5 py-2.5 text-white hover:bg-black/10 transition-all {{ request()->routeIs('admin.map') ? 'bg-black/20 font-semibold border-r-4 border-white' : '' }}">
+            <i data-lucide="map-pin" class="w-4 h-4"></i>
+            <span>Registry Map</span>
+        </a>
+    </nav>
+
+    <div class="mt-auto border-t border-white/10 bg-black/10">
+        <form method="POST" action="{{ route('logout') }}" class="w-full">
+            @csrf
+            <button type="submit" class="w-full flex items-center gap-3 px-6 py-4 text-white hover:bg-red-900/50 text-[12px] font-bold transition-all">
+                <i data-lucide="log-out" class="w-4 h-4"></i>
+                Logout System
+            </button>
+        </form>
+    </div>
+</aside>
+
+    {{-- Main Wrapper --}}
+    <div class="flex-1 flex flex-col overflow-y-auto">
+        
+        {{-- Unified Slim Header --}}
+        <header class="bg-[#a52a2a] text-white shadow-md relative z-10 w-full no-print">
+            <div class="px-6 py-2"> {{-- Reduced padding for slim look --}}
+                <div class="flex items-center justify-between gap-4">
+                    
+                    {{-- Left Logos --}}
+                    <div class="flex items-center gap-3 shrink-0">
+                        <img src="{{ asset('images/deped.png') }}" alt="DepEd" class="h-12 w-auto drop-shadow-sm">
+                        <img src="{{ asset('images/r9.png') }}" alt="Region IX" class="h-12 w-auto drop-shadow-sm">
+                    </div>
+
+                    {{-- Central Branding --}}
+                    <div class="flex flex-col font-cinzel text-white items-start text-left flex-1 border-l border-white/20 pl-4">
+                        <span class="text-[8px] tracking-[0.2em] leading-tight font-bold uppercase opacity-80">Republic of the Philippines</span>
+                        <span class="text-[8px] tracking-[0.2em] leading-tight font-bold uppercase opacity-80">Department of Education</span>
+                        <h1 class="text-lg lg:text-xl tracking-tight font-black leading-tight uppercase mt-0.5">
+                            {{ $site_settings->header_title ?? 'Zamboanga City Division' }}
+                        </h1>
+                    </div>
+
+                    {{-- Right Logo --}}
+                    <div class="hidden md:flex items-center gap-4 shrink-0">
+                        <div class="text-right border-r border-white/20 pr-4 hidden lg:block">
+                            <p class="text-[9px] uppercase font-bold opacity-70">Server Time</p>
+                            <p class="text-[10px] font-mono leading-none">{{ now()->format('H:i') }} PHT</p>
+                        </div>
+                        <img src="{{ asset('images/ts.png') }}" alt="Transparency Seal" class="h-10 w-auto opacity-80">
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        {{-- Content Area --}}
+        <main class="p-6 bg-slate-50 min-h-screen">
+            <div class="max-w-7xl mx-auto">
+                @yield('content')
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Loader logic
+        document.addEventListener('submit', function(e) {
+            if (!e.target.classList.contains('search-form')) {
+                const loader = document.getElementById('globalLoader');
+                if (loader) loader.classList.remove('hidden');
+            }
+        });
+
+        window.showLoader = function() {
+            document.getElementById('globalLoader').classList.remove('hidden');
+        };
+    </script>
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
