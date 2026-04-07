@@ -3,20 +3,20 @@
 @section('content')
 <div class="max-w-7xl mx-auto px-4 py-8 font-sans leading-tight">
     {{-- Header Ribbon: Auburn (#a52a2a) Structure --}}
-    <div class="flex justify-between items-stretch bg-white border-2 border-[#a52a2a] mb-8 shadow-[4px_4px_0px_0px_rgba(165,42,42,1)]">
+    <div class="flex justify-between items-stretch bg-white border-4 border-[#a52a2a] mb-8 shadow-[8px_8px_0px_0px_rgba(165,42,42,1)]">
         <div class="flex items-center">
             {{-- Auburn Protocol Box --}}
-            <div class="bg-[#a52a2a] text-white px-6 py-4 text-xs font-black uppercase tracking-tighter border-r-2 border-[#a52a2a]">
+            <div class="bg-[#a52a2a] text-white px-6 py-4 text-xs font-black uppercase tracking-tighter border-r-4 border-[#a52a2a]">
                 Registry Edit Protocol
             </div>
             <h1 class="px-6 text-sm font-black text-[#a52a2a] uppercase tracking-tight">{{ $school->name }}</h1>
         </div>
-        <div class="flex border-l-2 border-[#a52a2a]">
+        <div class="flex border-l-4 border-[#a52a2a]">
             {{-- Purge Button in Auburn --}}
-            <button type="button" onclick="openDeleteModal()" class="px-6 py-4 text-[10px] font-black uppercase text-[#a52a2a] hover:bg-red-50 transition-colors border-r-2 border-[#a52a2a]">
+            <button type="button" onclick="openDeleteModal()" class="px-6 py-4 text-[10px] font-black uppercase text-[#a52a2a] hover:bg-red-50 transition-colors border-r-4 border-[#a52a2a]">
                 Purge Record
             </button>
-            <a href="{{ route('admin.schools') }}" class="px-6 py-4 text-[10px] font-black uppercase text-slate-400 hover:text-[#a52a2a] transition-colors bg-white">
+            <a href="{{ route('admin.schools') }}" class="px-6 py-4 text-[10px] font-black uppercase text-slate-400 hover:text-[#a52a2a] transition-colors bg-white flex items-center">
                 Close Window
             </a>
         </div>
@@ -26,50 +26,51 @@
         @csrf
         @method('PUT')
 
-        <div class="grid grid-cols-12 border-t-2 border-l-2 border-black shadow-xl bg-white">
+        {{-- Vertical Form Container - Maximized Borders --}}
+        <div class="flex flex-col border-4 border-black shadow-2xl bg-white">
             
-            {{-- COLUMN 1: IDENTIFICATION --}}
-            <div class="col-span-12 lg:col-span-4 flex flex-col border-r-2 border-black border-b-2 lg:border-b-0">
-                <div class="bg-[#fdf2f2] border-b-2 border-black p-3 text-[10px] font-black text-[#a52a2a] uppercase tracking-[0.2em]">
+            {{-- SECTION 1: IDENTIFICATION --}}
+            <div class="flex flex-col border-b-4 border-black">
+                <div class="bg-[#fdf2f2] border-b-4 border-black p-4 text-[10px] font-black text-[#a52a2a] uppercase tracking-[0.2em]">
                     01 // Identification & Core Metrics
                 </div>
-                <div class="p-6 space-y-5 border-b-2 border-slate-100 flex-grow bg-white">
+                <div class="p-8 space-y-5 border-b-2 border-slate-100 bg-white">
                     <div>
                         <label class="block text-[8px] font-black text-slate-400 uppercase mb-1 tracking-widest">School Reference ID</label>
                         <input type="text" name="school_id" value="{{ $school->school_id }}" 
-                               class="w-full bg-white border border-slate-200 p-2 font-mono text-xs font-bold focus:outline-none focus:border-[#a52a2a] transition-all">
+                               class="w-full bg-white border-2 border-slate-200 p-3 font-mono text-xs font-bold focus:outline-none focus:border-[#a52a2a] transition-all">
                     </div>
                     <div>
                         <label class="block text-[8px] font-black text-slate-400 uppercase mb-1 tracking-widest">Institutional Nomenclature</label>
                         <input type="text" name="name" value="{{ $school->name }}" 
-                               class="w-full bg-white border border-slate-200 p-2 text-xs font-black uppercase focus:outline-none focus:border-[#a52a2a] transition-all">
+                               class="w-full bg-white border-2 border-slate-200 p-3 text-xs font-black uppercase focus:outline-none focus:border-[#a52a2a] transition-all">
                     </div>
                 </div>
-                <div class="p-6 bg-slate-50/30">
-                    <div class="grid grid-cols-2 gap-4">
+                <div class="p-8 bg-slate-50/30">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                         @foreach([['name' => 'no_of_teachers', 'label' => 'Faculty'], ['name' => 'no_of_enrollees', 'label' => 'Learners'], ['name' => 'no_of_classrooms', 'label' => 'Spaces'], ['name' => 'no_of_chairs', 'label' => 'Chairs'], ['name' => 'no_of_toilets', 'label' => 'Sanitary']] as $field)
-                        <div class="border-b border-slate-200 pb-2">
+                        <div class="border-b-2 border-slate-200 pb-2">
                             <label class="block text-[7px] font-black text-slate-400 uppercase mb-1 tracking-widest">{{ $field['label'] }}</label>
                             <input type="number" name="{{ $field['name'] }}" id="input_{{ $field['name'] }}" value="{{ $school->{$field['name']} }}" 
-                                   class="w-full bg-transparent font-mono text-sm font-black text-slate-800 text-right outline-none">
+                                   class="w-full bg-transparent font-mono text-base font-black text-slate-800 outline-none">
                         </div>
                         @endforeach
                     </div>
                 </div>
             </div>
 
-            {{-- COLUMN 2: UTILITIES & DEFICITS --}}
-            <div class="col-span-12 lg:col-span-4 flex flex-col border-r-2 border-[#a52a2a] border-b-2 lg:border-b-0">
-                <div class="bg-[#fdf2f2] border-b-2 border-[#a52a2a] p-3 text-[10px] font-black text-[#a52a2a] uppercase tracking-[0.2em]">
+            {{-- SECTION 2: UTILITIES & DEFICITS --}}
+            <div class="flex flex-col border-b-4 border-black">
+                <div class="bg-[#fdf2f2] border-b-4 border-black p-4 text-[10px] font-black text-[#a52a2a] uppercase tracking-[0.2em]">
                     02 // Resource & Shortage Audit
                 </div>
-                <div class="p-6 space-y-4 border-b-2 border-slate-100 bg-white">
+                <div class="p-8 space-y-6 border-b-2 border-slate-100 bg-white">
                     <h3 class="text-[8px] font-black text-slate-400 uppercase mb-2">Utility Connectivity</h3>
                     
-                    {{-- Power Supply Dropdown (Auburn) --}}
-                    <div class="border border-slate-200 p-2 bg-white">
+                    {{-- Power Supply Dropdown --}}
+                    <div class="border-2 border-slate-200 p-3 bg-white">
                         <span class="text-[9px] font-bold text-slate-600 uppercase block mb-2">Power Supply Type</span>
-                        <select name="with_electricity" class="w-full bg-[#a52a2a] text-white text-[8px] font-black uppercase px-2 py-2 outline-none cursor-pointer hover:bg-black transition-colors">
+                        <select name="with_electricity" class="w-full bg-[#a52a2a] text-white text-[10px] font-black uppercase px-3 py-3 outline-none cursor-pointer hover:bg-black transition-colors">
                             <option value="None" {{ $school->with_electricity == 'None' ? 'selected' : '' }}>No Electricity (Off-Grid)</option>
                             <option value="Grid Connection" {{ $school->with_electricity == 'Grid Connection' ? 'selected' : '' }}>Direct Grid Connection</option>
                             <option value="Solar Powered" {{ $school->with_electricity == 'Solar Powered' ? 'selected' : '' }}>Solar / Renewable (Off-Grid)</option>
@@ -78,59 +79,65 @@
                         </select>
                     </div>
 
-                    @foreach([['name' => 'with_potable_water', 'label' => 'Water Resource'], ['name' => 'with_internet', 'label' => 'Data Connectivity']] as $util)
-                    <div class="flex items-center justify-between border border-slate-200 p-2 bg-white">
-                        <span class="text-[9px] font-bold text-slate-600 uppercase">{{ $util['label'] }}</span>
-                        <select name="{{ $util['name'] }}" class="bg-[#a52a2a] text-white text-[8px] font-black uppercase px-2 py-1 outline-none cursor-pointer hover:bg-black transition-colors">
-                            <option value="1" {{ $school->{$util['name']} ? 'selected' : '' }}>Functional</option>
-                            <option value="0" {{ !$school->{$util['name']} ? 'selected' : '' }}>Non-Functional</option>
-                        </select>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                        @foreach([['name' => 'with_potable_water', 'label' => 'Water Resource'], ['name' => 'with_internet', 'label' => 'Data Connectivity']] as $util)
+                        <div class="flex items-center justify-between border-2 border-slate-200 p-3 bg-white">
+                            <span class="text-[9px] font-bold text-slate-600 uppercase">{{ $util['label'] }}</span>
+                            <select name="{{ $util['name'] }}" class="bg-[#a52a2a] text-white text-[9px] font-black uppercase px-3 py-2 outline-none cursor-pointer hover:bg-black transition-colors">
+                                <option value="1" {{ $school->{$util['name']} ? 'selected' : '' }}>Functional</option>
+                                <option value="0" {{ !$school->{$util['name']} ? 'selected' : '' }}>Non-Functional</option>
+                            </select>
+                        </div>
+                        @endforeach
                     </div>
-                    @endforeach
                 </div>
                 
-                <div class="p-6 bg-slate-50/30 flex-grow">
+                <div class="p-8 bg-slate-50/30 flex-grow">
                     <h3 class="text-[8px] font-black text-slate-400 uppercase mb-4 tracking-widest">Calculated Deficits</h3>
-                    <div class="space-y-4">
+                    <div class="space-y-4 max-w-lg">
                         @foreach([['name' => 'classroom_shortage', 'label' => 'Classroom Deficit'], ['name' => 'chair_shortage', 'label' => 'Furniture Deficit'], ['name' => 'toilet_shortage', 'label' => 'Sanitation Deficit']] as $short)
-                        <div class="flex items-center justify-between border-b border-slate-200 pb-2">
-                            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tight">{{ $short['label'] }}</span>
+                        <div class="flex items-center justify-between border-b-2 border-slate-200 pb-3">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-tight">{{ $short['label'] }}</span>
                             <input type="number" name="{{ $short['name'] }}" id="input_{{ $short['name'] }}" value="{{ $school->{$short['name']} ?? 0 }}" 
-                                   class="w-16 bg-white border border-slate-200 font-mono text-xs font-bold p-1 text-right focus:border-[#a52a2a] outline-none text-[#a52a2a]">
+                                   class="w-32 bg-white border-2 border-slate-200 font-mono text-sm font-black p-2 text-right focus:border-[#a52a2a] outline-none text-[#a52a2a]">
                         </div>
                         @endforeach
                     </div>
                 </div>
             </div>
 
-            {{-- COLUMN 3: GEOSPATIAL & HAZARDS --}}
-            <div class="col-span-12 lg:col-span-4 flex flex-col border-r-2 border-black bg-white">
-                <div class="bg-[#fdf2f2] border-b-2 border-black p-3 text-[10px] font-black text-[#a52a2a] uppercase tracking-[0.2em]">
+            {{-- SECTION 3: GEOSPATIAL & HAZARDS --}}
+            <div class="flex flex-col bg-white">
+                <div class="bg-[#fdf2f2] border-b-4 border-black p-4 text-[10px] font-black text-[#a52a2a] uppercase tracking-[0.2em]">
                     03 // Geospatial & Technical
                 </div>
-                <div class="p-6 border-b-2 border-slate-100 bg-white">
-                    <div id="schoolMap" class="h-[200px] w-full border-2 border-[#a52a2a] shadow-inner mb-4"></div>
-                    <button type="button" onclick="openMapPopup('lat', 'lng', '{{ $school->latitude }}', '{{ $school->longitude }}')" 
-                            class="w-full bg-[#a52a2a] text-white text-[9px] font-black uppercase tracking-widest p-3 hover:bg-black transition-all">
-                        Recalibrate GIS Data
-                    </button>
-                    <div class="grid grid-cols-2 gap-2 mt-2">
-                        <div class="bg-white border border-slate-200 p-1">
-                            <span class="block text-[6px] font-black text-slate-400 uppercase text-center">Lat</span>
-                            <input type="text" name="latitude" id="lat" value="{{ $school->latitude }}" class="w-full bg-transparent font-mono text-[10px] text-center font-bold outline-none" readonly>
-                        </div>
-                        <div class="bg-white border border-slate-200 p-1">
-                            <span class="block text-[6px] font-black text-slate-400 uppercase text-center">Lng</span>
-                            <input type="text" name="longitude" id="lng" value="{{ $school->longitude }}" class="w-full bg-transparent font-mono text-[10px] text-center font-bold outline-none" readonly>
+                <div class="p-8 border-b-2 border-slate-100 bg-white grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <div id="schoolMap" class="h-[300px] w-full border-4 border-[#a52a2a] shadow-inner mb-4"></div>
+                        <button type="button" onclick="openMapPopup('lat', 'lng', '{{ $school->latitude }}', '{{ $school->longitude }}')" 
+                                class="w-full bg-[#a52a2a] text-white text-[10px] font-black uppercase tracking-widest p-4 hover:bg-black transition-all">
+                            Recalibrate GIS Data
+                        </button>
+                    </div>
+                    <div class="flex flex-col justify-center space-y-6">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-white border-2 border-slate-200 p-4">
+                                <span class="block text-[8px] font-black text-slate-400 uppercase text-center mb-2">Lat</span>
+                                <input type="text" name="latitude" id="lat" value="{{ $school->latitude }}" class="w-full bg-transparent font-mono text-sm text-center font-bold outline-none" readonly>
+                            </div>
+                            <div class="bg-white border-2 border-slate-200 p-4">
+                                <span class="block text-[8px] font-black text-slate-400 uppercase text-center mb-2">Lng</span>
+                                <input type="text" name="longitude" id="lng" value="{{ $school->longitude }}" class="w-full bg-transparent font-mono text-sm text-center font-bold outline-none" readonly>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="p-6 bg-slate-50/30 flex-grow space-y-4">
+                <div class="p-8 bg-slate-50/30 flex-grow space-y-4">
                     <div>
                         <label class="block text-[8px] font-black text-slate-400 uppercase mb-2 tracking-widest">Risk Category</label>
                         <select id="hazard_selector" name="hazard_type" onchange="toggleHazardInput(this.value)" 
-                                class="w-full bg-[#a52a2a] text-white border border-[#a52a2a] p-3 text-[10px] font-bold uppercase focus:outline-none">
+                                class="w-full bg-[#a52a2a] text-white border-4 border-[#a52a2a] p-4 text-xs font-bold uppercase focus:outline-none hover:bg-black transition-colors cursor-pointer">
                             <option value="None" {{ $school->hazard_type == 'None' ? 'selected' : '' }}>No Significant Hazards</option>
                             <option value="Flood Prone" {{ $school->hazard_type == 'Flood Prone' ? 'selected' : '' }}>Flood Prone Area</option>
                             <option value="Landslide Risk" {{ $school->hazard_type == 'Landslide Risk' ? 'selected' : '' }}>Landslide Risk</option>
@@ -140,18 +147,18 @@
                     </div>
 
                     <div id="other_hazard_container" class="{{ in_array($school->hazard_type, ['None', 'Flood Prone', 'Landslide Risk', 'Seismic Zone']) ? 'hidden' : '' }}">
-                        <label class="block text-[8px] font-black text-slate-400 uppercase mb-2 tracking-widest">Technical Remarks</label>
+                        <label class="block text-[8px] font-black text-slate-400 uppercase mb-2 tracking-widest mt-6">Technical Remarks</label>
                         <textarea name="hazards" id="hazard_textarea" rows="4" 
-                                  class="w-full p-4 border border-slate-200 font-mono text-[10px] font-bold uppercase focus:outline-none focus:border-[#a52a2a] focus:bg-white transition-all">{{ $school->hazards }}</textarea>
+                                  class="w-full p-4 border-2 border-slate-200 font-mono text-xs font-bold uppercase focus:outline-none focus:border-4 focus:border-[#a52a2a] focus:bg-white transition-all">{{ $school->hazards }}</textarea>
                     </div>
                 </div>
             </div>
         </div>
 
-        {{-- Footer Action Button: Auburn --}}
+        {{-- Footer Action Button --}}
         <div class="mt-8 flex justify-end">
             <button type="button" onclick="triggerVerification()" 
-                    class="bg-[#a52a2a] text-white px-12 py-5 text-xs font-black uppercase tracking-[0.3em] hover:bg-black transition-all shadow-[6px_6px_0px_0px_rgba(165,42,42,1)] active:translate-x-1 active:translate-y-1 active:shadow-none">
+                    class="bg-[#a52a2a] text-white px-16 py-6 text-sm font-black uppercase tracking-[0.3em] hover:bg-black transition-all shadow-[8px_8px_0px_0px_rgba(165,42,42,1)] active:translate-x-1 active:translate-y-1 active:shadow-none w-full md:w-auto text-center border-4 border-[#a52a2a] hover:border-black">
                 Execute Modification Protocol
             </button>
         </div>
@@ -166,8 +173,8 @@
             <span class="text-[8px] opacity-60 font-mono tracking-tighter italic">SYS_AUTH_MOD</span>
         </div>
         <div class="p-8 bg-white">
-            <div class="border-2 border-slate-100 p-6 font-mono text-xs mb-8">
-                <div class="flex justify-between border-b border-slate-100 pb-2 mb-4">
+            <div class="border-4 border-slate-100 p-6 font-mono text-xs mb-8">
+                <div class="flex justify-between border-b-2 border-slate-100 pb-2 mb-4">
                     <span class="text-slate-400 uppercase italic">Institutional Target</span>
                     <span id="confirmName" class="font-black text-black"></span>
                 </div>
@@ -176,18 +183,18 @@
                     <div><p class="text-[6px] text-slate-400 uppercase">ENR</p><p id="confirmENR" class="font-black text-black"></p></div>
                     <div><p class="text-[6px] text-slate-400 uppercase">CLS</p><p id="confirmCLS" class="font-black text-black"></p></div>
                 </div>
-                <div class="grid grid-cols-3 gap-4 text-center border-t border-slate-100 pt-4">
+                <div class="grid grid-cols-3 gap-4 text-center border-t-2 border-slate-100 pt-4">
                     <div><p class="text-[6px] text-slate-400 uppercase">CHR_DEF</p><p id="confirmCHR_DEF" class="font-black"></p></div>
                     <div><p class="text-[6px] text-slate-400 uppercase">CLS_DEF</p><p id="confirmCLS_DEF" class="font-black"></p></div>
                     <div><p class="text-[6px] text-slate-400 uppercase">TLT_DEF</p><p id="confirmTLT_DEF" class="font-black"></p></div>
                 </div>
             </div>
             <div class="flex gap-4">
-                <button type="button" id="confirmSaveBtn" onclick="submitOfficialForm()" class="flex-1 bg-[#a52a2a] text-white py-4 text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all flex items-center justify-center gap-2">
+                <button type="button" id="confirmSaveBtn" onclick="submitOfficialForm()" class="flex-1 bg-[#a52a2a] text-white py-4 text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all flex items-center justify-center gap-2 border-2 border-[#a52a2a] hover:border-black">
                     <svg id="saveBtnSpinner" class="hidden animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                     <span id="saveBtnText">Confirm Save</span>
                 </button>
-                <button type="button" onclick="document.getElementById('verificationModal').classList.add('hidden')" class="flex-1 border-2 border-[#a52a2a] text-[#a52a2a] py-4 text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-colors">Abort</button>
+                <button type="button" onclick="document.getElementById('verificationModal').classList.add('hidden')" class="flex-1 border-4 border-[#a52a2a] text-[#a52a2a] py-4 text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-colors">Abort</button>
             </div>
         </div>
     </div>

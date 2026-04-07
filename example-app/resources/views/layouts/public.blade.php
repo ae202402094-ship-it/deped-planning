@@ -105,10 +105,12 @@
 
     <footer class="bg-[#f2f2f2] text-gray-700 pt-10 pb-12 md:pt-16 md:pb-16 border-t border-gray-300 mt-auto relative" x-data="{ activeSection: null }">
     <div class="container mx-auto px-4 md:px-6 lg:px-20">
-        <div class="flex flex-col lg:flex-row items-center lg:items-start gap-10 justify-between">
+        
+        {{-- CHANGED: Converted to Grid on Mobile, Flex on Desktop --}}
+        <div class="grid grid-cols-2 lg:flex lg:flex-row items-center lg:items-start gap-y-8 lg:gap-10 justify-between">
             
-            {{-- 1. Left Section: Logo --}}
-            <div class="w-full lg:w-auto flex justify-center lg:justify-start flex-shrink-0">
+            {{-- 1. Left Section: Logo (Moved to bottom left on mobile using order-2) --}}
+            <div class="col-span-1 lg:w-auto flex justify-center lg:justify-start flex-shrink-0 order-2 lg:order-1">
                 @php $footerLeftLogos = isset($site_logos) ? $site_logos->where('position', 'footer_left') : collect(); @endphp
                 @forelse($footerLeftLogos as $logo)
                     <img src="{{ asset('storage/' . $logo->image_path) }}" alt="{{ $logo->name }}" class="w-[100px] md:w-[150px] h-auto object-contain">
@@ -117,8 +119,8 @@
                 @endforelse
             </div>
 
-            {{-- 2. Middle Sections: Accordion on Mobile, Grid on Desktop --}}
-            <div class="w-full flex-grow grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-8 lg:mx-10">
+            {{-- 2. Middle Sections: Accordion on Mobile, Grid on Desktop (Moved to top on mobile using order-1) --}}
+            <div class="col-span-2 w-full flex-grow grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-8 lg:mx-10 order-1 lg:order-2">
                 
                 {{-- Republic Info --}}
                 <div class="border-b border-gray-200 md:border-none">
@@ -198,8 +200,8 @@
                 </div>
             </div>
 
-            {{-- 3. Right Section: Logo --}}
-            <div class="w-full lg:w-auto flex justify-center lg:justify-end flex-shrink-0 mt-4 lg:mt-0">
+            {{-- 3. Right Section: Logo (Moved to bottom right on mobile using order-3) --}}
+            <div class="col-span-1 lg:w-auto flex justify-center lg:justify-end flex-shrink-0 order-3 lg:order-3">
                 @php $footerRightLogos = isset($site_logos) ? $site_logos->where('position', 'footer_right') : collect(); @endphp
                 @forelse($footerRightLogos as $logo)
                     <img src="{{ asset('storage/' . $logo->image_path) }}" alt="{{ $logo->name }}" class="w-[100px] md:w-[150px] h-auto object-contain">
