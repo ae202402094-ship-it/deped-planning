@@ -41,15 +41,23 @@
     </div>
 
     <aside class="w-64 text-white min-h-screen no-print flex flex-col flex-shrink-0 z-40 shadow-lg" style="background-color: #a52a2a;">
-        <div class="p-6 font-bold text-xl text-white border-b border-white/20 uppercase tracking-widest">
-            Admin Panel
-        </div>
+    <div class="p-6 font-bold text-xl text-white border-b border-white/20 uppercase tracking-widest">
+        Admin Panel
+    </div>
+    
+    <nav class="mt-4 flex-grow overflow-y-auto">
+        <div class="px-6 py-2 text-[9px] font-black uppercase text-white/40 tracking-[0.2em]">Management</div>
+        <a href="{{ route('admin.schools') }}" class="block px-6 py-3 text-white hover:bg-black/10 transition {{ request()->routeIs('admin.schools') ? 'bg-black/20 font-black' : '' }}">Manage Schools</a>
+        <a href="{{ route('admin.history') }}" class="block px-6 py-3 text-white/80 hover:text-white hover:bg-black/10 transition">Audit Logs</a>
+
+        <div class="mt-6 px-6 py-2 text-[9px] font-black uppercase text-white/40 tracking-[0.2em]">Live Tools</div>
+        <a href="{{ route('admin.map') }}" class="block px-6 py-3 text-white/80 hover:text-white hover:bg-black/10 transition {{ request()->routeIs('admin.map') ? 'bg-black/20 font-black' : '' }}">Registry Map</a>
         
-        <nav class="mt-4 flex-grow overflow-y-auto">
-            <a href="{{ route('admin.schools') }}" class="block px-6 py-3 text-white hover:bg-black/10 transition">Manage Schools</a>
-            <a href="{{ route('admin.map') }}" class="block px-6 py-3 text-gray-200 hover:text-white hover:bg-black/10 transition">View School Map</a>
-            <a href="{{ route('admin.history') }}" class="block px-6 py-3 text-gray-200 hover:text-white hover:bg-black/10 transition">View History</a>
-        </nav>
+        {{-- Navigation to Public Views --}}
+        <div class="mt-6 px-6 py-2 text-[9px] font-black uppercase text-white/40 tracking-[0.2em]">Public Preview</div>
+        <a href="{{ route('public.map') }}" target="_blank" class="block px-6 py-3 text-white/80 hover:text-white hover:bg-black/10 transition">View Interactive Map</a>
+        <a href="{{ route('public.schools') }}" target="_blank" class="block px-6 py-3 text-white/80 hover:text-white hover:bg-black/10 transition">View Directory</a>
+    </nav>
 
         <div class="mt-auto border-t border-white/20">
             <form method="POST" action="{{ route('logout') }}" class="w-full">
