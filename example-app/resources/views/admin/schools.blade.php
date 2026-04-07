@@ -2,24 +2,48 @@
 
 @section('content')
 
-{{-- 00. OFFICIAL PRINT HEADER (Only visible on paper) --}}
-<div class="hidden print:block mb-10 border-b-4 border-double border-slate-900 pb-6 text-center">
-    <div class="flex flex-col items-center">
-        <h1 class="text-2xl font-black uppercase tracking-widest">Republic of the Philippines</h1>
-        <h2 class="text-3xl font-black uppercase tracking-tighter text-red-900">Department of Education</h2>
-        <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500 mt-1">Division of Zamboanga City | Information Systems Office</p>
-    </div>
-    <div class="mt-6 flex justify-between items-end text-[9px] font-mono text-slate-400 uppercase">
-        <div>
-            <p>Document: Institutional Registry Summary</p>
-            <p>Total Records: {{ $schools->total() }}</p>
+{{-- 00. PROFESSIONAL PRINT HEADER (Visible on Paper Only) --}}
+    <div class="hidden print:block mb-10 border-b-2 border-slate-900 pb-8">
+        <div class="flex justify-between items-start mb-6">
+            <div class="flex items-center gap-6">
+                <img src="{{ asset('images/deped.png') }}" class="h-20 w-auto">
+                <div class="flex flex-col">
+                    <span class="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500 leading-tight">Republic of the Philippines</span>
+                    <h1 class="text-2xl font-black uppercase text-red-900 leading-tight">Department of Education</h1>
+                    <p class="text-[11px] font-bold italic text-slate-500 uppercase tracking-widest">Division of Zamboanga City | Planning & Research Section</p>
+                </div>
+            </div>
+            <div class="text-right flex flex-col items-end">
+                <span class="bg-slate-900 text-white px-4 py-1.5 text-[9px] font-black uppercase tracking-[0.2em] mb-3">Institutional Record</span>
+                <p class="text-[10px] font-mono text-slate-400 uppercase leading-none">Serial: REG-{{ now()->format('Ymd') }}-{{ strtoupper(Str::random(4)) }}</p>
+            </div>
         </div>
-        <div class="text-right">
-            <p>Generated: {{ now()->format('M d, Y | H:i') }}</p>
-            <p>Ref ID: REG-{{ strtoupper(Str::random(8)) }}</p>
+
+        <div class="mt-10">
+            <h2 class="text-3xl font-black uppercase tracking-tighter border-l-8 border-red-900 pl-5">Institutional Registry Summary</h2>
+            <p class="text-[11px] text-slate-500 font-bold mt-2 uppercase tracking-[0.25em]">Comprehensive inventory of verified learning centers and resource metrics</p>
+        </div>
+
+        {{-- Executive Summary Block for Print --}}
+            <div class="mt-10 grid grid-cols-2 md:grid-cols-4 print:grid-cols-4 gap-4 border-y-2 border-slate-100 py-8">
+    <div class="text-center print:border-r print:border-slate-100">
+        <p class="text-[9px] font-black uppercase text-slate-400">Total Institutions</p>
+        <p class="text-2xl font-black text-slate-900">{{ $schools->total() }}</p>
+    </div>
+            <div class="text-center border-r border-slate-100">
+                <p class="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-2">Registry District</p>
+                <p class="text-lg font-bold text-slate-900">{{ request('district') ?? 'City-Wide' }}</p>
+            </div>
+            <div class="text-center border-r border-slate-100">
+                <p class="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-2">Authorized By</p>
+                <p class="text-sm font-bold text-slate-900">{{ auth()->user()->name }}</p>
+            </div>
+            <div class="text-center">
+                <p class="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-2">Filing Date</p>
+                <p class="text-sm font-bold text-slate-900">{{ now()->format('M d, Y') }}</p>
+            </div>
         </div>
     </div>
-</div>
 
 <div class="max-w-7xl mx-auto px-4">
     {{-- 01. NAVIGATION & SEARCH --}}
@@ -115,23 +139,34 @@
             </thead>
             <tbody class="text-sm">
                 @forelse($schools as $school)
-                    <tr class="border-b border-slate-100 hover:bg-red-50/30 transition-colors group">
-                        <td class="p-5 border-r border-slate-100 font-mono font-bold text-slate-500 print:text-black">{{ $school->school_id }}</td>
-                        <td class="p-5 border-r border-slate-100 font-black text-slate-800 uppercase tracking-tight">
-                            {{ $school->name }}
-                        </td>
-                        <td class="p-5 border-r border-slate-100 text-center font-bold tabular-nums">
-                            {{ number_format($school->no_of_teachers) }}
-                        </td>
-                        <td class="p-5 border-r border-slate-100 text-center font-bold tabular-nums">
-                            {{ number_format($school->no_of_enrollees) }}
-                        </td>
-                        <td class="p-5 text-center no-print">
-                            <a href="{{ route('schools.edit', $school->id) }}" class="inline-flex items-center gap-2 text-[10px] font-black text-red-800 uppercase tracking-widest hover:text-black transition-colors">
-                                Edit Profile →
-                            </a>
-                        </td>
-                    </tr>
+                    <tr class="border-b border-slate-50 print:border-slate-200">
+    {{-- ID CODE --}}
+    <td class="p-4 print:p-2 font-mono font-bold text-slate-500 print:text-black">
+        #{{ $school->school_id }}
+    </td>
+    
+    {{-- INSTITUTIONAL ENTITY --}}
+    <td class="p-4 print:p-2">
+        <span class="font-black text-slate-800 uppercase tracking-tight print:text-xs">
+            {{ $school->name }}
+        </span>
+    </td>
+
+    {{-- DISTRICT --}}
+    <td class="p-4 print:p-2 text-center">
+        <span class="text-[10px] font-bold uppercase text-slate-500">
+            {{ $school->district }}
+        </span>
+    </td>
+
+    {{-- FACULTY / ENROLLEES --}}
+    <td class="p-4 print:p-2 text-center font-bold tabular-nums">
+        {{ number_format($school->no_of_teachers) }}
+    </td>
+    <td class="p-4 print:p-2 text-center font-bold tabular-nums">
+        {{ number_format($school->no_of_enrollees) }}
+    </td>
+</tr>
                 @empty
                     <tr>
                         <td colspan="5" class="p-20 text-center text-slate-400 uppercase font-black tracking-widest text-xs">

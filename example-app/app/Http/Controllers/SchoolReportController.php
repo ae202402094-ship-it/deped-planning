@@ -22,10 +22,12 @@ class SchoolReportController extends Controller
 
     public function viewHistory(Request $request)
     {
+        // Filter for 'admin' role actions and eager load user data
         $query = ActivityLog::whereHas('user', function($q) {
             $q->where('role', 'admin');
         })->with('user')->latest();
 
+        // Advanced Search (Target, Action, or Admin Name)
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
@@ -37,6 +39,7 @@ class SchoolReportController extends Controller
             });
         }
 
+        // Date Range Filtering
         if ($request->filled('from_date')) {
             $query->whereDate('created_at', '>=', $request->from_date);
         }
@@ -44,7 +47,8 @@ class SchoolReportController extends Controller
             $query->whereDate('created_at', '<=', $request->to_date);
         }
 
-        $logs = $query->paginate(40)->withQueryString();
+        // Set Pagination to 10
+        $logs = $query->paginate(10)->withQueryString();
 
         return view('admin.history', compact('logs'));
     }

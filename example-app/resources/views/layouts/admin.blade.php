@@ -17,10 +17,40 @@
 
         /* Print styles preserved from your original code */
         @media print {
-            nav, aside, .no-print, button, form { display: none !important; }
-            body { background: white !important; color: #000 !important; }
-            header { border-bottom: 3px double #000 !important; position: static !important; }
-        }
+    /* 1. Kill all web UI elements */
+    nav, aside, .no-print, button, form, .pagination { 
+        display: none !important; 
+    }
+
+    /* 2. Reset the container to use 100% paper width */
+    body, .flex-1, main, .max-w-7xl { 
+        width: 100% !important; 
+        max-width: none !important;
+        margin: 0 !important; 
+        padding: 0 !important; 
+        background: white !important;
+    }
+
+    /* 3. Fix the Table Layout */
+    table { 
+        width: 100% !important; 
+        table-layout: fixed !important; /* Forces columns to respect width */
+        border-collapse: collapse !important;
+    }
+    
+    th, td { 
+        word-wrap: break-word !important; /* Prevents long school names from breaking layout */
+        font-size: 8pt !important; /* Standardize font size for paper */
+        padding: 8px 4px !important;
+        border: 1px solid #cbd5e1 !important;
+    }
+
+    /* 4. Column Widths (Adjust these to fit your data) */
+    th:nth-child(1) { width: 15%; } /* ID Code */
+    th:nth-child(2) { width: 40%; } /* Name */
+    th:nth-child(3) { width: 15%; } /* District */
+    th:nth-child(4), th:nth-child(5) { width: 15%; } /* Teachers/Enrollees */
+}
     </style>
 </head>
 <body class="bg-slate-50 flex min-h-screen overflow-x-hidden">
