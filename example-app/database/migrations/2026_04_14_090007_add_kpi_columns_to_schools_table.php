@@ -9,14 +9,24 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-  public function up(): void
+    public function up(): void
     {
         Schema::table('schools', function (Blueprint $table) {
             
+            // 1. Create the columns that others will depend on first
             if (!Schema::hasColumn('schools', 'no_of_chairs')) {
                 $table->integer('no_of_chairs')->default(0)->after('no_of_classrooms');
             }
             
+            if (!Schema::hasColumn('schools', 'with_potable_water')) {
+                $table->boolean('with_potable_water')->default(false)->after('with_electricity');
+            }
+            
+            if (!Schema::hasColumn('schools', 'with_internet')) {
+                $table->boolean('with_internet')->default(false)->after('with_potable_water');
+            }
+
+            // 2. Now create the shortage columns that position themselves AFTER the newly created columns
             if (!Schema::hasColumn('schools', 'classroom_shortage')) {
                 $table->integer('classroom_shortage')->default(0)->after('with_internet'); 
             }
@@ -27,14 +37,6 @@ return new class extends Migration
             
             if (!Schema::hasColumn('schools', 'toilet_shortage')) {
                 $table->integer('toilet_shortage')->default(0)->after('chair_shortage');
-            }
-
-            if (!Schema::hasColumn('schools', 'with_potable_water')) {
-                $table->boolean('with_potable_water')->default(false)->after('with_electricity');
-            }
-            
-            if (!Schema::hasColumn('schools', 'with_internet')) {
-                $table->boolean('with_internet')->default(false)->after('with_potable_water');
             }
         });
     }
