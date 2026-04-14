@@ -56,8 +56,8 @@
     </style>
 </head>
 
-{{-- Added Alpine x-data to control the mobile sidebar --}}
-<body class="bg-slate-50 flex min-h-screen overflow-x-hidden" x-data="{ sidebarOpen: false }">
+{{-- Added items-start to prevent flex children from stretching --}}
+<body class="bg-slate-50 flex items-start min-h-screen overflow-x-hidden" x-data="{ sidebarOpen: false }">
 
     {{-- Global Loader --}}
     <div id="globalLoader" class="fixed inset-0 z-[9999] hidden flex flex-col items-center justify-center bg-slate-900/80 backdrop-blur-md">
@@ -78,8 +78,8 @@
          class="fixed inset-0 bg-black/50 z-40 lg:hidden">
     </div>
 
-    {{-- Responsive Sidebar --}}
-    <aside class="fixed inset-y-0 left-0 z-50 w-64 min-h-screen flex flex-col flex-shrink-0 shadow-lg text-white transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 no-print"
+    {{-- Responsive Sidebar (Changed from lg:relative min-h-screen to lg:sticky lg:top-0 h-screen) --}}
+    <aside class="fixed inset-y-0 left-0 z-50 w-64 h-screen flex flex-col flex-shrink-0 shadow-lg text-white transition-transform duration-300 ease-in-out lg:sticky lg:top-0 lg:translate-x-0 no-print"
            style="background-color: #a52a2a;"
            :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
            
@@ -138,8 +138,8 @@
         </div>
     </aside>
 
-    {{-- Main Wrapper --}}
-    <div class="flex-1 flex flex-col overflow-y-auto w-full">
+    {{-- Main Wrapper (Removed overflow-y-auto so the browser window scrolls normally) --}}
+    <div class="flex-1 flex flex-col w-full min-w-0">
         
         {{-- Responsive Header --}}
         <header class="bg-[#a52a2a] text-white shadow-lg relative z-10 w-full no-print">
