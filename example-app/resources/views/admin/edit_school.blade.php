@@ -80,26 +80,47 @@
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-                        @foreach([['name' => 'with_potable_water', 'label' => 'Water Resource'], ['name' => 'with_internet', 'label' => 'Data Connectivity']] as $util)
+                        {{-- Water --}}
                         <div class="flex items-center justify-between border-2 border-slate-200 p-3 bg-white">
-                            <span class="text-[9px] font-bold text-slate-600 uppercase">{{ $util['label'] }}</span>
-                            <select name="{{ $util['name'] }}" class="bg-[#a52a2a] text-white text-[9px] font-black uppercase px-3 py-2 outline-none cursor-pointer hover:bg-black transition-colors">
-                                <option value="1" {{ $school->{$util['name']} ? 'selected' : '' }}>Functional</option>
-                                <option value="0" {{ !$school->{$util['name']} ? 'selected' : '' }}>Non-Functional</option>
+                            <span class="text-[9px] font-bold text-slate-600 uppercase">Potable Water</span>
+                            <select name="with_potable_water" class="bg-[#a52a2a] text-white text-[9px] font-black uppercase px-3 py-2 outline-none cursor-pointer hover:bg-black transition-colors">
+                                <option value="1" {{ $school->with_potable_water ? 'selected' : '' }}>With Water</option>
+                                <option value="0" {{ !$school->with_potable_water ? 'selected' : '' }}>Without Water</option>
                             </select>
                         </div>
-                        @endforeach
+
+                        {{-- Internet --}}
+                        <div class="flex items-center justify-between border-2 border-slate-200 p-3 bg-white">
+                            <span class="text-[9px] font-bold text-slate-600 uppercase">Internet Connectivity</span>
+                            <select name="with_internet" class="bg-[#a52a2a] text-white text-[9px] font-black uppercase px-3 py-2 outline-none cursor-pointer hover:bg-black transition-colors w-40 text-center">
+                                <option value="1" {{ $school->with_internet ? 'selected' : '' }}>With Internet</option>
+                                <option value="0" {{ !$school->with_internet ? 'selected' : '' }}>Without Internet </option>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="p-8 bg-slate-50/30 flex-grow">
+                {{-- GUIDED HYBRID SHORTAGE CALCULATOR --}}
+                <div class="p-8 bg-slate-50/30 flex-grow relative">
                     <h3 class="text-[8px] font-black text-slate-400 uppercase mb-4 tracking-widest">Calculated Deficits</h3>
-                    <div class="space-y-4 max-w-lg">
-                        @foreach([['name' => 'classroom_shortage', 'label' => 'Classroom Deficit'], ['name' => 'chair_shortage', 'label' => 'Furniture Deficit'], ['name' => 'toilet_shortage', 'label' => 'Sanitation Deficit']] as $short)
-                        <div class="flex items-center justify-between border-b-2 border-slate-200 pb-3">
-                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-tight">{{ $short['label'] }}</span>
-                            <input type="number" name="{{ $short['name'] }}" id="input_{{ $short['name'] }}" value="{{ $school->{$short['name']} ?? 0 }}" 
-                                   class="w-32 bg-white border-2 border-slate-200 font-mono text-sm font-black p-2 text-right focus:border-[#a52a2a] outline-none text-[#a52a2a]">
+                    <div class="space-y-6 max-w-lg">
+                        @foreach([
+                            ['name' => 'classroom_shortage', 'label' => 'Classroom Shortage'], 
+                            ['name' => 'chair_shortage', 'label' => 'Chair Shortage'], 
+                            ['name' => 'toilet_shortage', 'label' => 'Sanitation Shortage']
+                        ] as $short)
+                        <div class="flex flex-col border-b-2 border-slate-200 pb-3 relative">
+                            <div class="flex items-center justify-between z-10 relative">
+                                <span class="text-[10px] font-bold text-slate-600 uppercase tracking-tight">{{ $short['label'] }}</span>
+                                <input type="number" name="{{ $short['name'] }}" id="input_{{ $short['name'] }}" value="{{ $school->{$short['name']} ?? 0 }}" 
+                                       class="w-32 bg-white border-2 border-slate-200 font-mono text-sm font-black p-2 text-right focus:border-[#a52a2a] outline-none text-[#a52a2a] transition-all hover:border-[#a52a2a]/50">
+                            </div>
+                            {{-- Intelligent Suggestion Text --}}
+                            <div class="flex justify-end mt-1.5 z-0 relative">
+                                <span id="suggestion_{{ $short['name'] }}" class="text-[8px] text-slate-400 font-bold uppercase tracking-widest text-right flex items-center gap-1 transition-colors">
+                                    <i class="bi bi-robot"></i> System Suggestion: Calculating...
+                                </span>
+                            </div>
                         </div>
                         @endforeach
                     </div>
@@ -228,14 +249,113 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // Delete Modal Logic
-    function openDeleteModal() {
-        document.getElementById('deleteModal').classList.remove('hidden');
+    // --- LIVE HYBRID CALCULATOR LOGIC ---
+    let overrides = { classroom: false, chair: false, toilet: false };
+
+    // Fetch dynamic ratios from the GLOBAL System Dashboard (Local Storage)
+    function getRatios() {
+        return {
+            classroom: parseInt(localStorage.getItem('deped_ratio_classroom')) || 40,
+            chair: parseInt(localStorage.getItem('deped_ratio_chair')) || 1,
+            toilet: parseInt(localStorage.getItem('deped_ratio_toilet')) || 50
+        };
     }
 
-    function closeDeleteModal() {
-        document.getElementById('deleteModal').classList.add('hidden');
+    // Step 1: On page load, verify if the DB data matches the formula (Import Check)
+    function initOverrides() {
+        const ratios = getRatios();
+        const enrollees = parseInt({{ $school->no_of_enrollees ?? 0 }});
+        const classrooms = parseInt({{ $school->no_of_classrooms ?? 0 }});
+        const chairs = parseInt({{ $school->no_of_chairs ?? 0 }});
+        const toilets = parseInt({{ $school->no_of_toilets ?? 0 }});
+
+        const calcClass = Math.max(0, Math.ceil(enrollees / ratios.classroom) - classrooms);
+        const calcChair = Math.max(0, Math.ceil(enrollees / ratios.chair) - chairs);
+        const calcToilet = Math.max(0, Math.ceil(enrollees / ratios.toilet) - toilets);
+
+        // If the saved input does NOT match the pure math, it was manually overridden or imported differently.
+        if (parseInt(document.getElementById('input_classroom_shortage').value || 0) !== calcClass) overrides.classroom = true;
+        if (parseInt(document.getElementById('input_chair_shortage').value || 0) !== calcChair) overrides.chair = true;
+        if (parseInt(document.getElementById('input_toilet_shortage').value || 0) !== calcToilet) overrides.toilet = true;
     }
+
+    // Step 2: Auto-calculate and fill inputs UNLESS they are overridden
+    function calculateGuidedSuggestions() {
+        const ratios = getRatios();
+        const enrollees = parseInt(document.getElementById('input_no_of_enrollees').value) || 0;
+        const classrooms = parseInt(document.getElementById('input_no_of_classrooms').value) || 0;
+        const chairs = parseInt(document.getElementById('input_no_of_chairs').value) || 0;
+        const toilets = parseInt(document.getElementById('input_no_of_toilets').value) || 0;
+
+        const classShortage = Math.max(0, Math.ceil(enrollees / ratios.classroom) - classrooms);
+        const chairShortage = Math.max(0, Math.ceil(enrollees / ratios.chair) - chairs);
+        const toiletShortage = Math.max(0, Math.ceil(enrollees / ratios.toilet) - toilets);
+
+        // Auto-Fill Base Data 
+        if (!overrides.classroom) document.getElementById('input_classroom_shortage').value = classShortage;
+        if (!overrides.chair) document.getElementById('input_chair_shortage').value = chairShortage;
+        if (!overrides.toilet) document.getElementById('input_toilet_shortage').value = toiletShortage;
+
+        // UI Update Function
+        const updateSuggestionUI = (type, calculatedValue, ratioText) => {
+            const el = document.getElementById(`suggestion_${type}_shortage`);
+            const manualInput = parseInt(document.getElementById(`input_${type}_shortage`).value) || 0;
+            
+            // Render Badges based on Override Status
+            let statusBadge = overrides[type] 
+                ? `<span class="bg-[#a52a2a] text-white px-1.5 py-0.5 rounded text-[6px] ml-2 uppercase">Manual Override</span>` 
+                : `<span class="bg-emerald-500 text-white px-1.5 py-0.5 rounded text-[6px] ml-2 uppercase">Auto-Synced</span>`;
+            
+            el.innerHTML = `<i class="bi bi-robot"></i> System Suggestion: ${calculatedValue} (Based on ${ratioText}) ${statusBadge}`;
+            
+            // Color Shift for Discrepancies
+            if(manualInput !== calculatedValue) {
+                el.classList.add('text-[#a52a2a]');
+                el.classList.remove('text-slate-400');
+            } else {
+                el.classList.remove('text-[#a52a2a]');
+                el.classList.add('text-slate-400');
+            }
+        };
+
+        updateSuggestionUI('classroom', classShortage, `1:${ratios.classroom} ratio`);
+        updateSuggestionUI('chair', chairShortage, `1:${ratios.chair} ratio`);
+        updateSuggestionUI('toilet', toiletShortage, `1:${ratios.toilet} ratio`);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initOverrides();
+        calculateGuidedSuggestions();
+
+        // 1. If base values change, recalculate
+        const baseInputs = ['input_no_of_enrollees', 'input_no_of_classrooms', 'input_no_of_chairs', 'input_no_of_toilets'];
+        baseInputs.forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.addEventListener('input', calculateGuidedSuggestions);
+        });
+
+        // 2. If a user TYPES in the shortage box, flag it as manually overridden
+        ['classroom', 'chair', 'toilet'].forEach(type => {
+            const el = document.getElementById(`input_${type}_shortage`);
+            if(el) {
+                el.addEventListener('input', () => {
+                    overrides[type] = true;
+                    calculateGuidedSuggestions(); 
+                });
+            }
+        });
+
+        // --- MAP LOGIC ---
+        const map = L.map('schoolMap', { scrollWheelZoom: false, zoomControl: false, dragging: false }).setView([{{ $school->latitude }}, {{ $school->longitude }}], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        L.marker([{{ $school->latitude }}, {{ $school->longitude }}], {
+            icon: L.divIcon({ html: `<div class="bg-[#a52a2a] w-4 h-4 border-2 border-white shadow-lg"></div>` })
+        }).addTo(map);
+    });
+
+    // Delete Modal Logic
+    function openDeleteModal() { document.getElementById('deleteModal').classList.remove('hidden'); }
+    function closeDeleteModal() { document.getElementById('deleteModal').classList.add('hidden'); }
 
     // Save Verification Logic
     function triggerVerification() {
@@ -262,27 +382,16 @@
     function updateIndicator(id, value) {
         const el = document.getElementById(id);
         el.innerText = value;
-        el.style.color = parseInt(value) > 0 ? '#a52a2a' : '#059669'; // Auburn if shortage, Green if OK
+        el.style.color = parseInt(value) > 0 ? '#a52a2a' : '#059669'; 
     }
 
     function submitOfficialForm() {
         const btn = document.getElementById('confirmSaveBtn');
         const spinner = document.getElementById('saveBtnSpinner');
-        const btnText = document.getElementById('saveBtnText');
-        btn.disabled = true;
-        spinner.classList.remove('hidden');
-        btnText.innerText = "Synchronizing...";
+        document.getElementById('saveBtnText').innerText = "Synchronizing...";
+        btn.disabled = true; spinner.classList.remove('hidden');
         document.getElementById('editSchoolForm').submit();
     }
-
-    // Map Logic
-    document.addEventListener('DOMContentLoaded', function() {
-        const map = L.map('schoolMap', { scrollWheelZoom: false, zoomControl: false, dragging: false }).setView([{{ $school->latitude }}, {{ $school->longitude }}], 15);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-        L.marker([{{ $school->latitude }}, {{ $school->longitude }}], {
-            icon: L.divIcon({ html: `<div class="bg-[#a52a2a] w-4 h-4 border-2 border-white shadow-lg"></div>` })
-        }).addTo(map);
-    });
 
     function toggleHazardInput(val) {
         const container = document.getElementById('other_hazard_container');
