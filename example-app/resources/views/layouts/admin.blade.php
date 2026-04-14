@@ -96,6 +96,12 @@
         
         <nav class="mt-4 flex-grow overflow-y-auto">
             <div class="px-6 py-2 text-[9px] font-black uppercase text-white/40 tracking-[0.2em]">Management</div>
+
+             <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 px-6 py-3 text-white hover:bg-black/10 transition {{ request()->routeIs('admin.dashboard') ? 'bg-black/20 font-black' : '' }}">
+                <i data-lucide="home" class="w-4 h-4 text-white/70"></i>
+                <span>Home</span>
+            </a>
+            
             
             <a href="{{ route('admin.schools') }}" class="flex items-center gap-3 px-6 py-3 text-white hover:bg-black/10 transition {{ request()->routeIs('admin.schools') ? 'bg-black/20 font-black' : '' }}">
                 <i data-lucide="school" class="w-4 h-4 text-white/70"></i>
