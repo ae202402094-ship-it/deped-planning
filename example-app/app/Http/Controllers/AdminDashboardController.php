@@ -29,37 +29,43 @@ class AdminDashboardController extends Controller
         // 1. Total Registered Schools
         $schoolCount = School::count();
         
-        // 2. Actionable Shortage KPIs (Fetch the actual lists)
+        // 2. Actionable Shortage KPIs
         $classroomShortageSchools = School::where('classroom_shortage', '>', 0)
-                                          ->get(['school_id', 'name', 'classroom_shortage']);
+                                          ->get(['id', 'school_id', 'name', 'classroom_shortage']);
                                           
         $toiletShortageSchools = School::where('toilet_shortage', '>', 0)
-                                       ->get(['school_id', 'name', 'toilet_shortage']);
+                                       ->get(['id', 'school_id', 'name', 'toilet_shortage']);
         
-        // 3. Hazard Risk (Fetch the actual list)
-        $highHazardSchools = School::where('hazard_level', 'High')
-                                   ->get(['school_id', 'name', 'hazard_type', 'hazard_level']);
+        // 3. Hazard Risk (FIXED: Now checks hazard_type instead of hazard_level)
+        $highHazardSchools = School::whereNotNull('hazard_type')
+                                   ->where('hazard_type', '!=', 'None')
+                                   ->get(['id', 'school_id', 'name', 'hazard_type']);
         
-        // 4. Electricity (Count for positive, fetch list for negative)
-        $withPowerCount = School::where('with_electricity', true)->count();
+        // 4. Electricity
+        $withPowerCount = School::where('with_electricity', 'Grid Connection')
+                                ->orWhere('with_electricity', 'Solar Powered')
+                                ->orWhere('with_electricity', 'Generator')
+                                ->orWhere('with_electricity', 'Hybrid')
+                                ->count();
+                                
         $withoutPowerSchools = School::where(function($q) {
-            $q->where('with_electricity', false)->orWhereNull('with_electricity');
-        })->get(['school_id', 'name']);
+            $q->where('with_electricity', 'None')->orWhereNull('with_electricity');
+        })->get(['id', 'school_id', 'name']);
         
-        // 5. Water (Count for positive, fetch list for negative)
+        // 5. Water
         $withWaterCount = School::where('with_potable_water', true)->count();
         $withoutWaterSchools = School::where(function($q) {
             $q->where('with_potable_water', false)->orWhereNull('with_potable_water');
-        })->get(['school_id', 'name']);
+        })->get(['id', 'school_id', 'name']);
 
         // 6. System Activity & Records
         $archivedSchoolsCount = School::onlyTrashed()->count();
         $totalActivityLogs = ActivityLog::count();
 
-        // Fetch schools with coordinates for the dashboard map
+        // Fetch schools with coordinates for the dashboard map (FIXED: Added hazard_type)
         $mapSchools = School::whereNotNull('latitude')
                             ->whereNotNull('longitude')
-                            ->get(['name', 'school_id', 'latitude', 'longitude', 'hazard_level']);
+                            ->get(['id', 'name', 'school_id', 'latitude', 'longitude', 'hazard_type']);
 
         return view('admin.dashboard', compact(
             'schoolCount', 

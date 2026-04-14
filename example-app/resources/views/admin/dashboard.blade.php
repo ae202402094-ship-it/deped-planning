@@ -194,6 +194,7 @@
         </div>
     </div>
 
+    {{-- DYNAMIC MODALS --}}
     <div x-cloak x-show="activeModal !== null" class="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4" x-transition.opacity>
         <div @click.away="activeModal = null" class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden" x-transition.scale.origin.bottom>
             
@@ -213,103 +214,143 @@
 
             <div class="overflow-y-auto flex-1 p-0">
                 
+                {{-- CLASSROOM SHORTAGE TABLE --}}
                 <table x-show="activeModal === 'classroom'" class="w-full text-left border-collapse">
                     <thead class="bg-slate-100 sticky top-0 border-b-2 border-slate-200 z-10">
                         <tr>
-                            <th class="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-widest w-1/4">School ID</th>
-                            <th class="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-widest">School Name</th>
-                            <th class="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-widest text-right w-1/4">Classroom Shortage</th>
+                            <th class="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-widest">School ID</th>
+                            <th class="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-widest w-2/5">School Name</th>
+                            <th class="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Classroom Shortage</th>
+                            <th class="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-widest text-right">Action</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
                         @forelse($classroomShortageSchools as $school)
-                        <tr class="hover:bg-rose-50/50 transition-colors">
+                        <tr class="hover:bg-rose-50/50 transition-colors group">
                             <td class="py-4 px-6 text-sm font-bold text-slate-700">{{ $school->school_id }}</td>
                             <td class="py-4 px-6 text-sm font-semibold text-slate-600">{{ $school->name }}</td>
-                            <td class="py-4 px-6 text-lg font-black text-[#a52a2a] text-right">{{ $school->classroom_shortage }}</td>
+                            <td class="py-4 px-6 text-lg font-black text-[#a52a2a] text-center">{{ $school->classroom_shortage }}</td>
+                            <td class="py-4 px-6 text-right">
+                                <a href="{{ route('schools.edit', $school->id) }}" class="inline-flex items-center gap-1.5 bg-white border border-slate-200 text-[#a52a2a] hover:bg-[#a52a2a] hover:text-white hover:border-[#a52a2a] px-3 py-1.5 rounded-lg font-black text-[9px] uppercase tracking-widest transition-all shadow-sm opacity-50 group-hover:opacity-100">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                                    Edit
+                                </a>
+                            </td>
                         </tr>
                         @empty
-                        <tr><td colspan="3" class="py-12 text-center text-sm font-medium text-slate-400 italic">No schools are currently reporting a classroom shortage.</td></tr>
+                        <tr><td colspan="4" class="py-12 text-center text-sm font-medium text-slate-400 italic">No schools are currently reporting a classroom shortage.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
 
+                {{-- TOILET SHORTAGE TABLE --}}
                 <table x-show="activeModal === 'toilet'" class="w-full text-left border-collapse">
                     <thead class="bg-slate-100 sticky top-0 border-b-2 border-slate-200 z-10">
                         <tr>
-                            <th class="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-widest w-1/4">School ID</th>
-                            <th class="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-widest">School Name</th>
-                            <th class="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-widest text-right w-1/4">Toilet Shortage</th>
+                            <th class="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-widest">School ID</th>
+                            <th class="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-widest w-2/5">School Name</th>
+                            <th class="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Toilet Shortage</th>
+                            <th class="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-widest text-right">Action</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
                         @forelse($toiletShortageSchools as $school)
-                        <tr class="hover:bg-rose-50/50 transition-colors">
+                        <tr class="hover:bg-rose-50/50 transition-colors group">
                             <td class="py-4 px-6 text-sm font-bold text-slate-700">{{ $school->school_id }}</td>
                             <td class="py-4 px-6 text-sm font-semibold text-slate-600">{{ $school->name }}</td>
-                            <td class="py-4 px-6 text-lg font-black text-[#a52a2a] text-right">{{ $school->toilet_shortage }}</td>
+                            <td class="py-4 px-6 text-lg font-black text-[#a52a2a] text-center">{{ $school->toilet_shortage }}</td>
+                            <td class="py-4 px-6 text-right">
+                                <a href="{{ route('schools.edit', $school->id) }}" class="inline-flex items-center gap-1.5 bg-white border border-slate-200 text-[#a52a2a] hover:bg-[#a52a2a] hover:text-white hover:border-[#a52a2a] px-3 py-1.5 rounded-lg font-black text-[9px] uppercase tracking-widest transition-all shadow-sm opacity-50 group-hover:opacity-100">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                                    Edit
+                                </a>
+                            </td>
                         </tr>
                         @empty
-                        <tr><td colspan="3" class="py-12 text-center text-sm font-medium text-slate-400 italic">No schools are currently reporting a toilet shortage.</td></tr>
+                        <tr><td colspan="4" class="py-12 text-center text-sm font-medium text-slate-400 italic">No schools are currently reporting a toilet shortage.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
 
+                {{-- HAZARDS TABLE --}}
                 <table x-show="activeModal === 'hazard'" class="w-full text-left border-collapse">
                     <thead class="bg-slate-100 sticky top-0 border-b-2 border-slate-200 z-10">
                         <tr>
-                            <th class="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-widest w-1/4">School ID</th>
-                            <th class="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-widest">School Name</th>
-                            <th class="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-widest text-right w-1/4">Hazard Type</th>
+                            <th class="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-widest">School ID</th>
+                            <th class="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-widest w-2/5">School Name</th>
+                            <th class="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Hazard Type</th>
+                            <th class="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-widest text-right">Action</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
                         @forelse($highHazardSchools as $school)
-                        <tr class="hover:bg-rose-50/50 transition-colors">
+                        <tr class="hover:bg-rose-50/50 transition-colors group">
                             <td class="py-4 px-6 text-sm font-bold text-slate-700">{{ $school->school_id }}</td>
                             <td class="py-4 px-6 text-sm font-semibold text-slate-600">{{ $school->name }}</td>
-                            <td class="py-4 px-6 text-sm font-bold text-[#a52a2a] text-right uppercase tracking-wider">{{ $school->hazard_type }}</td>
+                            <td class="py-4 px-6 text-sm font-bold text-[#a52a2a] text-center uppercase tracking-wider">{{ $school->hazard_type }}</td>
+                            <td class="py-4 px-6 text-right">
+                                <a href="{{ route('schools.edit', $school->id) }}" class="inline-flex items-center gap-1.5 bg-white border border-slate-200 text-[#a52a2a] hover:bg-[#a52a2a] hover:text-white hover:border-[#a52a2a] px-3 py-1.5 rounded-lg font-black text-[9px] uppercase tracking-widest transition-all shadow-sm opacity-50 group-hover:opacity-100">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                                    Edit
+                                </a>
+                            </td>
                         </tr>
                         @empty
-                        <tr><td colspan="3" class="py-12 text-center text-sm font-medium text-slate-400 italic">No high-risk schools detected in the system.</td></tr>
+                        <tr><td colspan="4" class="py-12 text-center text-sm font-medium text-slate-400 italic">No high-risk schools detected in the system.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
 
+                {{-- POWER TABLE --}}
                 <table x-show="activeModal === 'power'" class="w-full text-left border-collapse">
                     <thead class="bg-slate-100 sticky top-0 border-b-2 border-slate-200 z-10">
                         <tr>
                             <th class="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-widest w-1/4">School ID</th>
-                            <th class="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-widest">School Name</th>
+                            <th class="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-widest w-1/2">School Name</th>
+                            <th class="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-widest text-right">Action</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
                         @forelse($withoutPowerSchools as $school)
-                        <tr class="hover:bg-rose-50/50 transition-colors">
+                        <tr class="hover:bg-rose-50/50 transition-colors group">
                             <td class="py-4 px-6 text-sm font-bold text-slate-700">{{ $school->school_id }}</td>
                             <td class="py-4 px-6 text-sm font-semibold text-slate-600">{{ $school->name }}</td>
+                            <td class="py-4 px-6 text-right">
+                                <a href="{{ route('schools.edit', $school->id) }}" class="inline-flex items-center gap-1.5 bg-white border border-slate-200 text-[#a52a2a] hover:bg-[#a52a2a] hover:text-white hover:border-[#a52a2a] px-3 py-1.5 rounded-lg font-black text-[9px] uppercase tracking-widest transition-all shadow-sm opacity-50 group-hover:opacity-100">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                                    Edit
+                                </a>
+                            </td>
                         </tr>
                         @empty
-                        <tr><td colspan="2" class="py-12 text-center text-sm font-medium text-slate-400 italic">All registered facilities currently have electricity.</td></tr>
+                        <tr><td colspan="3" class="py-12 text-center text-sm font-medium text-slate-400 italic">All registered facilities currently have electricity.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
 
+                {{-- WATER TABLE --}}
                 <table x-show="activeModal === 'water'" class="w-full text-left border-collapse">
                     <thead class="bg-slate-100 sticky top-0 border-b-2 border-slate-200 z-10">
                         <tr>
                             <th class="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-widest w-1/4">School ID</th>
-                            <th class="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-widest">School Name</th>
+                            <th class="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-widest w-1/2">School Name</th>
+                            <th class="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-widest text-right">Action</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
                         @forelse($withoutWaterSchools as $school)
-                        <tr class="hover:bg-rose-50/50 transition-colors">
+                        <tr class="hover:bg-rose-50/50 transition-colors group">
                             <td class="py-4 px-6 text-sm font-bold text-slate-700">{{ $school->school_id }}</td>
                             <td class="py-4 px-6 text-sm font-semibold text-slate-600">{{ $school->name }}</td>
+                            <td class="py-4 px-6 text-right">
+                                <a href="{{ route('schools.edit', $school->id) }}" class="inline-flex items-center gap-1.5 bg-white border border-slate-200 text-[#a52a2a] hover:bg-[#a52a2a] hover:text-white hover:border-[#a52a2a] px-3 py-1.5 rounded-lg font-black text-[9px] uppercase tracking-widest transition-all shadow-sm opacity-50 group-hover:opacity-100">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                                    Edit
+                                </a>
+                            </td>
                         </tr>
                         @empty
-                        <tr><td colspan="2" class="py-12 text-center text-sm font-medium text-slate-400 italic">All registered facilities currently have potable water.</td></tr>
+                        <tr><td colspan="3" class="py-12 text-center text-sm font-medium text-slate-400 italic">All registered facilities currently have potable water.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -339,8 +380,10 @@
 
         schools.forEach(function(school) {
             if(school.latitude && school.longitude) {
-                var hazardWarning = school.hazard_level === 'High' 
-                    ? `<span class="text-[#a52a2a] font-black block mt-2 pt-2 border-t border-slate-200">⚠️ High Risk Hazard</span>` 
+                
+                // FIXED: Now checks hazard_type and prints the specific hazard (e.g. "Flood Prone")
+                var hazardWarning = (school.hazard_type && school.hazard_type !== 'None') 
+                    ? `<span class="text-[#a52a2a] font-black block mt-2 pt-2 border-t border-slate-200 uppercase tracking-widest text-[9px]">⚠️ ${school.hazard_type}</span>` 
                     : '';
 
                 var popupContent = `
