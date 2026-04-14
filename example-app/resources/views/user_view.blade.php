@@ -109,12 +109,12 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
                         <h3 class="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-8 flex items-center gap-2">
-                            <i data-lucide="package-search" class="w-4 h-4 text-[#a52a2a]"></i> Resource Shortage Audit
+                            <i data-lucide="package-search" class="w-4 h-4 text-[#a52a2a]"></i> Resource Deficit Audit
                         </h3>
                         <div class="space-y-6">
                             @foreach([
                                 ['label' => 'Classroom Units', 'val' => $school->classroom_shortage],
-                                ['label' => 'Chairs', 'val' => $school->chair_shortage],
+                                ['label' => 'Furniture/Chairs', 'val' => $school->chair_shortage],
                                 ['label' => 'Sanitation Units', 'val' => $school->toilet_shortage]
                             ] as $short)
                             <div class="flex items-center justify-between">
@@ -127,12 +127,12 @@
                         </div>
                     </div>
 
-                    {{-- UPDATED ELECTRICITY LOGIC --}}
                     <div class="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
                         <h3 class="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-8 flex items-center gap-2">
                             <i data-lucide="plug-zap" class="w-4 h-4 text-amber-500"></i> Utility Provisioning
                         </h3>
                         <div class="space-y-5">
+                            
                             {{-- Power Supply Row --}}
                             <div class="flex items-center justify-between p-3 rounded-xl {{ $school->with_electricity != 'None' ? 'bg-emerald-50/30' : 'bg-red-50/30' }}">
                                 <span class="text-[10px] font-bold text-slate-600 uppercase">Power Supply</span>
@@ -143,28 +143,29 @@
                                         @elseif(in_array($school->with_electricity, ['Solar Powered', 'Generator']))
                                             Off-Grid System
                                         @else
-                                            No Connection
+                                            Off-Grid System (No Electricity)
                                         @endif
                                     </span>
                                     <span class="text-[8px] font-medium text-slate-400">{{ $school->with_electricity }}</span>
                                 </div>
                             </div>
 
-                            {{-- Water Row --}}
+                            {{-- UPDATED: Water Row --}}
                             <div class="flex items-center justify-between p-3 rounded-xl {{ $school->with_potable_water ? 'bg-emerald-50/30' : 'bg-red-50/30' }}">
                                 <span class="text-[10px] font-bold text-slate-600 uppercase">Potable Water</span>
                                 <span class="text-[10px] font-black uppercase {{ $school->with_potable_water ? 'text-emerald-700' : 'text-red-700' }}">
-                                    {{ $school->with_potable_water ? 'Functional' : 'Absent' }}
+                                    {{ $school->with_potable_water ? 'With Water' : 'Without Water' }}
                                 </span>
                             </div>
 
-                            {{-- Internet Row --}}
+                            {{-- UPDATED: Internet Row --}}
                             <div class="flex items-center justify-between p-3 rounded-xl {{ $school->with_internet ? 'bg-emerald-50/30' : 'bg-red-50/30' }}">
-                                <span class="text-[10px] font-bold text-slate-600 uppercase">Internet Connectivity</span>
-                                <span class="text-[10px] font-black uppercase {{ $school->with_internet ? 'text-emerald-700' : 'text-red-700' }}">
-                                    {{ $school->with_internet ? 'Functional' : 'Offline' }}
+                                <span class="text-[10px] font-bold text-slate-600 uppercase">Connectivity</span>
+                                <span class="text-[10px] font-black uppercase {{ $school->with_internet ? 'text-emerald-700' : 'text-red-700' }} text-right leading-tight">
+                                    {{ $school->with_internet ? 'With Internet Connectivity' : 'Without Internet Connectivity' }}
                                 </span>
                             </div>
+
                         </div>
                     </div>
                 </div>
@@ -176,8 +177,8 @@
                     <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-8">Operational Ratios</h3>
                     <div class="space-y-10">
                         @foreach([
-                            ['label' => 'Classroom-Learner Ratio', 'ratio' => $classroomLearnerRatio, 'perc' => ($rawClassroomRatio / 60) * 100],
-                            ['label' => 'Teacher-Learner Ratio', 'ratio' => $teacherLearnerRatio, 'perc' => ($rawTeacherRatio / 50) * 100],
+                            ['label' => 'Room Saturation', 'ratio' => $classroomLearnerRatio, 'perc' => ($rawClassroomRatio / 60) * 100],
+                            ['label' => 'Instructional Load', 'ratio' => $teacherLearnerRatio, 'perc' => ($rawTeacherRatio / 50) * 100],
                         ] as $analytic)
                         <div class="space-y-3">
                             <div class="flex justify-between items-end">

@@ -19,10 +19,20 @@
         </div>
     @endif
 
-    <div class="flex justify-between items-center mb-8">
+    {{-- NEW: Personalized Admin Greeting & Date --}}
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 border-b-2 border-slate-200 pb-6 gap-4">
         <div>
-            <h1 class="text-3xl font-bold text-slate-800 tracking-tight">System Overview</h1>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-2">
+                <i data-lucide="user" class="w-3.5 h-3.5"></i> Welcome back, {{ auth()->user()->name ?? 'Administrator' }}
+            </p>
+            <h1 class="text-3xl font-black text-slate-800 tracking-tight">System Overview</h1>
             <p class="text-[#a52a2a] font-bold tracking-wide mt-1 uppercase text-sm">Zamboanga City Division Planning Analytics</p>
+        </div>
+        <div class="text-left md:text-right bg-white px-5 py-3 rounded-xl border border-slate-200 shadow-sm">
+            <p class="text-xs font-black text-slate-600 uppercase tracking-widest flex items-center gap-2 md:justify-end">
+                <i data-lucide="calendar" class="w-3.5 h-3.5 text-[#a52a2a]"></i> {{ now()->format('l, F j, Y') }}
+            </p>
+            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Current Active Session</p>
         </div>
     </div>
 
@@ -173,6 +183,49 @@
             </div>
         </div>
 
+    </div>
+
+    {{-- GLOBAL EVALUATION PARAMETERS --}}
+    <h2 class="text-lg font-bold text-slate-700 mb-4 flex items-center gap-2 uppercase tracking-wide">
+         <i data-lucide="sliders-horizontal" class="w-5 h-5 text-[#a52a2a]"></i> Global Evaluation Parameters
+    </h2>
+    <div class="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-[#a52a2a]/20 mb-10 relative overflow-hidden">
+        <div class="absolute right-0 top-0 opacity-5 p-4 pointer-events-none">
+            <i data-lucide="settings-2" class="w-32 h-32 text-[#a52a2a]"></i>
+        </div>
+        
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 relative z-10">
+            <div class="flex-1 w-full grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <label class="text-[9px] font-black text-[#a52a2a] uppercase tracking-widest block mb-2">Learners per Room</label>
+                    <div class="flex items-center bg-slate-50 border-2 border-slate-200 rounded-xl overflow-hidden focus-within:border-[#a52a2a] transition-colors">
+                        <div class="px-4 py-3 bg-slate-100 border-r border-slate-200 text-slate-400"><i data-lucide="door-open" class="w-4 h-4"></i></div>
+                        <input type="number" id="global_ratio_classroom" class="w-full bg-transparent p-3 font-mono text-lg font-black text-slate-800 outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[9px] font-black text-[#a52a2a] uppercase tracking-widest block mb-2">Learners per Chair</label>
+                    <div class="flex items-center bg-slate-50 border-2 border-slate-200 rounded-xl overflow-hidden focus-within:border-[#a52a2a] transition-colors">
+                        <div class="px-4 py-3 bg-slate-100 border-r border-slate-200 text-slate-400"><i data-lucide="armchair" class="w-4 h-4"></i></div>
+                        <input type="number" id="global_ratio_chair" class="w-full bg-transparent p-3 font-mono text-lg font-black text-slate-800 outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[9px] font-black text-[#a52a2a] uppercase tracking-widest block mb-2">Learners per Toilet</label>
+                    <div class="flex items-center bg-slate-50 border-2 border-slate-200 rounded-xl overflow-hidden focus-within:border-[#a52a2a] transition-colors">
+                        <div class="px-4 py-3 bg-slate-100 border-r border-slate-200 text-slate-400"><i data-lucide="bath" class="w-4 h-4"></i></div>
+                        <input type="number" id="global_ratio_toilet" class="w-full bg-transparent p-3 font-mono text-lg font-black text-slate-800 outline-none">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="shrink-0 flex flex-col items-end">
+                <button onclick="saveGlobalRatios()" id="saveRatiosBtn" class="bg-[#a52a2a] text-white px-8 py-3.5 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg hover:bg-black transition-all flex items-center gap-2">
+                    <i data-lucide="save" class="w-4 h-4"></i> Apply System Wide
+                </button>
+                <span id="ratioSaveStatus" class="text-[9px] font-bold text-emerald-500 uppercase tracking-widest mt-2 opacity-0 transition-opacity">Parameters Synced</span>
+            </div>
+        </div>
     </div>
 
     <div class="bg-white rounded-3xl shadow-md border border-[#a52a2a]/30 overflow-hidden mb-8 relative">
@@ -368,7 +421,12 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+    // JS Logic for the Global Evaluation Parameters
     document.addEventListener("DOMContentLoaded", function() {
+        document.getElementById('global_ratio_classroom').value = localStorage.getItem('deped_ratio_classroom') || 40;
+        document.getElementById('global_ratio_chair').value = localStorage.getItem('deped_ratio_chair') || 1;
+        document.getElementById('global_ratio_toilet').value = localStorage.getItem('deped_ratio_toilet') || 50;
+
         // Initialize the map centered on Zamboanga City
         var map = L.map('dashboardMap').setView([6.9214, 122.0790], 11);
 
@@ -380,8 +438,6 @@
 
         schools.forEach(function(school) {
             if(school.latitude && school.longitude) {
-                
-                // FIXED: Now checks hazard_type and prints the specific hazard (e.g. "Flood Prone")
                 var hazardWarning = (school.hazard_type && school.hazard_type !== 'None') 
                     ? `<span class="text-[#a52a2a] font-black block mt-2 pt-2 border-t border-slate-200 uppercase tracking-widest text-[9px]">⚠️ ${school.hazard_type}</span>` 
                     : '';
@@ -399,5 +455,28 @@
             }
         });
     });
+
+    function saveGlobalRatios() {
+        const btn = document.getElementById('saveRatiosBtn');
+        const status = document.getElementById('ratioSaveStatus');
+        
+        // Save to Local Storage
+        localStorage.setItem('deped_ratio_classroom', document.getElementById('global_ratio_classroom').value || 40);
+        localStorage.setItem('deped_ratio_chair', document.getElementById('global_ratio_chair').value || 1);
+        localStorage.setItem('deped_ratio_toilet', document.getElementById('global_ratio_toilet').value || 50);
+
+        // Visual Feedback
+        btn.innerHTML = `<i data-lucide="check-check" class="w-4 h-4"></i> Applied`;
+        btn.classList.replace('bg-[#a52a2a]', 'bg-emerald-600');
+        lucide.createIcons();
+        status.classList.remove('opacity-0');
+
+        setTimeout(() => {
+            btn.innerHTML = `<i data-lucide="save" class="w-4 h-4"></i> Apply System Wide`;
+            btn.classList.replace('bg-emerald-600', 'bg-[#a52a2a]');
+            lucide.createIcons();
+            status.classList.add('opacity-0');
+        }, 2000);
+    }
 </script>
 @endsection
