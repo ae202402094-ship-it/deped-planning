@@ -165,7 +165,7 @@
     </form>
 </div>
 
-{{-- Verification Modal --}}
+{{-- Verification Modal (Save) --}}
 <div id="verificationModal" class="fixed inset-0 z-[2000] hidden flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
     <div class="bg-white border-4 border-[#a52a2a] shadow-2xl w-full max-w-lg overflow-hidden">
         <div class="bg-[#a52a2a] text-white p-4 text-xs font-black uppercase tracking-widest flex justify-between items-center">
@@ -200,9 +200,44 @@
     </div>
 </div>
 
+{{-- PURGE CONFIRMATION MODAL --}}
+<div id="deleteModal" class="fixed inset-0 z-[3000] hidden flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+    <div class="bg-white border-4 border-black shadow-2xl w-full max-w-md overflow-hidden">
+        <div class="bg-black text-white p-4 text-xs font-black uppercase tracking-widest flex justify-between items-center">
+            <span class="text-red-500"><i class="bi bi-exclamation-triangle-fill mr-2"></i> Critical Warning</span>
+            <span class="text-[8px] opacity-60 font-mono tracking-tighter italic">SYS_DEL_AUTH</span>
+        </div>
+        <div class="p-8 bg-white">
+            <p class="text-sm font-bold text-slate-800 mb-2">You are about to purge this institutional record.</p>
+            <p class="text-xs text-slate-500 font-mono mb-8">Target: <span class="font-black text-[#a52a2a]">{{ $school->name }}</span></p>
+            
+            <form action="{{ route('schools.destroy', $school->id) }}" method="POST" class="flex gap-4">
+                @csrf 
+                @method('DELETE')
+                <button type="submit" class="flex-1 bg-black text-white py-4 text-[10px] font-black uppercase tracking-widest hover:bg-red-600 transition-colors border-2 border-black">
+                    Confirm Purge
+                </button>
+                <button type="button" onclick="closeDeleteModal()" class="flex-1 border-4 border-slate-200 text-slate-500 py-4 text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-colors">
+                    Cancel
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+    // Delete Modal Logic
+    function openDeleteModal() {
+        document.getElementById('deleteModal').classList.remove('hidden');
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').classList.add('hidden');
+    }
+
+    // Save Verification Logic
     function triggerVerification() {
         const name = document.querySelector('input[name="name"]').value.toUpperCase();
         const tch = document.getElementById('input_no_of_teachers').value;
@@ -240,6 +275,7 @@
         document.getElementById('editSchoolForm').submit();
     }
 
+    // Map Logic
     document.addEventListener('DOMContentLoaded', function() {
         const map = L.map('schoolMap', { scrollWheelZoom: false, zoomControl: false, dragging: false }).setView([{{ $school->latitude }}, {{ $school->longitude }}], 15);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);

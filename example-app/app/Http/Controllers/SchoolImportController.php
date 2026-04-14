@@ -66,20 +66,21 @@ class SchoolImportController extends Controller
                     'no_of_enrollees'    => (int)($row[3] ?? 0),
                     'no_of_classrooms'   => (int)($row[4] ?? 0),
                     'no_of_toilets'      => (int)($row[5] ?? 0),
-                    'no_of_chairs'       => (int)($row[6] ?? 0), // NEW
+                    'no_of_chairs'       => (int)($row[6] ?? 0),
                     'latitude'           => !empty($row[7]) ? (float)$row[7] : 6.9214,
                     'longitude'          => !empty($row[8]) ? (float)$row[8] : 122.0739,
                     
-                    // NEW: Utilities (Accepts 'true', '1', 'yes')
-                    'with_electricity'   => filter_var($row[9] ?? false, FILTER_VALIDATE_BOOLEAN),
+                    // FIXED: Electricity is now a string to match the UI dropdowns
+                    'with_electricity'   => (string)($row[9] ?? 'None'),
+                    
+                    // Water and Internet remain booleans
                     'with_potable_water' => filter_var($row[10] ?? false, FILTER_VALIDATE_BOOLEAN),
                     'with_internet'      => filter_var($row[11] ?? false, FILTER_VALIDATE_BOOLEAN),
                     
-                    // NEW: Shortages
                     'classroom_shortage' => (int)($row[12] ?? 0),
                     'chair_shortage'     => (int)($row[13] ?? 0),
                     'toilet_shortage'    => (int)($row[14] ?? 0),
-                    'hazards'            => (string)($row[15] ?? ''),
+                    'hazards'            => (string)($row[15] ?? 'None'),
                     
                     'status'             => $status,
                     'exists_in_db'       => (bool)$existingSchoolById,
@@ -125,16 +126,19 @@ class SchoolImportController extends Controller
                         'no_of_enrollees'    => (int)$row['no_of_enrollees'],
                         'no_of_classrooms'   => (int)$row['no_of_classrooms'],
                         'no_of_toilets'      => (int)$row['no_of_toilets'],
-                        'no_of_chairs'       => (int)$row['no_of_chairs'], // NEW
+                        'no_of_chairs'       => (int)$row['no_of_chairs'],
                         'latitude'           => (float)$row['latitude'],
                         'longitude'          => (float)$row['longitude'],
-                        'with_electricity'   => (bool)$row['with_electricity'], // NEW
-                        'with_potable_water' => (bool)$row['with_potable_water'], // NEW
-                        'with_internet'      => (bool)$row['with_internet'], // NEW
-                        'classroom_shortage' => (int)$row['classroom_shortage'], // NEW
-                        'chair_shortage'     => (int)$row['chair_shortage'], // NEW
-                        'toilet_shortage'    => (int)$row['toilet_shortage'], // NEW
-                        'hazards'            => (string)$row['hazards'], // NEW
+                        
+                        // FIXED: Ensure this saves as a string, not a boolean
+                        'with_electricity'   => (string)$row['with_electricity'], 
+                        
+                        'with_potable_water' => (bool)$row['with_potable_water'], 
+                        'with_internet'      => (bool)$row['with_internet'], 
+                        'classroom_shortage' => (int)$row['classroom_shortage'], 
+                        'chair_shortage'     => (int)$row['chair_shortage'], 
+                        'toilet_shortage'    => (int)$row['toilet_shortage'], 
+                        'hazards'            => (string)$row['hazards'], 
                     ]
                 );
             }
@@ -148,16 +152,21 @@ class SchoolImportController extends Controller
     {
         return new StreamedResponse(function () {
             $handle = fopen('php://output', 'w');
+            
+            // Write Headers
             fputcsv($handle, [
                 'school_id', 'name', 'no_of_teachers', 'no_of_enrollees', 
                 'no_of_classrooms', 'no_of_toilets', 'no_of_chairs', 
                 'latitude', 'longitude', 'with_electricity', 'with_potable_water', 
                 'with_internet', 'classroom_shortage', 'chair_shortage', 'toilet_shortage', 'hazards'
             ]);
+            
+            // Write Sample Data (FIXED: Uses 'Grid Connection' instead of 'yes' for electricity)
             fputcsv($handle, [
                 '123456', 'SAMPLE SCHOOL', '20', '500', '15', '8', '450', 
-                '6.9214', '122.0739', 'yes', 'yes', 'no', '0', '50', '2', 'Flood prone area'
+                '6.9214', '122.0739', 'Grid Connection', 'yes', 'no', '0', '50', '2', 'Flood Prone'
             ]);
+            
             fclose($handle);
         }, 200, [
             'Content-Type' => 'text/csv',
