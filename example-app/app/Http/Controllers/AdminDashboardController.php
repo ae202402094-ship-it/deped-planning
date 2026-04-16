@@ -21,7 +21,7 @@ class AdminDashboardController extends Controller
 
         $schools = $query->latest()->paginate(10)->withQueryString();
 
-        return view('admin.dashboard', compact('dashboardData', 'schools'));
+        return view('admin.dashboard', compact('schools'));
     }
 
     public function adminDashboard()
@@ -36,27 +36,25 @@ class AdminDashboardController extends Controller
         $toiletShortageSchools = School::where('toilet_shortage', '>', 0)
                                        ->get(['id', 'school_id', 'name', 'toilet_shortage']);
         
-        // 3. Hazard Risk (FIXED: Now checks hazard_type instead of hazard_level)
-        // 3. Hazard Risk (Handles JSON Arrays and Legacy Strings)
+        // 3. Hazard Risk (FIXED: Handles new JSON arrays and old strings safely)
         $highHazardSchools = School::whereNotNull('hazard_type')
-            ->where('hazard_type', '!=', 'None')
-            ->where('hazard_type', '!=', '["None"]')
-            ->where('hazard_type', '!=', '[]')
-            ->get(['id', 'school_id', 'name', 'hazard_type'])
-            // Filter out empty arrays after fetching
-            ->filter(function ($school) {
-                $hazards = is_array($school->hazard_type) ? $school->hazard_type : json_decode($school->hazard_type, true);
-                return !empty($hazards) && $hazards !== ['None'];
-            });
+                                   ->where('hazard_type', '!=', 'None')
+                                   ->where('hazard_type', '!=', '["None"]')
+                                   ->where('hazard_type', '!=', '[]')
+                                   ->get(['id', 'school_id', 'name', 'hazard_type'])
+                                   // Filter out empty arrays dynamically
+                                   ->filter(function ($school) {
+                                       $hazards = is_array($school->hazard_type) ? $school->hazard_type : json_decode($school->hazard_type, true);
+                                       return !empty($hazards) && $hazards !== ['None'];
+                                   });
         
-        // 4. Electricity
-       // 4. Electricity
+        // 4. Electricity (FIXED: Added new 'Off-grid + Solar/Genset' combo)
         $withPowerCount = School::whereIn('with_electricity', [
             'Grid Connection', 
             'Hybrid', 
             'Off-grid + Solar/Genset',
-            'Solar Powered', // Kept for legacy data compatibility
-            'Generator'      // Kept for legacy data compatibility
+            'Solar Powered', // Kept for legacy data safety
+            'Generator'      // Kept for legacy data safety
         ])->count();
                                 
         $withoutPowerSchools = School::where(function($q) {
@@ -73,9 +71,11 @@ class AdminDashboardController extends Controller
         $archivedSchoolsCount = School::onlyTrashed()->count();
         $totalActivityLogs = ActivityLog::count();
 
-        // Fetch schools with coordinates for the dashboard map (FIXED: Added hazard_type)
+        // 7. Geographic Map Data (FIXED: Strictly rejects empty strings so the JS map doesn't crash)
         $mapSchools = School::whereNotNull('latitude')
+                            ->where('latitude', '!=', '')
                             ->whereNotNull('longitude')
+                            ->where('longitude', '!=', '')
                             ->get(['id', 'name', 'school_id', 'latitude', 'longitude', 'hazard_type']);
 
         return view('admin.dashboard', compact(

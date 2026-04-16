@@ -77,12 +77,22 @@
 
                                     <div x-show="expanded" x-cloak class="mt-4 space-y-3">
                                         @foreach($diff as $key => $value)
+                                            @php
+                                                // Extract values safely
+                                                $beforeVal = $log->changes['before'][$key] ?? 'NULL';
+                                                $afterVal = $value;
+                                                
+                                                // Convert Arrays to Strings (Fixes the htmlspecialchars error)
+                                                $printBefore = is_array($beforeVal) ? implode(' | ', array_filter($beforeVal)) : $beforeVal;
+                                                $printAfter = is_array($afterVal) ? implode(' | ', array_filter($afterVal)) : $afterVal;
+                                            @endphp
+
                                             <div class="flex flex-col border-l-2 border-[#a52a2a] pl-3 py-1 bg-slate-50 rounded-r-lg">
                                                 <span class="text-[8px] font-black uppercase text-slate-400">{{ str_replace('_', ' ', $key) }}</span>
-                                                <div class="flex items-center gap-2 text-[10px]">
-                                                    <span class="text-red-400 line-through bg-red-50 px-1 rounded">{{ $log->changes['before'][$key] ?? 'NULL' }}</span>
+                                                <div class="flex items-center gap-2 text-[10px] break-all">
+                                                    <span class="text-red-400 line-through bg-red-50 px-1 rounded">{{ $printBefore ?: 'NULL' }}</span>
                                                     <i class="bi bi-arrow-right text-slate-300"></i>
-                                                    <span class="text-emerald-600 font-bold bg-emerald-50 px-1 rounded">{{ $value }}</span>
+                                                    <span class="text-emerald-600 font-bold bg-emerald-50 px-1 rounded">{{ $printAfter ?: 'NULL' }}</span>
                                                 </div>
                                             </div>
                                         @endforeach

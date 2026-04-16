@@ -347,7 +347,13 @@
                         <tr class="hover:bg-rose-50/50 transition-colors group">
                             <td class="py-4 px-6 text-sm font-bold text-slate-700">{{ $school->school_id }}</td>
                             <td class="py-4 px-6 text-sm font-semibold text-slate-600">{{ $school->name }}</td>
-                            <td class="py-4 px-6 text-sm font-bold text-[#a52a2a] text-center uppercase tracking-wider">{{ $school->hazard_type }}</td>
+                            <td class="py-4 px-6 text-sm font-bold text-[#a52a2a] text-center uppercase tracking-wider">
+                                @php
+                                    $hazards = is_array($school->hazard_type) ? $school->hazard_type : (json_decode($school->hazard_type, true) ?? [$school->hazard_type]);
+                                    $cleanHazards = array_filter($hazards, fn($h) => !empty($h) && $h !== 'None');
+                                @endphp
+                                {{ implode(' | ', $cleanHazards) }}
+                            </td>
                             <td class="py-4 px-6 text-right">
                                 <a href="{{ route('schools.edit', $school->id) }}" class="inline-flex items-center gap-1.5 bg-white border border-slate-200 text-[#a52a2a] hover:bg-[#a52a2a] hover:text-white hover:border-[#a52a2a] px-3 py-1.5 rounded-lg font-black text-[9px] uppercase tracking-widest transition-all shadow-sm opacity-50 group-hover:opacity-100">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
@@ -427,32 +433,66 @@
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>
-    // JS Logic for the Global Evaluation Parameters
-    document.addEventListener("DOMContentLoaded", function() {
-        document.getElementById('global_ratio_teacher').value = localStorage.getItem('deped_ratio_teacher') || 45;
-        document.getElementById('global_ratio_classroom').value = localStorage.getItem('deped_ratio_classroom') || 40;
-        document.getElementById('global_ratio_chair').value = localStorage.getItem('deped_ratio_chair') || 1;
-        document.getElementById('global_ratio_toilet').value = localStorage.getItem('deped_ratio_toilet') || 50;
+<style>
+    /* Admin Map Marker Animation */
+    .map-pulse-admin {
+        border-radius: 50%;
+        height: 20px;
+        width: 20px;
+        position: absolute;
+        background: rgba(165, 42, 42, 0.4);
+        animation: pulsateAdmin 2s ease-out infinite;
+        opacity: 0;
+    }
+    @keyframes pulsateAdmin {
+        0% { transform: scale(0.1, 0.1); opacity: 0; }
+        50% { opacity: 1.0; }
+        100% { transform: scale(1.5, 1.5); opacity: 0; }
+    }
+    .leaflet-popup-content-wrapper { border-radius: 12px; padding: 5px; }
+</style>
 
-        // Initialize the map centered on Zamboanga City
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Global Evaluation Parameters Init (Now safely includes Teachers)
+        if(document.getElementById('global_ratio_teacher')) document.getElementById('global_ratio_teacher').value = localStorage.getItem('deped_ratio_teacher') || 45;
+        if(document.getElementById('global_ratio_classroom')) document.getElementById('global_ratio_classroom').value = localStorage.getItem('deped_ratio_classroom') || 40;
+        if(document.getElementById('global_ratio_chair')) document.getElementById('global_ratio_chair').value = localStorage.getItem('deped_ratio_chair') || 1;
+        if(document.getElementById('global_ratio_toilet')) document.getElementById('global_ratio_toilet').value = localStorage.getItem('deped_ratio_toilet') || 50;
+
+        // Initialize Map
         var map = L.map('dashboardMap').setView([6.9214, 122.0790], 11);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
+        // Custom Bug-Free Marker Icon
+        var adminMarkerIcon = L.divIcon({
+            html: `<div class="relative flex items-center justify-center"><div class="map-pulse-admin"></div><div class="relative w-6 h-6 bg-[#a52a2a] border-2 border-white rounded-full shadow-lg flex items-center justify-center"><div class="w-1.5 h-1.5 bg-white rounded-full"></div></div></div>`,
+            className: '', 
+            iconSize: [24, 24], 
+            iconAnchor: [12, 12]
+        });
+
+        // Load Schools Data
         var schools = @json($mapSchools);
 
         schools.forEach(function(school) {
-            if(school.latitude && school.longitude) {
-                // Parse the array safely
+            // Bulletproof coordinate check
+            if(school.latitude && school.longitude && !isNaN(school.latitude) && !isNaN(school.longitude)) {
+                
+                // Safely parse Hazard JSON arrays
                 let hazardsArray = [];
                 if (Array.isArray(school.hazard_type)) hazardsArray = school.hazard_type;
                 else if (typeof school.hazard_type === 'string') {
                     try { hazardsArray = JSON.parse(school.hazard_type) || [school.hazard_type]; } 
                     catch(e) { hazardsArray = [school.hazard_type]; }
                 }
+                
+                // Filter out ghost values
                 hazardsArray = hazardsArray.filter(h => h && h !== 'None');
 
                 var hazardWarning = hazardsArray.length > 0 
@@ -461,38 +501,44 @@
 
                 var popupContent = `
                     <div class="font-sans min-w-[150px]">
-                        <strong class="text-slate-800 block mb-1">${school.name}</strong>
-                        <span class="text-xs font-bold text-slate-500 block uppercase tracking-wider">ID: ${school.school_id}</span>
+                        <strong class="text-slate-800 block mb-1 text-xs uppercase">${school.name}</strong>
+                        <span class="text-[9px] font-bold text-slate-500 block uppercase tracking-wider">ID: ${school.school_id}</span>
                         ${hazardWarning}
                     </div>
                 `;
-                L.marker([school.latitude, school.longitude])
+                
+                L.marker([school.latitude, school.longitude], { icon: adminMarkerIcon })
                  .addTo(map)
                  .bindPopup(popupContent);
             }
         });
+    });
 
     function saveGlobalRatios() {
         const btn = document.getElementById('saveRatiosBtn');
         const status = document.getElementById('ratioSaveStatus');
         
-        // Save to Local Storage
-        localStorage.setItem('deped_ratio_teacher', document.getElementById('global_ratio_teacher').value || 45);
-        localStorage.setItem('deped_ratio_classroom', document.getElementById('global_ratio_classroom').value || 40);
-        localStorage.setItem('deped_ratio_chair', document.getElementById('global_ratio_chair').value || 1);
-        localStorage.setItem('deped_ratio_toilet', document.getElementById('global_ratio_toilet').value || 50);
+        // Save ALL 4 parameters to Local Storage
+        if(document.getElementById('global_ratio_teacher')) localStorage.setItem('deped_ratio_teacher', document.getElementById('global_ratio_teacher').value || 45);
+        if(document.getElementById('global_ratio_classroom')) localStorage.setItem('deped_ratio_classroom', document.getElementById('global_ratio_classroom').value || 40);
+        if(document.getElementById('global_ratio_chair')) localStorage.setItem('deped_ratio_chair', document.getElementById('global_ratio_chair').value || 1);
+        if(document.getElementById('global_ratio_toilet')) localStorage.setItem('deped_ratio_toilet', document.getElementById('global_ratio_toilet').value || 50);
 
-        // Visual Feedback
-        btn.innerHTML = `<i data-lucide="check-check" class="w-4 h-4"></i> Applied`;
-        btn.classList.replace('bg-[#a52a2a]', 'bg-emerald-600');
-        lucide.createIcons();
-        status.classList.remove('opacity-0');
+        // UI Animation Feedback
+        if(btn) {
+            btn.innerHTML = `<i data-lucide="check-check" class="w-4 h-4"></i> Applied`;
+            btn.classList.replace('bg-[#a52a2a]', 'bg-emerald-600');
+        }
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+        if(status) status.classList.remove('opacity-0');
 
         setTimeout(() => {
-            btn.innerHTML = `<i data-lucide="save" class="w-4 h-4"></i> Apply System Wide`;
-            btn.classList.replace('bg-emerald-600', 'bg-[#a52a2a]');
-            lucide.createIcons();
-            status.classList.add('opacity-0');
+            if(btn) {
+                btn.innerHTML = `<i data-lucide="save" class="w-4 h-4"></i> Apply System Wide`;
+                btn.classList.replace('bg-emerald-600', 'bg-[#a52a2a]');
+            }
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            if(status) status.classList.add('opacity-0');
         }, 2000);
     }
 </script>
