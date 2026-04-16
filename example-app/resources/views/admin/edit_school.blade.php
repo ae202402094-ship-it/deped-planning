@@ -1,281 +1,278 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 py-8 font-sans leading-tight text-base">
+<div class="max-w-7xl mx-auto px-4 py-8 font-sans leading-tight text-slate-800 pb-32">
+    
     {{-- Header Ribbon --}}
-    <div class="flex justify-between items-stretch bg-white border-4 border-[#a52a2a] mb-8 shadow-[8px_8px_0px_0px_rgba(165,42,42,1)]">
-        <div class="flex items-center">
-            <div class="bg-[#a52a2a] text-white px-6 py-4 text-sm font-black uppercase tracking-wider border-r-4 border-[#a52a2a]">
+    <div class="flex flex-col md:flex-row justify-between items-stretch bg-white border-2 border-black mb-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-sm overflow-hidden">
+        <div class="flex items-center flex-grow">
+            <div class="bg-[#a52a2a] text-white px-6 py-4 text-sm font-black uppercase tracking-wider border-r-2 border-black flex items-center h-full">
                 Registry Edit Protocol
             </div>
-            <h1 class="px-6 text-lg font-black text-[#a52a2a] uppercase tracking-tight">{{ $school->name }}</h1>
+            <h1 class="px-6 text-xl font-black text-[#a52a2a] uppercase tracking-tight">{{ $school->name }}</h1>
         </div>
-        <div class="flex border-l-4 border-[#a52a2a]">
-            <button type="button" onclick="openDeleteModal()" class="px-6 py-4 text-sm font-black uppercase text-[#a52a2a] hover:bg-red-50 transition-colors border-r-4 border-[#a52a2a]">
-                Purge Record
+        <div class="flex border-t-2 md:border-t-0 md:border-l-2 border-black bg-slate-50">
+            <button type="button" onclick="openDeleteModal()" class="flex-1 md:flex-none px-6 py-4 text-sm font-black uppercase text-red-600 hover:bg-red-100 transition-colors border-r-2 border-black flex items-center justify-center gap-2">
+                <i class="bi bi-trash-fill"></i> Purge
             </button>
-            <a href="{{ route('admin.schools') }}" class="px-6 py-4 text-sm font-black uppercase text-slate-500 hover:text-[#a52a2a] transition-colors bg-white flex items-center">
-                Close Window
+            <a href="{{ route('admin.schools') }}" class="flex-1 md:flex-none px-6 py-4 text-sm font-black uppercase text-slate-600 hover:text-black hover:bg-slate-200 transition-colors flex items-center justify-center gap-2">
+                <i class="bi bi-x-square-fill"></i> Close
             </a>
         </div>
     </div>
 
-    <form action="{{ route('schools.update', $school->id) }}" method="POST" id="editSchoolForm">
+    <form action="{{ route('schools.update', $school->id) }}" method="POST" id="editSchoolForm" class="space-y-8">
         @csrf
         @method('PUT')
 
-        <div class="flex flex-col border-4 border-black shadow-2xl bg-white">
+        {{-- SECTION 1: IDENTIFICATION --}}
+        <div class="bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-sm">
+            <div class="bg-slate-100 border-b-2 border-black p-4 text-sm font-black text-[#a52a2a] uppercase tracking-widest flex items-center gap-3">
+                <span class="bg-[#a52a2a] text-white px-2 py-1 text-xs rounded-sm">01</span> Identification & Core Metrics
+            </div>
             
-            {{-- SECTION 1: IDENTIFICATION --}}
-            <div class="flex flex-col border-b-4 border-black">
-                <div class="bg-[#fdf2f2] border-b-4 border-black p-4 text-sm font-black text-[#a52a2a] uppercase tracking-widest">
-                    01 // Identification & Core Metrics
-                </div>
-                <div class="p-8 space-y-5 border-b-2 border-slate-100 bg-white">
+            <div class="p-6 md:p-8 space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-xs font-black text-slate-500 uppercase mb-1 tracking-widest">School Reference ID</label>
+                        <label class="block text-xs font-black text-slate-500 uppercase mb-2 tracking-widest">School Reference ID</label>
                         <input type="text" name="school_id" value="{{ $school->school_id }}" 
-                               class="w-full bg-white border-2 border-slate-200 p-3 font-mono text-base font-bold focus:outline-none focus:border-[#a52a2a] transition-all">
+                               class="w-full bg-white border-2 border-slate-300 p-3 font-mono text-base font-bold focus:outline-none focus:border-black focus:bg-[#fdf2f2] transition-colors rounded-sm shadow-inner">
                     </div>
                     <div>
-                        <label class="block text-xs font-black text-slate-500 uppercase mb-1 tracking-widest">Institutional Nomenclature</label>
+                        <label class="block text-xs font-black text-slate-500 uppercase mb-2 tracking-widest">Institutional Nomenclature</label>
                         <input type="text" name="name" value="{{ $school->name }}" 
-                               class="w-full bg-white border-2 border-slate-200 p-3 text-base font-black uppercase focus:outline-none focus:border-[#a52a2a] transition-all">
+                               class="w-full bg-white border-2 border-slate-300 p-3 text-base font-bold uppercase focus:outline-none focus:border-black focus:bg-[#fdf2f2] transition-colors rounded-sm shadow-inner">
                     </div>
                 </div>
-                <div class="p-8 bg-slate-50/30">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+
+                <div class="bg-slate-50 border-2 border-slate-200 p-6 rounded-sm mt-6">
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-6">
                         @foreach([['name' => 'no_of_teachers', 'label' => 'Faculty'], ['name' => 'no_of_enrollees', 'label' => 'Learners'], ['name' => 'no_of_classrooms', 'label' => 'Spaces'], ['name' => 'no_of_chairs', 'label' => 'Chairs'], ['name' => 'no_of_toilets', 'label' => 'Sanitary']] as $field)
-                        <div class="border-b-2 border-slate-200 pb-2">
-                            <label class="block text-xs font-black text-slate-500 uppercase mb-1 tracking-widest">{{ $field['label'] }}</label>
+                        <div>
+                            <label class="block text-xs font-black text-slate-500 uppercase mb-2 tracking-widest">{{ $field['label'] }}</label>
                             <input type="number" name="{{ $field['name'] }}" id="input_{{ $field['name'] }}" value="{{ $school->{$field['name']} }}" 
-                                   class="w-full bg-transparent font-mono text-lg font-black text-slate-800 outline-none">
+                                   class="w-full bg-white border-2 border-slate-300 p-2 font-mono text-xl font-black text-center focus:outline-none focus:border-[#a52a2a] focus:text-[#a52a2a] transition-colors rounded-sm">
                         </div>
                         @endforeach
                     </div>
                 </div>
             </div>
+        </div>
 
-            {{-- SECTION 2: UTILITIES & DEFICITS --}}
-            <div class="flex flex-col border-b-4 border-black bg-white">
-                <div class="bg-[#fdf2f2] border-b-4 border-black p-4 text-[10px] font-black text-[#a52a2a] uppercase tracking-[0.2em]">
-                    02 // Resource & Shortage Audit
-                </div>
-                
-                <div class="grid grid-cols-1 lg:grid-cols-2">
+        {{-- SECTION 2: UTILITIES & DEFICITS --}}
+        <div class="bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-sm">
+            <div class="bg-slate-100 border-b-2 border-black p-4 text-sm font-black text-[#a52a2a] uppercase tracking-widest flex items-center gap-3">
+                <span class="bg-[#a52a2a] text-white px-2 py-1 text-xs rounded-sm">02</span> Resource & Shortage Audit
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 divide-y-2 lg:divide-y-0 lg:divide-x-2 divide-slate-100">
+                {{-- Utilities Left Column --}}
+                <div class="p-6 md:p-8 space-y-6 bg-white">
+                    <h3 class="text-sm font-black text-slate-800 uppercase border-b-2 border-slate-100 pb-2">Utility Connectivity</h3>
                     
-                    {{-- LEFT COLUMN: UTILITIES --}}
-                    <div class="p-8 border-b-2 lg:border-b-0 lg:border-r-2 border-slate-100">
-                        <h3 class="text-[8px] font-black text-slate-400 uppercase mb-4 tracking-widest">Utility Connectivity</h3>
-                        
-                        {{-- Power Supply Dropdown --}}
-                        <div class="border-2 border-slate-200 p-3 bg-white mb-4">
-                            <span class="text-[9px] font-bold text-slate-600 uppercase block mb-2">Power Supply Type</span>
-                            <select name="with_electricity" class="w-full bg-[#a52a2a] text-white text-[10px] font-black uppercase px-3 py-2 outline-none cursor-pointer hover:bg-black transition-colors">
-                                <option value="None" {{ $school->with_electricity == 'None' ? 'selected' : '' }}>No Electricity</option>
-                                <option value="Grid Connection" {{ $school->with_electricity == 'Grid Connection' ? 'selected' : '' }}>Direct Grid Connection</option>
-                                <option value="Off-grid + Solar/Genset" {{ $school->with_electricity == 'Off-grid + Solar/Genset' ? 'selected' : '' }}>Off-grid + Solar/Genset</option>
-                                <option value="Hybrid" {{ $school->with_electricity == 'Hybrid' ? 'selected' : '' }}>Hybrid (Grid + Solar)</option>
+                    <div>
+                        <label class="text-xs font-black text-slate-500 uppercase block mb-2">Power Supply Type</label>
+                        <select name="with_electricity" class="w-full bg-slate-50 border-2 border-slate-300 text-slate-800 text-sm font-bold uppercase p-3 outline-none focus:border-black focus:bg-white cursor-pointer transition-colors rounded-sm">
+                            <option value="None" {{ $school->with_electricity == 'None' ? 'selected' : '' }}>No Electricity (Off-Grid)</option>
+                            <option value="Grid Connection" {{ $school->with_electricity == 'Grid Connection' ? 'selected' : '' }}>Direct Grid Connection</option>
+                            <option value="Solar Powered" {{ $school->with_electricity == 'Solar Powered' ? 'selected' : '' }}>Solar / Renewable (Off-Grid)</option>
+                            <option value="Generator" {{ $school->with_electricity == 'Generator' ? 'selected' : '' }}>Generator Set Only</option>
+                            <option value="Hybrid" {{ $school->with_electricity == 'Hybrid' ? 'selected' : '' }}>Hybrid (Grid + Solar)</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs font-black text-slate-500 uppercase block mb-2">Potable Water</label>
+                            <select name="with_potable_water" class="w-full bg-slate-50 border-2 border-slate-300 text-slate-800 text-sm font-bold uppercase p-3 outline-none focus:border-black focus:bg-white cursor-pointer transition-colors rounded-sm">
+                                <option value="1" {{ $school->with_potable_water ? 'selected' : '' }}>YES</option>
+                                <option value="0" {{ !$school->with_potable_water ? 'selected' : '' }}>NO</option>
                             </select>
                         </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {{-- Water --}}
-                            <div class="flex items-center justify-between border-2 border-slate-200 p-3 bg-white">
-                                <span class="text-[9px] font-bold text-slate-600 uppercase">Potable Water</span>
-                                <select name="with_potable_water" class="bg-[#a52a2a] text-white text-[9px] font-black uppercase px-2 py-1.5 outline-none cursor-pointer hover:bg-black transition-colors w-24 text-center">
-                                    <option value="1" {{ $school->with_potable_water ? 'selected' : '' }}>Yes</option>
-                                    <option value="0" {{ !$school->with_potable_water ? 'selected' : '' }}>No</option>
-                                </select>
-                            </div>
-
-                            {{-- Internet --}}
-                            <div class="flex items-center justify-between border-2 border-slate-200 p-3 bg-white">
-                                <span class="text-[9px] font-bold text-slate-600 uppercase">Internet</span>
-                                <select name="with_internet" class="bg-[#a52a2a] text-white text-[9px] font-black uppercase px-2 py-1.5 outline-none cursor-pointer hover:bg-black transition-colors w-24 text-center">
-                                    <option value="1" {{ $school->with_internet ? 'selected' : '' }}>Yes</option>
-                                    <option value="0" {{ !$school->with_internet ? 'selected' : '' }}>No</option>
-                                </select>
-                            </div>
+                        <div>
+                            <label class="text-xs font-black text-slate-500 uppercase block mb-2">Internet</label>
+                            <select name="with_internet" class="w-full bg-slate-50 border-2 border-slate-300 text-slate-800 text-sm font-bold uppercase p-3 outline-none focus:border-black focus:bg-white cursor-pointer transition-colors rounded-sm">
+                                <option value="1" {{ $school->with_internet ? 'selected' : '' }}>YES</option>
+                                <option value="0" {{ !$school->with_internet ? 'selected' : '' }}>NO</option>
+                            </select>
                         </div>
                     </div>
+                </div>
+                
+                {{-- Deficits Right Column --}}
+                <div class="p-6 md:p-8 bg-slate-50/50">
+                    <h3 class="text-sm font-black text-slate-800 uppercase border-b-2 border-slate-200 pb-2 mb-6">Calculated Deficits</h3>
+                    <div class="space-y-5">
+                        @foreach([
+                            ['name' => 'teacher_shortage', 'label' => 'Faculty Deficit'], 
+                            ['name' => 'classroom_shortage', 'label' => 'Classroom Shortage'], 
+                            ['name' => 'chair_shortage', 'label' => 'Chair Shortage'], 
+                            ['name' => 'toilet_shortage', 'label' => 'Sanitation Shortage']
+                        ] as $short)
+                        <div class="flex flex-col bg-white border-2 border-slate-200 p-4 rounded-sm shadow-sm relative">
+                            <div class="flex items-center justify-between z-10 relative">
+                                <span class="text-sm font-bold text-slate-700 uppercase tracking-tight">{{ $short['label'] }}</span>
+                                <input type="number" name="{{ $short['name'] }}" id="input_{{ $short['name'] }}" value="{{ $school->{$short['name']} ?? 0 }}" 
+                                       class="w-24 bg-slate-50 border-2 border-slate-300 font-mono text-base font-black p-2 text-center focus:border-[#a52a2a] outline-none text-[#a52a2a] transition-colors rounded-sm">
+                            </div>
+                            <div class="flex justify-between items-center mt-3 pt-3 border-t-2 border-dashed border-slate-100 z-0 relative">
+                                <span id="suggestion_{{ $short['name'] }}" class="text-[11px] text-slate-500 font-bold uppercase tracking-widest flex items-center gap-1.5 transition-colors">
+                                    <i class="bi bi-robot text-[#a52a2a]"></i> Calc...
+                                </span>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- SECTION 3: GEOSPATIAL & HAZARDS --}}
+        <div class="bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-sm">
+            <div class="bg-slate-100 border-b-2 border-black p-4 text-sm font-black text-[#a52a2a] uppercase tracking-widest flex items-center gap-3">
+                <span class="bg-[#a52a2a] text-white px-2 py-1 text-xs rounded-sm">03</span> Geospatial & Technical Limits
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 divide-y-2 lg:divide-y-0 lg:divide-x-2 divide-slate-100">
+                <div class="p-6 md:p-8">
+                    <div id="schoolMap" class="h-[250px] w-full border-2 border-black shadow-inner mb-4 rounded-sm z-0 relative"></div>
                     
-                    {{-- RIGHT COLUMN: DEFICITS --}}
-                    <div class="p-8 bg-slate-50/50">
-                        <h3 class="text-[8px] font-black text-slate-400 uppercase mb-4 tracking-widest">Calculated Deficits</h3>
-                        <div class="space-y-3"> {{-- Aggressively tightened gap --}}
-                            @foreach([
-                                ['name' => 'teacher_shortage', 'label' => 'Faculty Deficit'], 
-                                ['name' => 'classroom_shortage', 'label' => 'Classroom Deficit'], 
-                                ['name' => 'chair_shortage', 'label' => 'Furniture Deficit'], 
-                                ['name' => 'toilet_shortage', 'label' => 'Sanitation Deficit']
-                            ] as $short)
-                            <div class="flex flex-col border-b-2 border-slate-200 pb-2 relative">
-                                <div class="flex items-center justify-between z-10 relative">
-                                    <span class="text-[10px] font-bold text-slate-600 uppercase tracking-tight">{{ $short['label'] }}</span>
-                                    <input type="number" name="{{ $short['name'] }}" id="input_{{ $short['name'] }}" value="{{ $school->{$short['name']} ?? 0 }}" 
-                                           class="w-24 bg-white border-2 border-slate-200 font-mono text-sm font-black p-1.5 text-right focus:border-[#a52a2a] outline-none text-[#a52a2a] transition-all hover:border-[#a52a2a]/50">
-                                </div>
-                                {{-- Intelligent Suggestion Text --}}
-                                <div class="flex justify-end mt-1 z-0 relative">
-                                    <span id="suggestion_{{ $short['name'] }}" class="text-[8px] text-slate-400 font-bold uppercase tracking-widest text-right flex items-center gap-1 transition-colors">
-                                        <i class="bi bi-robot"></i> System Suggestion: Calculating...
-                                    </span>
-                                </div>
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-500 uppercase mb-1">Latitude</label>
+                            <input type="text" name="latitude" id="lat" value="{{ $school->latitude }}" class="w-full bg-slate-50 border-2 border-slate-200 p-2 font-mono text-sm text-center font-bold outline-none rounded-sm" readonly>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-500 uppercase mb-1">Longitude</label>
+                            <input type="text" name="longitude" id="lng" value="{{ $school->longitude }}" class="w-full bg-slate-50 border-2 border-slate-200 p-2 font-mono text-sm text-center font-bold outline-none rounded-sm" readonly>
+                        </div>
+                    </div>
+
+                    <button type="button" onclick="openMapPopup('lat', 'lng', '{{ $school->latitude }}', '{{ $school->longitude }}')" 
+                            class="w-full bg-white border-2 border-black text-black text-sm font-black uppercase tracking-widest p-3 hover:bg-black hover:text-white transition-colors rounded-sm flex justify-center items-center gap-2">
+                        <i class="bi bi-geo-alt-fill"></i> Recalibrate GIS Data
+                    </button>
+                </div>
+
+                <div class="p-6 md:p-8 bg-slate-50/50 flex flex-col">
+                    <label class="block text-xs font-black text-slate-500 uppercase mb-4 tracking-widest">Risk Categories</label>
+                    
+                    @php
+                        // Extract current hazards safely
+                        $currentHazards = is_array($school->hazard_type) ? $school->hazard_type : (json_decode($school->hazard_type, true) ?? [$school->hazard_type]);
+                        if (!is_array($currentHazards)) $currentHazards = [];
+                        
+                        // Separate default hazards from custom ones
+                        $defaultHazardsList = ['Flood Prone', 'Landslide Risk', 'Seismic Zone', 'Coastal Surge / Tsunami'];
+                        $customHazards = array_diff($currentHazards, $defaultHazardsList);
+                        
+                        // Clean up legacy artifacts
+                        $customHazards = array_filter($customHazards, fn($h) => !in_array($h, ['None', 'Others', '']));
+                    @endphp
+
+                  {{-- Brutalist Checkbox Grid --}}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+                        @foreach($defaultHazardsList as $hazard)
+                        <label class="flex items-center gap-3 p-4 border-2 border-slate-300 cursor-pointer hover:border-black hover:bg-slate-50 transition-all bg-white has-[:checked]:border-[#a52a2a] has-[:checked]:shadow-[2px_2px_0px_0px_rgba(165,42,42,1)] group">
+                            <input type="checkbox" name="hazard_type[]" value="{{ $hazard }}" {{ in_array($hazard, $currentHazards) ? 'checked' : '' }} 
+                                   class="w-5 h-5 accent-[#a52a2a] text-[#a52a2a] bg-white border-2 border-black rounded-none focus:ring-[#a52a2a] focus:ring-offset-0 cursor-pointer">
+                            <span class="text-xs font-black text-slate-700 uppercase tracking-tight group-hover:text-black has-[:checked]:text-[#a52a2a] transition-colors">{{ $hazard }}</span>
+                        </label>
+                        @endforeach
+                    </div>
+
+                    {{-- Dynamic Custom Hazards Section --}}
+                    <div class="border-t-2 border-black pt-5">
+                        <div class="flex justify-between items-center mb-4">
+                            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest">Additional Custom Hazards</label>
+                            <button type="button" onclick="addCustomHazardField()" class="text-[10px] font-black uppercase tracking-widest text-[#a52a2a] hover:text-black transition-colors flex items-center gap-1 bg-slate-100 border-2 border-black px-3 py-1.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none hover:bg-slate-200">
+                                <i class="bi bi-plus-lg"></i> Add Custom Risk
+                            </button>
+                        </div>
+                        
+                        <div id="custom_hazards_wrapper" class="space-y-3">
+                            @foreach($customHazards as $custom)
+                            <div class="flex items-center gap-3">
+                                <input type="text" name="custom_hazards[]" value="{{ $custom }}" class="flex-1 border-2 border-black bg-white text-xs font-bold text-black uppercase focus:outline-none focus:bg-[#fdf2f2] p-3 transition-all" placeholder="E.g., Wildfire Zone">
+                                <button type="button" onclick="this.parentElement.remove()" class="px-4 py-3 flex items-center justify-center gap-2 bg-white text-red-600 border-2 border-black hover:bg-red-600 hover:text-white transition-all shrink-0 text-[10px] font-black uppercase tracking-widest shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none">
+                                    <i class="bi bi-x-lg"></i> Remove
+                                </button>
                             </div>
                             @endforeach
                         </div>
                     </div>
                 </div>
             </div>
-
-            {{-- SECTION 3: GEOSPATIAL & HAZARDS --}}
-            <div class="flex flex-col bg-white">
-                <div class="bg-[#fdf2f2] border-b-4 border-black p-4 text-sm font-black text-[#a52a2a] uppercase tracking-widest">
-                    03 // Geospatial & Technical
-                </div>
-                <div class="p-8 border-b-2 border-slate-100 bg-white grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div>
-                        <div id="schoolMap" class="h-[300px] w-full border-4 border-[#a52a2a] shadow-inner mb-4"></div>
-                        <button type="button" onclick="openMapPopup('lat', 'lng', '{{ $school->latitude }}', '{{ $school->longitude }}')" 
-                                class="w-full bg-[#a52a2a] text-white text-sm font-black uppercase tracking-widest p-4 hover:bg-black transition-all">
-                            Recalibrate GIS Data
-                        </button>
-                    </div>
-                    <div class="flex flex-col justify-center space-y-6">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="bg-white border-2 border-slate-200 p-4">
-                                <span class="block text-xs font-black text-slate-500 uppercase text-center mb-2">Lat</span>
-                                <input type="text" name="latitude" id="lat" value="{{ $school->latitude }}" class="w-full bg-transparent font-mono text-base text-center font-bold outline-none" readonly>
-                            </div>
-                            <div class="bg-white border-2 border-slate-200 p-4">
-                                <span class="block text-xs font-black text-slate-500 uppercase text-center mb-2">Lng</span>
-                                <input type="text" name="longitude" id="lng" value="{{ $school->longitude }}" class="w-full bg-transparent font-mono text-base text-center font-bold outline-none" readonly>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="p-8 bg-slate-50/30 flex-grow space-y-4">
-                    <div>
-                        <label class="block text-xs font-black text-slate-500 uppercase mb-2 tracking-widest">Risk Category</label>
-                       <div>
-    <label class="block text-[8px] font-black text-slate-400 uppercase mb-3 tracking-widest">Risk Categories (Select all that apply)</label>
-    
-    @php
-        // Extract current hazards safely
-        $currentHazards = is_array($school->hazard_type) ? $school->hazard_type : (json_decode($school->hazard_type, true) ?? [$school->hazard_type]);
-        if (!is_array($currentHazards)) $currentHazards = [];
-        
-        // Separate default hazards from custom ones
-        $defaultHazardsList = ['Flood Prone', 'Landslide Risk', 'Seismic Zone', 'Coastal Surge / Tsunami'];
-        $customHazards = array_diff($currentHazards, $defaultHazardsList);
-        
-        // Remove the literal word "None" or "Others" if they are stuck in legacy data
-        $customHazards = array_filter($customHazards, fn($h) => !in_array($h, ['None', 'Others', '']));
-    @endphp
-
-    {{-- 1. The Default Checkbox Grid (Notice there is no "Others" checkbox here anymore) --}}
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
-        @foreach($defaultHazardsList as $hazard)
-        <label class="flex items-center gap-3 p-4 border-2 border-slate-200 cursor-pointer hover:border-[#a52a2a] transition-all bg-white has-[:checked]:border-[#a52a2a] has-[:checked]:bg-red-50/20 group">
-            <input type="checkbox" name="hazard_type[]" value="{{ $hazard }}" {{ in_array($hazard, $currentHazards) ? 'checked' : '' }} 
-                   class="w-5 h-5 text-[#a52a2a] bg-slate-100 border-slate-300 rounded focus:ring-[#a52a2a]">
-            <span class="text-xs font-black text-slate-700 uppercase tracking-tight group-hover:text-[#a52a2a] transition-colors">{{ $hazard }}</span>
-        </label>
-        @endforeach
-    </div>
-
-    {{-- 2. Dynamic Custom Hazards Section --}}
-    <div class="border-t-2 border-slate-100 pt-5">
-        <div class="flex justify-between items-center mb-4">
-            <label class="block text-[8px] font-black text-slate-400 uppercase tracking-widest">Additional Custom Hazards</label>
-            <button type="button" onclick="addCustomHazardField()" class="text-[9px] font-black uppercase tracking-widest text-[#a52a2a] hover:text-black transition-colors flex items-center gap-1 bg-[#a52a2a]/10 px-3 py-1.5 rounded hover:bg-slate-200">
-                <i class="bi bi-plus-circle-fill"></i> Add Custom Risk
-            </button>
         </div>
-        
-        <div id="custom_hazards_wrapper" class="space-y-3">
-            {{-- Render existing custom hazards from the database --}}
-            @foreach($customHazards as $custom)
-            <div class="flex items-center gap-3">
-                <input type="text" name="custom_hazards[]" value="{{ $custom }}" class="flex-1 border-2 border-slate-200 bg-white text-xs font-bold text-[#a52a2a] uppercase focus:outline-none focus:border-[#a52a2a] p-3 transition-all" placeholder="E.g., Wildfire Zone">
-                <button type="button" onclick="this.parentElement.remove()" class="px-4 py-3 flex items-center justify-center gap-2 bg-white text-slate-500 border-2 border-slate-200 hover:bg-slate-100 hover:text-[#a52a2a] hover:border-[#a52a2a] transition-all rounded shrink-0 text-[10px] font-black uppercase tracking-widest">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                    Remove
+
+        {{-- Sticky Action Bar --}}
+        <div class="fixed bottom-0 left-0 right-0 z-50 bg-white border-t-4 border-black p-4 shadow-[0px_-4px_15px_rgba(0,0,0,0.1)] flex justify-end px-4 md:px-8">
+            <div class="w-full max-w-7xl mx-auto flex justify-end">
+                <button type="button" onclick="triggerVerification()" 
+                        class="bg-[#a52a2a] text-white px-8 md:px-16 py-4 text-base font-black uppercase tracking-widest hover:bg-black transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-1 active:translate-y-1 active:shadow-none w-full md:w-auto text-center border-2 border-black rounded-sm flex items-center justify-center gap-3">
+                    <i class="bi bi-cloud-arrow-up-fill text-xl"></i> Execute Modification Protocol
                 </button>
             </div>
-            @endforeach
-        </div>
-    </div>
-</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="mt-8 flex justify-end">
-            <button type="button" onclick="triggerVerification()" 
-                    class="bg-[#a52a2a] text-white px-16 py-6 text-base font-black uppercase tracking-widest hover:bg-black transition-all shadow-[8px_8px_0px_0px_rgba(165,42,42,1)] active:translate-x-1 active:translate-y-1 active:shadow-none w-full md:w-auto text-center border-4 border-[#a52a2a] hover:border-black">
-                Execute Modification Protocol
-            </button>
         </div>
     </form>
 </div>
 
 {{-- Verification Modal --}}
-<div id="verificationModal" class="fixed inset-0 z-[2000] hidden flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-    <div class="bg-white border-4 border-[#a52a2a] shadow-2xl w-full max-w-lg overflow-hidden">
-        <div class="bg-[#a52a2a] text-white p-4 text-sm font-black uppercase tracking-widest flex justify-between items-center">
-            <span>Audit Verification Required</span>
-            <span class="text-xs opacity-60 font-mono tracking-tighter italic">SYS_AUTH_MOD</span>
+<div id="verificationModal" class="fixed inset-0 z-[2000] hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-opacity">
+    <div class="bg-white border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] w-full max-w-lg overflow-hidden rounded-sm transform transition-transform scale-100">
+        <div class="bg-[#a52a2a] text-white p-4 text-sm font-black uppercase tracking-widest flex justify-between items-center border-b-2 border-black">
+            <span><i class="bi bi-shield-lock-fill mr-2"></i> Audit Verification</span>
+            <span class="text-[10px] opacity-80 font-mono tracking-tighter bg-black/30 px-2 py-1 rounded">SYS_AUTH_MOD</span>
         </div>
-        <div class="p-8 bg-white text-base">
-            <div class="border-4 border-slate-100 p-6 font-mono text-sm mb-8">
-                <div class="flex justify-between border-b-2 border-slate-100 pb-2 mb-4">
-                    <span class="text-slate-500 uppercase italic">Institutional Target</span>
-                    <span id="confirmName" class="font-black text-black"></span>
+        <div class="p-6 md:p-8 bg-white text-base">
+            <div class="border-2 border-slate-200 bg-slate-50 p-6 font-mono text-sm mb-8 rounded-sm">
+                <div class="flex flex-col border-b-2 border-slate-200 pb-3 mb-4">
+                    <span class="text-xs text-slate-500 uppercase tracking-widest mb-1">Target Institution</span>
+                    <span id="confirmName" class="font-black text-lg text-black leading-tight"></span>
                 </div>
                 <div class="grid grid-cols-3 gap-4 text-center mb-4">
-                    <div><p class="text-xs text-slate-500 uppercase">TCH</p><p id="confirmTCH" class="font-black text-black text-base"></p></div>
-                    <div><p class="text-xs text-slate-500 uppercase">ENR</p><p id="confirmENR" class="font-black text-black text-base"></p></div>
-                    <div><p class="text-xs text-slate-500 uppercase">CLS</p><p id="confirmCLS" class="font-black text-black text-base"></p></div>
+                    <div class="bg-white border border-slate-200 p-2 rounded"><p class="text-[10px] text-slate-500 uppercase">Faculty</p><p id="confirmTCH" class="font-black text-black text-lg"></p></div>
+                    <div class="bg-white border border-slate-200 p-2 rounded"><p class="text-[10px] text-slate-500 uppercase">Learners</p><p id="confirmENR" class="font-black text-black text-lg"></p></div>
+                    <div class="bg-white border border-slate-200 p-2 rounded"><p class="text-[10px] text-slate-500 uppercase">Spaces</p><p id="confirmCLS" class="font-black text-black text-lg"></p></div>
                 </div>
-                <div class="grid grid-cols-3 gap-4 text-center border-t-2 border-slate-100 pt-4">
-                    <div><p class="text-xs text-slate-500 uppercase">CHR_DEF</p><p id="confirmCHR_DEF" class="font-black text-base"></p></div>
-                    <div><p class="text-xs text-slate-500 uppercase">CLS_DEF</p><p id="confirmCLS_DEF" class="font-black text-base"></p></div>
-                    <div><p class="text-xs text-slate-500 uppercase">TLT_DEF</p><p id="confirmTLT_DEF" class="font-black text-base"></p></div>
+                <div class="grid grid-cols-3 gap-4 text-center border-t-2 border-slate-200 pt-4">
+                    <div class="bg-white border border-slate-200 p-2 rounded"><p class="text-[10px] text-slate-500 uppercase">Chair Def</p><p id="confirmCHR_DEF" class="font-black text-lg"></p></div>
+                    <div class="bg-white border border-slate-200 p-2 rounded"><p class="text-[10px] text-slate-500 uppercase">Class Def</p><p id="confirmCLS_DEF" class="font-black text-lg"></p></div>
+                    <div class="bg-white border border-slate-200 p-2 rounded"><p class="text-[10px] text-slate-500 uppercase">Toilet Def</p><p id="confirmTLT_DEF" class="font-black text-lg"></p></div>
                 </div>
             </div>
             <div class="flex gap-4">
-                <button type="button" id="confirmSaveBtn" onclick="submitOfficialForm()" class="flex-1 bg-[#a52a2a] text-white py-4 text-sm font-black uppercase tracking-widest hover:bg-black transition-all flex items-center justify-center gap-2 border-2 border-[#a52a2a] hover:border-black">
-                    <span id="saveBtnText">Confirm Save</span>
+                <button type="button" onclick="document.getElementById('verificationModal').classList.add('hidden')" class="flex-1 bg-slate-100 border-2 border-slate-300 text-slate-600 py-3 text-sm font-black uppercase tracking-widest hover:bg-slate-200 transition-colors rounded-sm">Abort</button>
+                <button type="button" id="confirmSaveBtn" onclick="submitOfficialForm()" class="flex-[2] bg-[#a52a2a] text-white py-3 text-sm font-black uppercase tracking-widest hover:bg-black transition-all border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-1 active:translate-y-1 active:shadow-none rounded-sm">
+                    <span id="saveBtnText">Confirm Sync</span>
                 </button>
-                <button type="button" onclick="document.getElementById('verificationModal').classList.add('hidden')" class="flex-1 border-4 border-[#a52a2a] text-[#a52a2a] py-4 text-sm font-black uppercase tracking-widest hover:bg-slate-50 transition-colors">Abort</button>
             </div>
         </div>
     </div>
 </div>
 
 {{-- Purge Modal --}}
-<div id="deleteModal" class="fixed inset-0 z-[3000] hidden flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-    <div class="bg-white border-4 border-black shadow-2xl w-full max-w-md overflow-hidden text-base">
-        <div class="bg-black text-white p-4 text-sm font-black uppercase tracking-widest flex justify-between items-center">
-            <span class="text-red-500"><i class="bi bi-exclamation-triangle-fill mr-2"></i> Critical Warning</span>
-            <span class="text-xs opacity-60 font-mono tracking-tighter italic">SYS_DEL_AUTH</span>
+<div id="deleteModal" class="fixed inset-0 z-[3000] hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+    <div class="bg-white border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] w-full max-w-md overflow-hidden rounded-sm">
+        <div class="bg-red-600 text-white p-4 text-sm font-black uppercase tracking-widest flex justify-between items-center border-b-2 border-black">
+            <span><i class="bi bi-exclamation-triangle-fill mr-2"></i> Critical Warning</span>
+            <span class="text-[10px] opacity-80 font-mono tracking-tighter bg-black/20 px-2 py-1 rounded">SYS_DEL_AUTH</span>
         </div>
-        <div class="p-8 bg-white">
-            <p class="text-base font-bold text-slate-800 mb-2">You are about to purge this institutional record.</p>
-            <p class="text-sm text-slate-500 font-mono mb-8">Target: <span class="font-black text-[#a52a2a]">{{ $school->name }}</span></p>
+        <div class="p-6 md:p-8 bg-white">
+            <p class="text-lg font-black text-slate-800 mb-2 leading-tight">Authorize Permanent Purge?</p>
+            <p class="text-sm text-slate-600 mb-6">This action will eradicate the following institutional record from the active database:</p>
+            <div class="bg-red-50 border border-red-200 p-3 rounded-sm mb-8">
+                <span class="font-black text-red-700 uppercase tracking-tight">{{ $school->name }}</span>
+            </div>
             
             <form action="{{ route('schools.destroy', $school->id) }}" method="POST" class="flex gap-4">
                 @csrf 
                 @method('DELETE')
-                <button type="submit" class="flex-1 bg-black text-white py-4 text-sm font-black uppercase tracking-widest hover:bg-red-600 transition-colors border-2 border-black">
-                    Confirm Purge
-                </button>
-                <button type="button" onclick="closeDeleteModal()" class="flex-1 border-4 border-slate-200 text-slate-500 py-4 text-sm font-black uppercase tracking-widest hover:bg-slate-50 transition-colors">
+                <button type="button" onclick="closeDeleteModal()" class="flex-1 bg-white border-2 border-slate-300 text-slate-600 py-3 text-sm font-black uppercase tracking-widest hover:bg-slate-50 transition-colors rounded-sm">
                     Cancel
+                </button>
+                <button type="submit" class="flex-[1.5] bg-red-600 text-white py-3 text-sm font-black uppercase tracking-widest hover:bg-black transition-colors border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-1 active:translate-y-1 active:shadow-none rounded-sm">
+                    Confirm Purge
                 </button>
             </form>
         </div>
@@ -339,36 +336,36 @@
             const manualInput = parseInt(document.getElementById(`input_${type}_shortage`).value) || 0;
             
             let statusBadge = overrides[type] 
-                ? `<span class="bg-[#a52a2a] text-white px-1.5 py-0.5 rounded text-[6px] ml-2 uppercase">Manual Override</span>` 
-                : `<span class="bg-emerald-500 text-white px-1.5 py-0.5 rounded text-[6px] ml-2 uppercase">Auto-Synced</span>`;
+                ? `<span class="bg-[#a52a2a] text-white px-1.5 py-0.5 rounded-sm text-[9px] ml-auto uppercase border border-black">Override</span>` 
+                : `<span class="bg-emerald-600 text-white px-1.5 py-0.5 rounded-sm text-[9px] ml-auto uppercase border border-black">Synced</span>`;
             
-            el.innerHTML = `<i class="bi bi-robot"></i> System Suggestion: ${calculatedValue} (Based on ${ratioText}) ${statusBadge}`;
+            el.innerHTML = `<i class="bi bi-info-circle-fill text-slate-400"></i> Suggestion: ${calculatedValue} <span class="text-[9px] font-normal lowercase tracking-normal">(${ratioText})</span> ${statusBadge}`;
             
             if(manualInput !== calculatedValue) {
-                el.classList.add('text-[#a52a2a]'); el.classList.remove('text-slate-400');
+                el.classList.add('text-[#a52a2a]');
+                el.classList.remove('text-slate-500');
             } else {
-                el.classList.remove('text-[#a52a2a]'); el.classList.add('text-slate-400');
+                el.classList.remove('text-[#a52a2a]');
+                el.classList.add('text-slate-500');
             }
         };
 
-        updateSuggestionUI('teacher', teacherShortage, `1:${ratios.teacher} ratio`);
-        updateSuggestionUI('classroom', classShortage, `1:${ratios.classroom} ratio`);
-        updateSuggestionUI('chair', chairShortage, `1:${ratios.chair} ratio`);
-        updateSuggestionUI('toilet', toiletShortage, `1:${ratios.toilet} ratio`);
+        updateSuggestionUI('teacher', teacherShortage, `1:${ratios.teacher}`);
+        updateSuggestionUI('classroom', classShortage, `1:${ratios.classroom}`);
+        updateSuggestionUI('chair', chairShortage, `1:${ratios.chair}`);
+        updateSuggestionUI('toilet', toiletShortage, `1:${ratios.toilet}`);
     }
 
     document.addEventListener('DOMContentLoaded', function() {
         initOverrides();
         calculateGuidedSuggestions();
 
-        // Include teachers in the trigger watch array
         const baseInputs = ['input_no_of_enrollees', 'input_no_of_teachers', 'input_no_of_classrooms', 'input_no_of_chairs', 'input_no_of_toilets'];
         baseInputs.forEach(id => {
             const el = document.getElementById(id);
             if(el) el.addEventListener('input', calculateGuidedSuggestions);
         });
 
-        // Watch for manual overrides
         ['teacher', 'classroom', 'chair', 'toilet'].forEach(type => {
             const el = document.getElementById(`input_${type}_shortage`);
             if(el) {
@@ -379,11 +376,13 @@
             }
         });
 
-        const map = L.map('schoolMap', { scrollWheelZoom: false, zoomControl: false, dragging: false }).setView([{{ $school->latitude }}, {{ $school->longitude }}], 15);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-        L.marker([{{ $school->latitude }}, {{ $school->longitude }}], {
-            icon: L.divIcon({ html: `<div class="bg-[#a52a2a] w-4 h-4 border-2 border-white shadow-lg"></div>` })
-        }).addTo(map);
+        setTimeout(() => {
+            const map = L.map('schoolMap', { scrollWheelZoom: false, zoomControl: true, dragging: true }).setView([{{ $school->latitude }}, {{ $school->longitude }}], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+            L.marker([{{ $school->latitude }}, {{ $school->longitude }}], {
+                icon: L.divIcon({ html: `<div class="bg-[#a52a2a] w-4 h-4 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rounded-full"></div>` })
+            }).addTo(map);
+        }, 300);
     });
 
     function openDeleteModal() { document.getElementById('deleteModal').classList.remove('hidden'); }
@@ -418,34 +417,20 @@
 
     function submitOfficialForm() {
         const btn = document.getElementById('confirmSaveBtn');
-        document.getElementById('saveBtnText').innerText = "Synchronizing...";
+        document.getElementById('saveBtnText').innerHTML = "<i class='bi bi-arrow-repeat animate-spin'></i> Syncing...";
         btn.disabled = true; 
         document.getElementById('editSchoolForm').submit();
     }
 
-    // Toggle the specific hazard text box when "Others" is checked
-    function toggleHazardInput() {
-        const othersCheckbox = document.getElementById('hazard_others');
-        const container = document.getElementById('other_hazard_container');
-        
-        if (othersCheckbox && othersCheckbox.checked) {
-            container.classList.remove('hidden');
-            document.getElementById('hazard_textarea').focus();
-        } else {
-            container.classList.add('hidden');
-        }
-    }
-    // Dynamically add new input fields for custom hazards
     function addCustomHazardField() {
         const wrapper = document.getElementById('custom_hazards_wrapper');
         const div = document.createElement('div');
-        div.className = 'flex items-center gap-3 hide-animation';
+        div.className = 'flex items-center gap-3';
         
         div.innerHTML = `
-            <input type="text" name="custom_hazards[]" class="flex-1 border-2 border-slate-200 bg-white text-xs font-bold text-[#a52a2a] uppercase focus:outline-none focus:border-[#a52a2a] p-3 transition-all" placeholder="E.g., Wildfire Zone">
-            <button type="button" onclick="this.parentElement.remove()" class="px-4 py-3 flex items-center justify-center gap-2 bg-white text-slate-500 border-2 border-slate-200 hover:bg-slate-100 hover:text-[#a52a2a] hover:border-[#a52a2a] transition-all rounded shrink-0 text-[10px] font-black uppercase tracking-widest">
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                Remove
+            <input type="text" name="custom_hazards[]" class="flex-1 border-2 border-black bg-white text-xs font-bold text-black uppercase focus:outline-none focus:bg-[#fdf2f2] p-3 transition-all" placeholder="E.g., Wildfire Zone">
+            <button type="button" onclick="this.parentElement.remove()" class="px-4 py-3 flex items-center justify-center gap-2 bg-white text-red-600 border-2 border-black hover:bg-red-600 hover:text-white transition-all shrink-0 text-[10px] font-black uppercase tracking-widest shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none">
+                <i class="bi bi-x-lg"></i> Remove
             </button>
         `;
         wrapper.appendChild(div);
