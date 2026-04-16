@@ -114,91 +114,99 @@
                 
                 {{-- Integrated Resource Deficit & Ratio Audit --}}
                 <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-                    <h3 class="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-6 flex items-center gap-2">
+                    <h3 class="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-4 flex items-center gap-2">
                         <i data-lucide="package-search" class="w-4 h-4 text-[#a52a2a]"></i> Resource Deficit Audit
                     </h3>
-                    <div class="space-y-4">
+                    {{-- TIGHTENED SPACING: space-y-2 instead of space-y-4 --}}
+                    <div class="space-y-2">
                         @foreach([
                             ['label' => 'Faculty Members', 'val' => $school->teacher_shortage ?? 0, 'ratio' => $actualTeacherRatio, 'target' => $targetTeacher],
                             ['label' => 'Classroom Units', 'val' => $school->classroom_shortage ?? 0, 'ratio' => $actualClassroomRatio, 'target' => $targetClassroom],
                             ['label' => 'Furniture/Chairs', 'val' => $school->chair_shortage ?? 0, 'ratio' => $actualChairRatio, 'target' => $targetChair],
                             ['label' => 'Sanitation Units', 'val' => $school->toilet_shortage ?? 0, 'ratio' => $actualToiletRatio, 'target' => $targetToilet]
                         ] as $short)
-                        <div class="flex items-center justify-between p-3.5 rounded-xl border {{ ($short['val'] > 0) ? 'bg-red-50/40 border-red-100' : 'bg-emerald-50/40 border-emerald-100' }}">
+                        {{-- TIGHTENED PADDING: p-2.5 instead of p-3.5 --}}
+                        <div class="flex items-center justify-between p-2.5 rounded-xl border {{ ($short['val'] > 0) ? 'bg-red-50/40 border-red-100' : 'bg-emerald-50/40 border-emerald-100' }}">
                             <div class="flex flex-col">
                                 <span class="text-[10px] font-black text-slate-700 uppercase tracking-tight">{{ $short['label'] }}</span>
-                                <div class="flex items-center gap-2 mt-1.5">
+                                <div class="flex items-center gap-2 mt-1">
                                     <span class="text-[9px] font-black px-1.5 py-0.5 rounded {{ ($short['ratio'] > $short['target']) ? 'bg-red-200/50 text-red-700' : 'bg-emerald-200/50 text-emerald-700' }}">
                                         1 : {{ $short['ratio'] }}
                                     </span>
-                                    <span class="text-[8px] text-slate-400 font-bold uppercase tracking-widest">Target 1:{{ $short['target'] }}</span>
+                                    <span class="text-[7px] text-slate-400 font-bold uppercase tracking-widest">Target 1:{{ $short['target'] }}</span>
                                 </div>
                             </div>
                             <div class="flex flex-col items-end justify-center">
-                                <span class="text-lg leading-none font-black {{ ($short['val'] > 0) ? 'text-red-600' : 'text-emerald-500' }}">
+                                <span class="text-base leading-none font-black {{ ($short['val'] > 0) ? 'text-red-600' : 'text-emerald-500' }}">
                                     {{ number_format($short['val']) }}
                                 </span>
-                                <span class="text-[7px] font-bold text-slate-400 uppercase tracking-widest mt-1">Deficit</span>
                             </div>
                         </div>
                         @endforeach
                     </div>
                 </div>
 
-                    {{-- Utility Provisioning --}}
-                    <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm flex flex-col h-full hover:shadow-md transition-shadow">
-                        <h3 class="text-sm font-black text-slate-900 uppercase tracking-widest mb-6 flex items-center gap-3 border-b border-slate-100 pb-4 shrink-0">
-                            <i data-lucide="plug-zap" class="w-5 h-5 text-amber-500"></i> Provisioning
-                        </h3>
-                        <div class="space-y-4 flex-grow flex flex-col justify-center">
-                            
-                            {{-- Power Supply Row --}}
-                            <div class="flex items-center justify-between p-4 rounded-xl border transition-colors {{ $school->with_electricity != 'None' ? 'border-emerald-100 bg-emerald-50/50 hover:bg-emerald-50' : 'border-red-100 bg-red-50/50 hover:bg-red-50' }}">
-                                <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Power</span>
-                                <div class="flex flex-col items-end">
-                                    <span class="text-sm font-black uppercase {{ in_array($school->with_electricity, ['Grid Connection', 'Hybrid']) ? 'text-emerald-700' : 'text-amber-600' }}">
-                                        @if(in_array($school->with_electricity, ['Grid Connection', 'Hybrid']))
-                                            On-Grid
-                                        @elseif(in_array($school->with_electricity, ['Solar Powered', 'Generator']))
-                                            Off-Grid
-                                        @else
-                                            No Power
-                                        @endif
-                                    </span>
-                                    <span class="text-xs font-bold text-slate-400 mt-0.5">{{ $school->with_electricity }}</span>
-                                </div>
-                            </div>
-
-                            {{-- Water Row --}}
-                            <div class="flex items-center justify-between p-4 rounded-xl border transition-colors {{ $school->with_potable_water ? 'border-emerald-100 bg-emerald-50/50 hover:bg-emerald-50' : 'border-red-100 bg-red-50/50 hover:bg-red-50' }}">
-                                <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Water</span>
-                                <span class="text-sm font-black uppercase {{ $school->with_potable_water ? 'text-emerald-700' : 'text-red-700' }}">
-                                    {{ $school->with_potable_water ? 'Yes' : 'No' }}
+                {{-- Utility Provisioning --}}
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col hover:shadow-md transition-shadow">
+                    <h3 class="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-slate-100 pb-3 shrink-0">
+                        <i data-lucide="plug-zap" class="w-4 h-4 text-amber-500"></i> Provisioning
+                    </h3>
+                    <div class="space-y-3">
+                        
+                        {{-- Power Supply Row --}}
+                        <div class="flex items-center justify-between p-3 rounded-xl border transition-colors {{ $school->with_electricity != 'None' ? 'border-emerald-100 bg-emerald-50/50 hover:bg-emerald-50' : 'border-red-100 bg-red-50/50 hover:bg-red-50' }}">
+                            <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Power</span>
+                            <div class="flex flex-col items-end">
+                                <span class="text-[10px] font-black uppercase {{ in_array($school->with_electricity, ['Grid Connection', 'Hybrid']) ? 'text-emerald-700' : 'text-amber-600' }}">
+                                    @if(in_array($school->with_electricity, ['Grid Connection', 'Hybrid']))
+                                        On-Grid
+                                    @elseif(in_array($school->with_electricity, ['Off-grid + Solar/Genset', 'Solar Powered', 'Generator']))
+                                        Off-Grid
+                                    @else
+                                        No Power
+                                    @endif
                                 </span>
+                                <span class="text-[8px] font-bold text-slate-400 mt-0.5">{{ $school->with_electricity }}</span>
                             </div>
-
-                            {{-- Internet Row --}}
-                            <div class="flex items-center justify-between p-4 rounded-xl border transition-colors {{ $school->with_internet ? 'border-emerald-100 bg-emerald-50/50 hover:bg-emerald-50' : 'border-red-100 bg-red-50/50 hover:bg-red-50' }}">
-                                <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Data</span>
-                                <span class="text-sm font-black uppercase {{ $school->with_internet ? 'text-emerald-700' : 'text-red-700' }} text-right">
-                                    {{ $school->with_internet ? 'Yes' : 'No' }}
-                                </span>
-                            </div>
-
                         </div>
+
+                        {{-- Water Row --}}
+                        <div class="flex items-center justify-between p-3 rounded-xl border transition-colors {{ $school->with_potable_water ? 'border-emerald-100 bg-emerald-50/50 hover:bg-emerald-50' : 'border-red-100 bg-red-50/50 hover:bg-red-50' }}">
+                            <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Water</span>
+                            <span class="text-[10px] font-black uppercase {{ $school->with_potable_water ? 'text-emerald-700' : 'text-red-700' }}">
+                                {{ $school->with_potable_water ? 'Available' : 'Unavailable' }}
+                            </span>
+                        </div>
+
+                        {{-- Internet Row --}}
+                        <div class="flex items-center justify-between p-3 rounded-xl border transition-colors {{ $school->with_internet ? 'border-emerald-100 bg-emerald-50/50 hover:bg-emerald-50' : 'border-red-100 bg-red-50/50 hover:bg-red-50' }}">
+                            <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Data</span>
+                            <span class="text-[10px] font-black uppercase {{ $school->with_internet ? 'text-emerald-700' : 'text-red-700' }} text-right">
+                                {{ $school->with_internet ? 'Connected' : 'Offline' }}
+                            </span>
+                        </div>
+
                     </div>
                 </div>
 
                 {{-- Risk Management --}}
                 <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-                    <h3 class="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-6 flex items-center gap-2">
+                    <h3 class="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-4 flex items-center gap-2">
                         <i data-lucide="shield-check" class="w-4 h-4 text-[#a52a2a]"></i> Risk Profile
                     </h3>
                     
                     @php
-                        $hazards = is_array($school->hazard_type) ? $school->hazard_type : (json_decode($school->hazard_type, true) ?? [$school->hazard_type]);
-                        // Filter out empty or "None" values
-                        $activeHazards = array_filter($hazards, fn($h) => !empty($h) && $h !== 'None');
+                        // Aggressive cleanup to remove invisible ghost characters or spaces
+                        $rawHazards = is_array($school->hazard_type) ? $school->hazard_type : (json_decode($school->hazard_type, true) ?? [$school->hazard_type]);
+                        $activeHazards = [];
+                        if (is_array($rawHazards)) {
+                            foreach($rawHazards as $h) {
+                                $clean = trim(str_replace(['"', '[', ']'], '', $h));
+                                if (!empty($clean) && strtolower($clean) !== 'none' && strtolower($clean) !== 'others') {
+                                    $activeHazards[] = $clean;
+                                }
+                            }
+                        }
                     @endphp
 
                     <div class="p-4 bg-slate-50 rounded-xl border-l-4 {{ count($activeHazards) > 0 ? 'border-[#a52a2a]' : 'border-emerald-500' }}">
@@ -209,7 +217,9 @@
                                 @endforeach
                             </div>
                         @else
-                            <p class="text-[10px] font-black text-emerald-700 uppercase">Secured Site</p>
+                            <div class="text-[10px] font-black text-emerald-700 uppercase tracking-widest flex items-center gap-1.5">
+                                <i data-lucide="check-circle-2" class="w-4 h-4"></i> Secured Site
+                            </div>
                         @endif
                     </div>
                 </div>
@@ -250,7 +260,18 @@
             className: '', iconSize: [48, 48], iconAnchor: [24, 24]
         });
 
-        L.marker([lat, lng], { icon: markerIcon }).addTo(map).bindPopup(`<h4 class="text-xs font-black uppercase">{{ $school->name }}</h4>`).openPopup();
+        // Clean Hazard array for Map to match UI exactly
+        var hazardTypes = {!! json_encode($activeHazards ?? []) !!};
+        var hazardWarning = hazardTypes.length > 0 
+            ? `<span class="text-[#a52a2a] font-black block mt-2 pt-2 border-t border-slate-200 uppercase tracking-widest text-[9px]">⚠️ ${hazardTypes.join(' | ')}</span>` 
+            : `<span class="text-emerald-600 font-black block mt-2 pt-2 border-t border-slate-200 uppercase tracking-widest text-[9px]">✅ Secured Site</span>`;
+
+        L.marker([lat, lng], { icon: markerIcon }).addTo(map).bindPopup(`
+            <div class="font-sans min-w-[150px]">
+                <strong class="text-slate-800 block mb-1 text-xs uppercase">{{ $school->name }}</strong>
+                ${hazardWarning}
+            </div>
+        `).openPopup();
     });
 </script>
 @endsection
