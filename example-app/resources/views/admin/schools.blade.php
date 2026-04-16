@@ -68,12 +68,24 @@
 
     {{-- 01. INTERACTIVE PAGE HEADER (Hidden on Print) --}}
     <div class="no-print flex flex-col xl:flex-row justify-between items-start xl:items-center mb-10 gap-6">
-        <div>
+        <div class="w-full xl:w-auto flex-1">
             <h2 class="text-3xl font-black text-slate-800 uppercase tracking-tight">School Registry</h2>
-            <p class="text-sm text-slate-500 font-bold uppercase tracking-widest italic">Manage Institutional Data & Verification</p>
+            <p class="text-sm text-slate-500 font-bold uppercase tracking-widest italic mb-4">Manage Institutional Data & Verification</p>
+            
+            {{-- RESTORED SEARCH BAR --}}
+            <form action="{{ route('admin.schools') }}" method="GET" class="relative max-w-md search-form">
+                <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search Registry ID or Name..." 
+                       class="w-full bg-white border-2 border-slate-200 pl-11 pr-10 py-3 rounded-2xl font-bold text-[10px] uppercase tracking-widest text-slate-700 focus:outline-none focus:border-[#a52a2a] transition-all shadow-sm">
+                @if(request('search'))
+                    <a href="{{ route('admin.schools') }}" class="absolute right-4 top-1/2 -translate-y-1/2 text-red-500 hover:text-red-700 transition-colors" title="Clear Search">
+                        <i class="bi bi-x-circle-fill text-lg"></i>
+                    </a>
+                @endif
+            </form>
         </div>
         
-        <div class="flex flex-wrap gap-3 items-center">
+        <div class="flex flex-wrap gap-3 items-center shrink-0">
             
             {{-- Import CSV Modal Trigger --}}
             <button type="button" onclick="openImportModal()" class="bg-white border-2 border-slate-200 text-slate-600 px-6 py-3 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:border-[#a52a2a] hover:text-[#a52a2a] transition-all flex items-center gap-2 shrink-0 shadow-sm">
@@ -88,7 +100,7 @@
                 </button>
             </form>
 
-            {{-- Archives Button (RESTORED) --}}
+            {{-- Archives Button --}}
             <a href="{{ route('schools.archive') }}" class="bg-white border-2 border-slate-200 text-slate-600 px-6 py-3 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:border-amber-500 hover:text-amber-600 transition-all flex items-center gap-2 shadow-sm">
                 <i class="bi bi-archive-fill"></i> Archives
             </a>
@@ -150,7 +162,13 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="p-20 text-center uppercase font-black text-slate-200 tracking-[1em]">No Registry Data found</td>
+                        <td colspan="5" class="p-20 text-center text-slate-400">
+                            <i class="bi bi-search block text-4xl mb-4 opacity-50"></i>
+                            <span class="uppercase font-black tracking-[0.2em] text-sm">No Registry Data Found</span>
+                            @if(request('search'))
+                                <p class="text-xs font-bold mt-2">No results for "{{ request('search') }}"</p>
+                            @endif
+                        </td>
                     </tr>
                 @endforelse
             </tbody>
