@@ -37,16 +37,27 @@ class AdminDashboardController extends Controller
                                        ->get(['id', 'school_id', 'name', 'toilet_shortage']);
         
         // 3. Hazard Risk (FIXED: Now checks hazard_type instead of hazard_level)
+        // 3. Hazard Risk (Handles JSON Arrays and Legacy Strings)
         $highHazardSchools = School::whereNotNull('hazard_type')
-                                   ->where('hazard_type', '!=', 'None')
-                                   ->get(['id', 'school_id', 'name', 'hazard_type']);
+            ->where('hazard_type', '!=', 'None')
+            ->where('hazard_type', '!=', '["None"]')
+            ->where('hazard_type', '!=', '[]')
+            ->get(['id', 'school_id', 'name', 'hazard_type'])
+            // Filter out empty arrays after fetching
+            ->filter(function ($school) {
+                $hazards = is_array($school->hazard_type) ? $school->hazard_type : json_decode($school->hazard_type, true);
+                return !empty($hazards) && $hazards !== ['None'];
+            });
         
         // 4. Electricity
-        $withPowerCount = School::where('with_electricity', 'Grid Connection')
-                                ->orWhere('with_electricity', 'Solar Powered')
-                                ->orWhere('with_electricity', 'Generator')
-                                ->orWhere('with_electricity', 'Hybrid')
-                                ->count();
+       // 4. Electricity
+        $withPowerCount = School::whereIn('with_electricity', [
+            'Grid Connection', 
+            'Hybrid', 
+            'Off-grid + Solar/Genset',
+            'Solar Powered', // Kept for legacy data compatibility
+            'Generator'      // Kept for legacy data compatibility
+        ])->count();
                                 
         $withoutPowerSchools = School::where(function($q) {
             $q->where('with_electricity', 'None')->orWhereNull('with_electricity');

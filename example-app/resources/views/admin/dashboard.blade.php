@@ -197,6 +197,13 @@
         <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 relative z-10">
             <div class="flex-1 w-full grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
+        <label class="text-[9px] font-black text-[#a52a2a] uppercase tracking-widest block mb-2">Learners per Teacher</label>
+        <div class="flex items-center bg-slate-50 border-2 border-slate-200 rounded-xl overflow-hidden focus-within:border-[#a52a2a] transition-colors">
+            <div class="px-4 py-3 bg-slate-100 border-r border-slate-200 text-slate-400"><i data-lucide="users" class="w-4 h-4"></i></div>
+            <input type="number" id="global_ratio_teacher" class="w-full bg-transparent p-3 font-mono text-lg font-black text-slate-800 outline-none">
+        </div>
+    </div>
+                <div>
                     <label class="text-[9px] font-black text-[#a52a2a] uppercase tracking-widest block mb-2">Learners per Room</label>
                     <div class="flex items-center bg-slate-50 border-2 border-slate-200 rounded-xl overflow-hidden focus-within:border-[#a52a2a] transition-colors">
                         <div class="px-4 py-3 bg-slate-100 border-r border-slate-200 text-slate-400"><i data-lucide="door-open" class="w-4 h-4"></i></div>
@@ -423,6 +430,7 @@
 <script>
     // JS Logic for the Global Evaluation Parameters
     document.addEventListener("DOMContentLoaded", function() {
+        document.getElementById('global_ratio_teacher').value = localStorage.getItem('deped_ratio_teacher') || 45;
         document.getElementById('global_ratio_classroom').value = localStorage.getItem('deped_ratio_classroom') || 40;
         document.getElementById('global_ratio_chair').value = localStorage.getItem('deped_ratio_chair') || 1;
         document.getElementById('global_ratio_toilet').value = localStorage.getItem('deped_ratio_toilet') || 50;
@@ -438,8 +446,17 @@
 
         schools.forEach(function(school) {
             if(school.latitude && school.longitude) {
-                var hazardWarning = (school.hazard_type && school.hazard_type !== 'None') 
-                    ? `<span class="text-[#a52a2a] font-black block mt-2 pt-2 border-t border-slate-200 uppercase tracking-widest text-[9px]">⚠️ ${school.hazard_type}</span>` 
+                // Parse the array safely
+                let hazardsArray = [];
+                if (Array.isArray(school.hazard_type)) hazardsArray = school.hazard_type;
+                else if (typeof school.hazard_type === 'string') {
+                    try { hazardsArray = JSON.parse(school.hazard_type) || [school.hazard_type]; } 
+                    catch(e) { hazardsArray = [school.hazard_type]; }
+                }
+                hazardsArray = hazardsArray.filter(h => h && h !== 'None');
+
+                var hazardWarning = hazardsArray.length > 0 
+                    ? `<span class="text-[#a52a2a] font-black block mt-2 pt-2 border-t border-slate-200 uppercase tracking-widest text-[9px]">⚠️ ${hazardsArray.join(' | ')}</span>` 
                     : '';
 
                 var popupContent = `
@@ -454,13 +471,13 @@
                  .bindPopup(popupContent);
             }
         });
-    });
 
     function saveGlobalRatios() {
         const btn = document.getElementById('saveRatiosBtn');
         const status = document.getElementById('ratioSaveStatus');
         
         // Save to Local Storage
+        localStorage.setItem('deped_ratio_teacher', document.getElementById('global_ratio_teacher').value || 45);
         localStorage.setItem('deped_ratio_classroom', document.getElementById('global_ratio_classroom').value || 40);
         localStorage.setItem('deped_ratio_chair', document.getElementById('global_ratio_chair').value || 1);
         localStorage.setItem('deped_ratio_toilet', document.getElementById('global_ratio_toilet').value || 50);

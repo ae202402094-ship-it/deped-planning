@@ -29,9 +29,13 @@ class School extends Model
         'toilet_shortage',
         'hazards',
         'hazard_type', // MUST BE ADDED
-        'hazard_level' // MUST BE ADDED
+        'hazard_level', // MUST BE ADDED
+        'teacher_shortage'  
     ];
 
     public $incrementing = false; 
     protected $keyType = 'string';
+    protected $casts = [
+        'hazard_type' => 'array', 
+    ];
 }
