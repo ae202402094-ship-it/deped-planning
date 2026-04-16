@@ -21,7 +21,7 @@ class AdminDashboardController extends Controller
 
         $schools = $query->latest()->paginate(10)->withQueryString();
 
-        return view('admin.schools', compact('schools'));
+        return view('admin.dashboard', compact('dashboardData', 'schools'));
     }
 
     public function adminDashboard()
