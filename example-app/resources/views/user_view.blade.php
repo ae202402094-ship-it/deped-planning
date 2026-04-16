@@ -145,38 +145,46 @@
                     </div>
                 </div>
 
-                {{-- Utility Provisioning --}}
-                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-                    <h3 class="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-6 flex items-center gap-2">
-                        <i data-lucide="plug-zap" class="w-4 h-4 text-amber-500"></i> Utility Provisioning
-                    </h3>
-                    <div class="space-y-4">
-                        <div class="flex items-center justify-between p-3 rounded-xl border border-slate-100 {{ $school->with_electricity != 'None' ? 'bg-emerald-50/20' : 'bg-red-50/20' }}">
-                            <span class="text-[10px] font-bold text-slate-600 uppercase tracking-tight">Power Supply</span>
-                            <div class="flex flex-col items-end">
-                            <span class="text-[10px] font-black uppercase {{ in_array($school->with_electricity, ['Grid Connection', 'Hybrid']) ? 'text-emerald-600' : 'text-amber-600' }}">
-                                @if(in_array($school->with_electricity, ['Grid Connection', 'Hybrid']))
-                                 On-Grid System
-                                @elseif(in_array($school->with_electricity, ['Off-grid + Solar/Genset', 'Solar Powered', 'Generator']))
-                                 Off-Grid System
-                                @else
-                                 No Connection
-                                 @endif
-                            </span>
-                            <span class="text-[8px] font-medium text-slate-400">{{ $school->with_electricity }}</span>
-</div>
-                        </div>
-                        <div class="flex items-center justify-between p-3 rounded-xl border border-slate-100 {{ $school->with_potable_water ? 'bg-emerald-50/20' : 'bg-red-50/20' }}">
-                            <span class="text-[10px] font-bold text-slate-600 uppercase tracking-tight">Potable Water</span>
-                            <span class="text-[10px] font-black uppercase {{ $school->with_potable_water ? 'text-emerald-600' : 'text-red-600' }}">
-                                {{ $school->with_potable_water ? 'With Water' : 'Without Water' }}
-                            </span>
-                        </div>
-                        <div class="flex items-center justify-between p-3 rounded-xl border border-slate-100 {{ $school->with_internet ? 'bg-emerald-50/20' : 'bg-red-50/20' }}">
-                            <span class="text-[10px] font-bold text-slate-600 uppercase tracking-tight">Connectivity</span>
-                            <span class="text-[10px] font-black uppercase {{ $school->with_internet ? 'text-emerald-600' : 'text-red-600' }} text-right">
-                                {{ $school->with_internet ? 'With Internet' : 'Without Internet' }}
-                            </span>
+                    {{-- Utility Provisioning --}}
+                    <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm flex flex-col h-full hover:shadow-md transition-shadow">
+                        <h3 class="text-sm font-black text-slate-900 uppercase tracking-widest mb-6 flex items-center gap-3 border-b border-slate-100 pb-4 shrink-0">
+                            <i data-lucide="plug-zap" class="w-5 h-5 text-amber-500"></i> Provisioning
+                        </h3>
+                        <div class="space-y-4 flex-grow flex flex-col justify-center">
+                            
+                            {{-- Power Supply Row --}}
+                            <div class="flex items-center justify-between p-4 rounded-xl border transition-colors {{ $school->with_electricity != 'None' ? 'border-emerald-100 bg-emerald-50/50 hover:bg-emerald-50' : 'border-red-100 bg-red-50/50 hover:bg-red-50' }}">
+                                <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Power</span>
+                                <div class="flex flex-col items-end">
+                                    <span class="text-sm font-black uppercase {{ in_array($school->with_electricity, ['Grid Connection', 'Hybrid']) ? 'text-emerald-700' : 'text-amber-600' }}">
+                                        @if(in_array($school->with_electricity, ['Grid Connection', 'Hybrid']))
+                                            On-Grid
+                                        @elseif(in_array($school->with_electricity, ['Solar Powered', 'Generator']))
+                                            Off-Grid
+                                        @else
+                                            No Power
+                                        @endif
+                                    </span>
+                                    <span class="text-xs font-bold text-slate-400 mt-0.5">{{ $school->with_electricity }}</span>
+                                </div>
+                            </div>
+
+                            {{-- Water Row --}}
+                            <div class="flex items-center justify-between p-4 rounded-xl border transition-colors {{ $school->with_potable_water ? 'border-emerald-100 bg-emerald-50/50 hover:bg-emerald-50' : 'border-red-100 bg-red-50/50 hover:bg-red-50' }}">
+                                <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Water</span>
+                                <span class="text-sm font-black uppercase {{ $school->with_potable_water ? 'text-emerald-700' : 'text-red-700' }}">
+                                    {{ $school->with_potable_water ? 'Yes' : 'No' }}
+                                </span>
+                            </div>
+
+                            {{-- Internet Row --}}
+                            <div class="flex items-center justify-between p-4 rounded-xl border transition-colors {{ $school->with_internet ? 'border-emerald-100 bg-emerald-50/50 hover:bg-emerald-50' : 'border-red-100 bg-red-50/50 hover:bg-red-50' }}">
+                                <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Data</span>
+                                <span class="text-sm font-black uppercase {{ $school->with_internet ? 'text-emerald-700' : 'text-red-700' }} text-right">
+                                    {{ $school->with_internet ? 'Yes' : 'No' }}
+                                </span>
+                            </div>
+
                         </div>
                     </div>
                 </div>
