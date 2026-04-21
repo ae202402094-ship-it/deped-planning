@@ -67,6 +67,18 @@ class SchoolCrudController extends Controller
         return view('admin.edit_school', compact('school'));
     }
 
+public function getApiData()
+{
+    // Fetch the data
+    $schools = \App\Models\School::all();
+
+    // Return it as JSON for Postman
+    return response()->json([
+        'status' => 'success',
+        'data' => $schools
+    ]);
+}
+
   public function updateSchool(Request $request, $id)
 {
     $school = School::findOrFail($id);

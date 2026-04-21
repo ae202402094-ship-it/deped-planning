@@ -174,15 +174,15 @@
                         <div class="flex items-center justify-between p-3 rounded-xl border transition-colors {{ $school->with_potable_water ? 'border-emerald-100 bg-emerald-50/50 hover:bg-emerald-50' : 'border-red-100 bg-red-50/50 hover:bg-red-50' }}">
                             <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Water</span>
                             <span class="text-[10px] font-black uppercase {{ $school->with_potable_water ? 'text-emerald-700' : 'text-red-700' }}">
-                                {{ $school->with_potable_water ? 'Available' : 'Unavailable' }}
+                                {{ $school->with_potable_water ? 'With' : 'Without' }}
                             </span>
                         </div>
 
                         {{-- Internet Row --}}
                         <div class="flex items-center justify-between p-3 rounded-xl border transition-colors {{ $school->with_internet ? 'border-emerald-100 bg-emerald-50/50 hover:bg-emerald-50' : 'border-red-100 bg-red-50/50 hover:bg-red-50' }}">
-                            <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Data</span>
+                            <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Internet</span>
                             <span class="text-[10px] font-black uppercase {{ $school->with_internet ? 'text-emerald-700' : 'text-red-700' }} text-right">
-                                {{ $school->with_internet ? 'Connected' : 'Offline' }}
+                                {{ $school->with_internet ? 'Yes' : 'No' }}
                             </span>
                         </div>
 
