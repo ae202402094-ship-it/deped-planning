@@ -64,23 +64,27 @@
         </header>
 
         {{-- Metrics Grid --}}
+        {{-- Metrics Grid --}}
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6">
             @foreach([
-                ['label' => 'Teachers', 'value' => $school->no_of_teachers, 'icon' => 'users-round', 'trend' => 'Faculty'],
+                ['label' => 'Teachers', 'value' => $school->no_of_teachers, 'icon' => 'users-round'],
                 ['label' => 'Enrollees', 'value' => $school->no_of_enrollees, 'icon' => 'graduation-cap', 'trend' => 'Learners'],
                 ['label' => 'Classrooms', 'value' => $school->no_of_classrooms, 'icon' => 'door-open', 'trend' => 'Spaces'],
                 ['label' => 'Toilets', 'value' => $school->no_of_toilets, 'icon' => 'toilet', 'trend' => 'Hygiene'],
                 ['label' => 'Chairs', 'value' => $school->no_of_chairs, 'icon' => 'armchair', 'trend' => 'Seats'],
             ] as $metric)
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 group">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 group hover:shadow-md transition-all duration-200">
                 <div class="flex justify-between items-start mb-4">
-                    <div class="p-2.5 bg-slate-50 rounded-xl group-hover:bg-[#a52a2a] group-hover:text-white transition-colors">
-                        <i data-lucide="{{ $metric['icon'] }}" class="w-5 h-5"></i>
+                    <div class="p-2.5 bg-slate-50 rounded-xl group-hover:bg-[#a52a2a] group-hover:text-white transition-colors duration-200">
+                        <i data-lucide="{{ $metric['icon'] }}" class="w-6 h-6"></i>
                     </div>
-                    <span class="text-[8px] font-black text-slate-300 uppercase tracking-tighter">{{ $metric['trend'] }}</span>
                 </div>
-                <h3 class="text-2xl font-black text-slate-900 mb-1 tabular-nums">{{ number_format($metric['value']) }}</h3>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none">{{ $metric['label'] }}</p>
+                <h3 class="text-3xl font-black text-slate-900 mb-1.5 tabular-nums leading-none">
+                    {{ number_format($metric['value']) }}
+                </h3>
+                <p class="text-sm font-bold text-slate-600 uppercase tracking-wide">
+                    {{ $metric['label'] }}
+                </p>
             </div>
             @endforeach
         </div>
@@ -120,10 +124,10 @@
                     {{-- TIGHTENED SPACING: space-y-2 instead of space-y-4 --}}
                     <div class="space-y-2">
                         @foreach([
-                            ['label' => 'Faculty Members', 'val' => $school->teacher_shortage ?? 0, 'ratio' => $actualTeacherRatio, 'target' => $targetTeacher],
-                            ['label' => 'Classroom Units', 'val' => $school->classroom_shortage ?? 0, 'ratio' => $actualClassroomRatio, 'target' => $targetClassroom],
-                            ['label' => 'Furniture/Chairs', 'val' => $school->chair_shortage ?? 0, 'ratio' => $actualChairRatio, 'target' => $targetChair],
-                            ['label' => 'Sanitation Units', 'val' => $school->toilet_shortage ?? 0, 'ratio' => $actualToiletRatio, 'target' => $targetToilet]
+                            ['label' => 'Teachers Shortage', 'val' => $school->teacher_shortage ?? 0, 'ratio' => $actualTeacherRatio, 'target' => $targetTeacher],
+                            ['label' => 'Classroom Shortage', 'val' => $school->classroom_shortage ?? 0, 'ratio' => $actualClassroomRatio, 'target' => $targetClassroom],
+                            ['label' => 'Chairs Shortage', 'val' => $school->chair_shortage ?? 0, 'ratio' => $actualChairRatio, 'target' => $targetChair],
+                            ['label' => 'Toilets Shortage', 'val' => $school->toilet_shortage ?? 0, 'ratio' => $actualToiletRatio, 'target' => $targetToilet]
                         ] as $short)
                         {{-- TIGHTENED PADDING: p-2.5 instead of p-3.5 --}}
                         <div class="flex items-center justify-between p-2.5 rounded-xl border {{ ($short['val'] > 0) ? 'bg-red-50/40 border-red-100' : 'bg-emerald-50/40 border-emerald-100' }}">
@@ -174,7 +178,7 @@
                         <div class="flex items-center justify-between p-3 rounded-xl border transition-colors {{ $school->with_potable_water ? 'border-emerald-100 bg-emerald-50/50 hover:bg-emerald-50' : 'border-red-100 bg-red-50/50 hover:bg-red-50' }}">
                             <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Water</span>
                             <span class="text-[10px] font-black uppercase {{ $school->with_potable_water ? 'text-emerald-700' : 'text-red-700' }}">
-                                {{ $school->with_potable_water ? 'With' : 'Without' }}
+                                {{ $school->with_potable_water ? 'YES' : 'NO' }}
                             </span>
                         </div>
 
@@ -182,7 +186,7 @@
                         <div class="flex items-center justify-between p-3 rounded-xl border transition-colors {{ $school->with_internet ? 'border-emerald-100 bg-emerald-50/50 hover:bg-emerald-50' : 'border-red-100 bg-red-50/50 hover:bg-red-50' }}">
                             <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Internet</span>
                             <span class="text-[10px] font-black uppercase {{ $school->with_internet ? 'text-emerald-700' : 'text-red-700' }} text-right">
-                                {{ $school->with_internet ? 'Yes' : 'No' }}
+                                {{ $school->with_internet ? 'YES' : 'NO' }}
                             </span>
                         </div>
 
