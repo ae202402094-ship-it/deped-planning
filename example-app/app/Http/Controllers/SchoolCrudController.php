@@ -25,9 +25,8 @@ class SchoolCrudController extends Controller
         return view('admin.create_school');
     }
 
-  public function storeSchool(Request $request)
+ public function storeSchool(Request $request)
     {
-        // 1. Validation (includes all your new fields)
         $validated = $request->validate([
             'school_id' => 'required|unique:schools,school_id',
             'name' => 'required|string|max:255|unique:schools,name',
@@ -51,35 +50,14 @@ class SchoolCrudController extends Controller
             'longitude' => 'nullable|numeric|between:-180,180',
         ]);
 
-        // 2. Process the Arrays for Hazards (YOUR NEW CODE GOES HERE)
-        $defaultHazards = $request->input('hazard_type', []);
-        $customHazards = $request->input('custom_hazards', []);
-
-        // Merge both arrays first so we can clean everything at once
-        $allHazards = array_merge($defaultHazards, $customHazards);
-
-        $cleanHazards = array_map(function($value) {
-            // Trim spaces and make Title Case (e.g., " landslide prone " -> "Landslide Prone")
-            $cleaned = ucwords(strtolower(trim($value)));
-            
-            // DYNAMIC NORMALIZATION FOR ALL HAZARDS:
-            // This automatically removes words like " Prone", " Risk", or " Hazard"
-            $cleaned = str_ireplace([' Prone', ' Risk', ' Hazard'], '', $cleaned);
-            
-            return trim($cleaned);
-        }, $allHazards);
-
-        // Remove any that are completely blank
-        $cleanHazards = array_filter($cleanHazards, function($value) {
-            return !empty($value);
-        });
-
-        // Now array_unique will delete duplicates automatically!
-        $validated['hazard_type'] = array_values(array_unique($cleanHazards));
+        // 👉 HERE IS THE NEW, CLEAN 1-LINE CODE
+        $validated['hazard_type'] = $this->processHazards(
+            $request->input('hazard_type', []),
+            $request->input('custom_hazards', [])
+        );
         unset($validated['custom_hazards']);
 
         try {
-            // 3. Save to the database
             $school = School::create($validated);
 
             ActivityLog::create([
@@ -94,6 +72,7 @@ class SchoolCrudController extends Controller
             return redirect()->back()->with('error', 'Database Error: Could not save school.');
         }
     }
+
     public function editSchool($id)
     {
         $school = School::findOrFail($id);
@@ -117,7 +96,6 @@ public function getApiData()
         $school = School::findOrFail($id);
         $oldData = $school->toArray();
 
-        // 1. Validation
         $validated = $request->validate([
             'school_id' => 'required|unique:schools,school_id,' . $school->id,
             'name' => 'required|string|max:255',
@@ -140,36 +118,15 @@ public function getApiData()
             'custom_hazards.*' => 'nullable|string|max:255',
         ]);
 
-        // 2. Process the Arrays for Hazards (YOUR NEW CODE GOES HERE AGAIN)
-        $defaultHazards = $request->input('hazard_type', []);
-        $customHazards = $request->input('custom_hazards', []);
-
-        // Merge both arrays first so we can clean everything at once
-        $allHazards = array_merge($defaultHazards, $customHazards);
-
-        $cleanHazards = array_map(function($value) {
-            // Trim spaces and make Title Case (e.g., " landslide prone " -> "Landslide Prone")
-            $cleaned = ucwords(strtolower(trim($value)));
-            
-            // DYNAMIC NORMALIZATION FOR ALL HAZARDS:
-            $cleaned = str_ireplace([' Prone', ' Risk', ' Hazard'], '', $cleaned);
-            
-            return trim($cleaned);
-        }, $allHazards);
-
-        // Remove any that are completely blank
-        $cleanHazards = array_filter($cleanHazards, function($value) {
-            return !empty($value);
-        });
-
-        // Now array_unique will delete duplicates automatically!
-        $validated['hazard_type'] = array_values(array_unique($cleanHazards));
+        // 👉 HERE IS THE NEW, CLEAN 1-LINE CODE AGAIN
+        $validated['hazard_type'] = $this->processHazards(
+            $request->input('hazard_type', []),
+            $request->input('custom_hazards', [])
+        );
         unset($validated['custom_hazards']);
 
-        // 3. Perform the update
         $school->update($validated);
 
-        // 4. Activity Logging
         ActivityLog::create([
             'user_id' => auth()->id(),
             'action' => 'Updated School Profile',
@@ -289,6 +246,19 @@ public function getApiData()
         }
 
         return view('admin.audit', compact('flaggedSchools'));
+    }
+
+    private function processHazards($defaultHazards, $customHazards)
+    {
+        $allHazards = array_merge($defaultHazards ?? [], $customHazards ?? []);
+
+        $cleanHazards = array_map(function($value) {
+            $cleaned = ucwords(strtolower(trim($value)));
+            $cleaned = str_ireplace([' Prone', ' Risk', ' Hazard'], '', $cleaned);
+            return trim($cleaned);
+        }, $allHazards);
+
+        return array_values(array_unique(array_filter($cleanHazards)));
     }
 
 

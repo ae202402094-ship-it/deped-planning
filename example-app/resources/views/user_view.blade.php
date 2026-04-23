@@ -8,11 +8,11 @@
      */
     $isEmbed = session('is_embedded', false) || request()->query('embed') === 'true';
 
-    // Calculate actual current ratios based on raw data
-    $actualTeacherRatio = $school->no_of_teachers > 0 ? round($school->no_of_enrollees / $school->no_of_teachers) : $school->no_of_enrollees;
-    $actualClassroomRatio = $school->no_of_classrooms > 0 ? round($school->no_of_enrollees / $school->no_of_classrooms) : $school->no_of_enrollees;
-    $actualChairRatio = $school->no_of_chairs > 0 ? round($school->no_of_enrollees / $school->no_of_chairs, 1) : $school->no_of_enrollees;
-    $actualToiletRatio = $school->no_of_toilets > 0 ? round($school->no_of_enrollees / $school->no_of_toilets) : $school->no_of_enrollees;
+    // Calculate actual current ratios (Prevents misleading numbers if value is 0)
+    $actualTeacherRatio = $school->no_of_teachers > 0 ? round($school->no_of_enrollees / $school->no_of_teachers) : 'Critical (0 Teachers)';
+    $actualClassroomRatio = $school->no_of_classrooms > 0 ? round($school->no_of_enrollees / $school->no_of_classrooms) : 'Critical (0 Classrooms)';
+    $actualChairRatio = $school->no_of_chairs > 0 ? round($school->no_of_enrollees / $school->no_of_chairs, 1) : 'Critical (0 Chairs)';
+    $actualToiletRatio = $school->no_of_toilets > 0 ? round($school->no_of_enrollees / $school->no_of_toilets) : 'Critical (0 Toilets)';
 
     // DepEd Standard Targets
     $targetTeacher = 45;
@@ -142,31 +142,40 @@
                     <h3 class="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-4 flex items-center gap-2">
                         <i data-lucide="package-search" class="w-4 h-4 text-[#a52a2a]"></i> Resource Deficit Audit
                     </h3>
-                    <div class="space-y-2">
-                        @foreach([
-                            ['label' => 'Teachers Shortage', 'val' => $school->teacher_shortage ?? 0, 'ratio' => $actualTeacherRatio, 'target' => $targetTeacher],
-                            ['label' => 'Classroom Shortage', 'val' => $school->classroom_shortage ?? 0, 'ratio' => $actualClassroomRatio, 'target' => $targetClassroom],
-                            ['label' => 'Chairs Shortage', 'val' => $school->chair_shortage ?? 0, 'ratio' => $actualChairRatio, 'target' => $targetChair],
-                            ['label' => 'Toilets Shortage', 'val' => $school->toilet_shortage ?? 0, 'ratio' => $actualToiletRatio, 'target' => $targetToilet]
-                        ] as $short)
-                        <div class="flex items-center justify-between p-2.5 rounded-xl border {{ ($short['val'] > 0) ? 'bg-red-50/40 border-red-100' : 'bg-emerald-50/40 border-emerald-100' }}">
-                            <div class="flex flex-col">
-                                <span class="text-[10px] font-black text-slate-700 uppercase tracking-tight">{{ $short['label'] }}</span>
-                                <div class="flex items-center gap-2 mt-1">
-                                    <span class="text-[9px] font-black px-1.5 py-0.5 rounded {{ ($short['ratio'] > $short['target']) ? 'bg-red-200/50 text-red-700' : 'bg-emerald-200/50 text-emerald-700' }}">
-                                        1 : {{ $short['ratio'] }}
-                                    </span>
-                                    <span class="text-[7px] text-slate-400 font-bold uppercase tracking-widest">Target 1:{{ $short['target'] }}</span>
-                                </div>
-                            </div>
-                            <div class="flex flex-col items-end justify-center">
-                                <span class="text-base leading-none font-black {{ ($short['val'] > 0) ? 'text-red-600' : 'text-emerald-500' }}">
-                                    {{ number_format($short['val']) }}
-                                </span>
-                            </div>
-                        </div>
-                        @endforeach
-                    </div>
+                   <div class="space-y-2">
+    @foreach([
+        ['label' => 'Teachers Shortage', 'val' => $school->teacher_shortage ?? 0, 'ratio' => $actualTeacherRatio, 'target' => $targetTeacher],
+        ['label' => 'Classroom Shortage', 'val' => $school->classroom_shortage ?? 0, 'ratio' => $actualClassroomRatio, 'target' => $targetClassroom],
+        ['label' => 'Chairs Shortage', 'val' => $school->chair_shortage ?? 0, 'ratio' => $actualChairRatio, 'target' => $targetChair],
+        ['label' => 'Toilets Shortage', 'val' => $school->toilet_shortage ?? 0, 'ratio' => $actualToiletRatio, 'target' => $targetToilet]
+    ] as $short)
+    <div class="flex items-center justify-between p-2.5 rounded-xl border {{ ($short['val'] > 0) ? 'bg-red-50/40 border-red-100' : 'bg-emerald-50/40 border-emerald-100' }}">
+        <div class="flex flex-col">
+            <span class="text-[10px] font-black text-slate-700 uppercase tracking-tight">{{ $short['label'] }}</span>
+            
+            <div class="flex items-center gap-2 mt-1">
+                {{-- Color the badge Red if it's a text error OR if the ratio exceeds the target --}}
+                <span class="text-[9px] font-black px-1.5 py-0.5 rounded {{ (!is_numeric($short['ratio']) || $short['ratio'] > $short['target']) ? 'bg-red-200/50 text-red-700' : 'bg-emerald-200/50 text-emerald-700' }}">
+                    
+                    {{-- If it's a normal number, show the 1:Ratio. If it's text, show our Critical message --}}
+                    @if(is_numeric($short['ratio']))
+                        1 : {{ $short['ratio'] }}
+                    @else
+                        {{ $short['ratio'] }}
+                    @endif
+                    
+                </span>
+                <span class="text-[7px] text-slate-400 font-bold uppercase tracking-widest">Target 1:{{ $short['target'] }}</span>
+            </div>
+            </div>
+        <div class="flex flex-col items-end justify-center">
+            <span class="text-base leading-none font-black {{ ($short['val'] > 0) ? 'text-red-600' : 'text-emerald-500' }}">
+                {{ number_format($short['val']) }}
+            </span>
+        </div>
+    </div>
+    @endforeach
+</div>
                 </div>
 
                 {{-- Provisioning Card --}}
