@@ -47,7 +47,7 @@
 
                 <div class="bg-slate-50 border-2 border-slate-200 p-6 rounded-sm mt-6">
                     <div class="grid grid-cols-2 md:grid-cols-5 gap-6">
-                        @foreach([['name' => 'no_of_teachers', 'label' => 'Faculty'], ['name' => 'no_of_enrollees', 'label' => 'Learners'], ['name' => 'no_of_classrooms', 'label' => 'Spaces'], ['name' => 'no_of_chairs', 'label' => 'Chairs'], ['name' => 'no_of_toilets', 'label' => 'Sanitary']] as $field)
+                        @foreach([['name' => 'no_of_teachers', 'label' => 'Teachers'], ['name' => 'no_of_enrollees', 'label' => 'Enrollees'], ['name' => 'no_of_classrooms', 'label' => 'Classrooms'], ['name' => 'no_of_chairs', 'label' => 'Chairs'], ['name' => 'no_of_toilets', 'label' => 'Toilets']] as $field)
                         <div>
                             <label class="block text-xs font-black text-slate-500 uppercase mb-2 tracking-widest">{{ $field['label'] }}</label>
                             <input type="number" name="{{ $field['name'] }}" id="input_{{ $field['name'] }}" value="{{ $school->{$field['name']} }}" 
@@ -231,14 +231,14 @@
                     <span id="confirmName" class="font-black text-lg text-black leading-tight"></span>
                 </div>
                 <div class="grid grid-cols-3 gap-4 text-center mb-4">
-                    <div class="bg-white border border-slate-200 p-2 rounded"><p class="text-[10px] text-slate-500 uppercase">Faculty</p><p id="confirmTCH" class="font-black text-black text-lg"></p></div>
-                    <div class="bg-white border border-slate-200 p-2 rounded"><p class="text-[10px] text-slate-500 uppercase">Learners</p><p id="confirmENR" class="font-black text-black text-lg"></p></div>
-                    <div class="bg-white border border-slate-200 p-2 rounded"><p class="text-[10px] text-slate-500 uppercase">Spaces</p><p id="confirmCLS" class="font-black text-black text-lg"></p></div>
+                    <div class="bg-white border border-slate-200 p-2 rounded"><p class="text-[10px] text-slate-500 uppercase">Teacher Shortage</p><p id="confirmTCH" class="font-black text-black text-lg"></p></div>
+                    <div class="bg-white border border-slate-200 p-2 rounded"><p class="text-[10px] text-slate-500 uppercase">Enrollees</p><p id="confirmENR" class="font-black text-black text-lg"></p></div>
+                    <div class="bg-white border border-slate-200 p-2 rounded"><p class="text-[10px] text-slate-500 uppercase">Classroom Shortage</p><p id="confirmCLS" class="font-black text-black text-lg"></p></div>
                 </div>
                 <div class="grid grid-cols-3 gap-4 text-center border-t-2 border-slate-200 pt-4">
-                    <div class="bg-white border border-slate-200 p-2 rounded"><p class="text-[10px] text-slate-500 uppercase">Chair Def</p><p id="confirmCHR_DEF" class="font-black text-lg"></p></div>
-                    <div class="bg-white border border-slate-200 p-2 rounded"><p class="text-[10px] text-slate-500 uppercase">Class Def</p><p id="confirmCLS_DEF" class="font-black text-lg"></p></div>
-                    <div class="bg-white border border-slate-200 p-2 rounded"><p class="text-[10px] text-slate-500 uppercase">Toilet Def</p><p id="confirmTLT_DEF" class="font-black text-lg"></p></div>
+                    <div class="bg-white border border-slate-200 p-2 rounded"><p class="text-[10px] text-slate-500 uppercase">Chair Shortage</p><p id="confirmCHR_DEF" class="font-black text-lg"></p></div>
+                    <div class="bg-white border border-slate-200 p-2 rounded"><p class="text-[10px] text-slate-500 uppercase">Classroom Shortage</p><p id="confirmCLS_DEF" class="font-black text-lg"></p></div>
+                    <div class="bg-white border border-slate-200 p-2 rounded"><p class="text-[10px] text-slate-500 uppercase">Toilet Shortage</p><p id="confirmTLT_DEF" class="font-black text-lg"></p></div>
                 </div>
             </div>
             <div class="flex gap-4">
