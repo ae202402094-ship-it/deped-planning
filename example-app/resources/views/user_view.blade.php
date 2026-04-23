@@ -2,13 +2,19 @@
 
 @section('content')
 @php
+    /**
+     * DETECT EMBED STATUS
+     * We check both the session (for persistence) and the URL parameter.
+     */
+    $isEmbed = session('is_embedded', false) || request()->query('embed') === 'true';
+
     // Calculate actual current ratios based on raw data
     $actualTeacherRatio = $school->no_of_teachers > 0 ? round($school->no_of_enrollees / $school->no_of_teachers) : $school->no_of_enrollees;
     $actualClassroomRatio = $school->no_of_classrooms > 0 ? round($school->no_of_enrollees / $school->no_of_classrooms) : $school->no_of_enrollees;
     $actualChairRatio = $school->no_of_chairs > 0 ? round($school->no_of_enrollees / $school->no_of_chairs, 1) : $school->no_of_enrollees;
     $actualToiletRatio = $school->no_of_toilets > 0 ? round($school->no_of_enrollees / $school->no_of_toilets) : $school->no_of_enrollees;
 
-    // DepEd Standard Targets (Display Only)
+    // DepEd Standard Targets
     $targetTeacher = 45;
     $targetClassroom = 40;
     $targetChair = 1;
@@ -37,11 +43,24 @@
     .no-print { @media print { display: none !important; } }
 </style>
 
-<div class="min-h-screen bg-[#f8fafc] py-12 px-4 sm:px-6 lg:px-8">
+{{-- Container padding adjusts if embedded --}}
+<div class="min-h-screen bg-[#f8fafc] {{ $isEmbed ? 'py-4' : 'py-12' }} px-4 sm:px-6 lg:px-8">
     <div class="max-w-7xl mx-auto space-y-8">
         
         {{-- Header Card --}}
         <header class="relative bg-white p-8 rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            
+            {{-- NEW: Back Button for the Other Party (Embed Mode Only) --}}
+            @if($isEmbed)
+            <div class="mb-6 no-print">
+                <a href="{{ route('public.map', ['embed' => 'true']) }}" 
+                   class="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-[#a52a2a] transition-all group">
+                    <i data-lucide="arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></i>
+                    Return to Interactive Map
+                </a>
+            </div>
+            @endif
+
             <div class="relative flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div class="space-y-1">
                     <div class="flex items-center gap-2 mb-2">
@@ -55,11 +74,15 @@
                         <span class="flex items-center gap-1.5"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i> Zamboanga Division</span>
                     </div>
                 </div>
+
+                {{-- Hide Print Button if embedded --}}
+                @if(!$isEmbed)
                 <div class="flex flex-col items-end gap-3 no-print">
                     <button onclick="window.print()" class="bg-[#a52a2a] text-white px-6 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg hover:bg-black transition-all flex items-center gap-2">
                         <i data-lucide="printer" class="w-4 h-4"></i> Print Profile
                     </button>
                 </div>
+                @endif
             </div>
         </header>
 
@@ -85,10 +108,9 @@
             @endforeach
         </div>
 
-        {{-- Main Layout Grid: Map (Left) + Stacked Cards (Right) --}}
+        {{-- Main Layout Grid --}}
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
-            {{-- Left Column: Expanded Interactive Map --}}
+            {{-- Map Column --}}
             <div class="lg:col-span-2 flex flex-col">
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex-1 min-h-[500px] flex flex-col">
                     <div class="p-6 border-b border-slate-50 flex items-center justify-between shrink-0">
@@ -109,15 +131,12 @@
                 </div>
             </div>
 
-            {{-- Right Column: Stacked Audit Cards --}}
+            {{-- Audit Column --}}
             <div class="space-y-6">
-                
-                {{-- Integrated Resource Deficit & Ratio Audit --}}
                 <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
                     <h3 class="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-4 flex items-center gap-2">
                         <i data-lucide="package-search" class="w-4 h-4 text-[#a52a2a]"></i> Resource Deficit Audit
                     </h3>
-                    {{-- TIGHTENED SPACING: space-y-2 instead of space-y-4 --}}
                     <div class="space-y-2">
                         @foreach([
                             ['label' => 'Faculty Members', 'val' => $school->teacher_shortage ?? 0, 'ratio' => $actualTeacherRatio, 'target' => $targetTeacher],
@@ -125,7 +144,6 @@
                             ['label' => 'Furniture/Chairs', 'val' => $school->chair_shortage ?? 0, 'ratio' => $actualChairRatio, 'target' => $targetChair],
                             ['label' => 'Sanitation Units', 'val' => $school->toilet_shortage ?? 0, 'ratio' => $actualToiletRatio, 'target' => $targetToilet]
                         ] as $short)
-                        {{-- TIGHTENED PADDING: p-2.5 instead of p-3.5 --}}
                         <div class="flex items-center justify-between p-2.5 rounded-xl border {{ ($short['val'] > 0) ? 'bg-red-50/40 border-red-100' : 'bg-emerald-50/40 border-emerald-100' }}">
                             <div class="flex flex-col">
                                 <span class="text-[10px] font-black text-slate-700 uppercase tracking-tight">{{ $short['label'] }}</span>
@@ -146,57 +164,42 @@
                     </div>
                 </div>
 
-                {{-- Utility Provisioning --}}
+                {{-- Provisioning Card --}}
                 <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col hover:shadow-md transition-shadow">
                     <h3 class="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-slate-100 pb-3 shrink-0">
                         <i data-lucide="plug-zap" class="w-4 h-4 text-amber-500"></i> Provisioning
                     </h3>
                     <div class="space-y-3">
-                        
-                        {{-- Power Supply Row --}}
                         <div class="flex items-center justify-between p-3 rounded-xl border transition-colors {{ $school->with_electricity != 'None' ? 'border-emerald-100 bg-emerald-50/50 hover:bg-emerald-50' : 'border-red-100 bg-red-50/50 hover:bg-red-50' }}">
                             <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Power</span>
                             <div class="flex flex-col items-end">
                                 <span class="text-[10px] font-black uppercase {{ in_array($school->with_electricity, ['Grid Connection', 'Hybrid']) ? 'text-emerald-700' : 'text-amber-600' }}">
-                                    @if(in_array($school->with_electricity, ['Grid Connection', 'Hybrid']))
-                                        On-Grid
-                                    @elseif(in_array($school->with_electricity, ['Off-grid + Solar/Genset', 'Solar Powered', 'Generator']))
-                                        Off-Grid
-                                    @else
-                                        No Power
-                                    @endif
+                                    @if(in_array($school->with_electricity, ['Grid Connection', 'Hybrid'])) On-Grid @else Off-Grid @endif
                                 </span>
                                 <span class="text-[8px] font-bold text-slate-400 mt-0.5">{{ $school->with_electricity }}</span>
                             </div>
                         </div>
-
-                        {{-- Water Row --}}
                         <div class="flex items-center justify-between p-3 rounded-xl border transition-colors {{ $school->with_potable_water ? 'border-emerald-100 bg-emerald-50/50 hover:bg-emerald-50' : 'border-red-100 bg-red-50/50 hover:bg-red-50' }}">
                             <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Water</span>
                             <span class="text-[10px] font-black uppercase {{ $school->with_potable_water ? 'text-emerald-700' : 'text-red-700' }}">
                                 {{ $school->with_potable_water ? 'With' : 'Without' }}
                             </span>
                         </div>
-
-                        {{-- Internet Row --}}
                         <div class="flex items-center justify-between p-3 rounded-xl border transition-colors {{ $school->with_internet ? 'border-emerald-100 bg-emerald-50/50 hover:bg-emerald-50' : 'border-red-100 bg-red-50/50 hover:bg-red-50' }}">
                             <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Internet</span>
                             <span class="text-[10px] font-black uppercase {{ $school->with_internet ? 'text-emerald-700' : 'text-red-700' }} text-right">
                                 {{ $school->with_internet ? 'Yes' : 'No' }}
                             </span>
                         </div>
-
                     </div>
                 </div>
 
-                {{-- Risk Management --}}
+                {{-- Risk Profile --}}
                 <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
                     <h3 class="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-4 flex items-center gap-2">
                         <i data-lucide="shield-check" class="w-4 h-4 text-[#a52a2a]"></i> Risk Profile
                     </h3>
-                    
                     @php
-                        // Aggressive cleanup to remove invisible ghost characters or spaces
                         $rawHazards = is_array($school->hazard_type) ? $school->hazard_type : (json_decode($school->hazard_type, true) ?? [$school->hazard_type]);
                         $activeHazards = [];
                         if (is_array($rawHazards)) {
@@ -208,7 +211,6 @@
                             }
                         }
                     @endphp
-
                     <div class="p-4 bg-slate-50 rounded-xl border-l-4 {{ count($activeHazards) > 0 ? 'border-[#a52a2a]' : 'border-emerald-500' }}">
                         @if(count($activeHazards) > 0)
                             <div class="flex flex-wrap gap-2">
@@ -223,7 +225,6 @@
                         @endif
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
@@ -232,9 +233,8 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        lucide.createIcons();
+        if (typeof lucide !== 'undefined') lucide.createIcons();
 
-        // --- MAP LOGIC ---
         const lat = {{ $school->latitude }};
         const lng = {{ $school->longitude }};
         
@@ -260,7 +260,6 @@
             className: '', iconSize: [48, 48], iconAnchor: [24, 24]
         });
 
-        // Clean Hazard array for Map to match UI exactly
         var hazardTypes = {!! json_encode($activeHazards ?? []) !!};
         var hazardWarning = hazardTypes.length > 0 
             ? `<span class="text-[#a52a2a] font-black block mt-2 pt-2 border-t border-slate-200 uppercase tracking-widest text-[9px]">⚠️ ${hazardTypes.join(' | ')}</span>` 

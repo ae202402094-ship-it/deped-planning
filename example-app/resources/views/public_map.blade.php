@@ -1,12 +1,44 @@
 @extends('layouts.public')
 
 @section('content')
-<div class="max-w-6xl mx-auto px-4 relative">
-    {{-- Friendly Header --}}
+@php
+    /**
+     * DETECT EMBED STATUS
+     * Uses session persistence or URL parameter to show/hide the mode switcher.
+     */
+    $isEmbed = session('is_embedded', false) || request()->query('embed') === 'true';
+@endphp
+
+{{-- 
+    EMBED NAVIGATION SWITCHER
+    Visible only when embedded to allow toggling between Map and Directories.
+--}}
+@if($isEmbed)
+<div class="bg-white border-b border-slate-100 px-4 py-3 no-print">
+    <div class="max-w-7xl mx-auto flex items-center justify-center gap-6">
+        <a href="{{ route('public.map') }}" 
+           class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest {{ request()->routeIs('public.map') ? 'text-[#a52a2a]' : 'text-slate-400 hover:text-slate-600' }}">
+            <i class="bi bi-map-fill"></i> Interactive Map
+        </a>
+        
+        <div class="h-4 w-px bg-slate-200"></div>
+
+        <a href="{{ route('public.schools') }}" 
+           class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest {{ request()->routeIs('public.schools') ? 'text-[#a52a2a]' : 'text-slate-400 hover:text-slate-600' }}">
+            <i class="bi bi-list-ul"></i> School Directories
+        </a>
+    </div>
+</div>
+@endif
+
+<div class="max-w-6xl mx-auto px-4 relative {{ $isEmbed ? 'py-4' : 'py-10' }}">
+    {{-- Friendly Header: Hidden if embedded to save vertical space --}}
+    @if(!$isEmbed)
     <div class="mb-6">
         <h2 class="text-2xl font-bold text-slate-800">Explore Schools</h2>
         <p class="text-slate-500 text-sm">Find and view school profiles across Zamboanga City</p>
     </div>
+    @endif
 
     <div class="relative overflow-hidden rounded-3xl shadow-lg border border-slate-200">
         {{-- Floating Search Bar --}}
@@ -44,33 +76,25 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-    // 1. Initialize Map with Zoom Controls
+    // 1. Initialize Map
     var map = L.map('publicMap', { zoomControl: false }).setView([6.9214, 122.0739], 12);
     L.control.zoom({ position: 'bottomright' }).addTo(map);
     
-    // 2. Define Map Layers (Colored Streets & Satellite)
-    var streets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap'
-    }).addTo(map);
+    var streets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
+    var satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Esri' });
 
-    var satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles &copy; Esri'
-    });
-
-    // 3. Add Layer Toggle (Restored Satellite Option)
-    var baseMaps = {
-        "Standard Map": streets,
-        "Satellite View": satellite
-    };
+    var baseMaps = { "Standard Map": streets, "Satellite View": satellite };
     L.control.layers(baseMaps, null, { position: 'topright' }).addTo(map);
 
-    // 4. Marker Registry and Logic
+    // 2. Marker Registry
     var markerRegistry = {}; 
     var allSchools = @json($schools);
+    
+    // Check if embed mode is active for link generation
+    const isEmbedMode = {{ $isEmbed ? 'true' : 'false' }};
 
     @foreach($schools as $school)
         @if($school->latitude && $school->longitude)
-            // Friendly Pin with White Border for better visibility on Satellite view
             var marker = L.marker([{{ $school->latitude }}, {{ $school->longitude }}], {
                 icon: L.divIcon({
                     html: `<div class="text-[#a52a2a]">
@@ -85,9 +109,9 @@
                 <div class="p-3 text-center min-w-[160px]">
                     <h4 class="font-bold text-slate-800 text-sm mb-0.5">{{ $school->name }}</h4>
                     <p class="text-[10px] text-slate-400 mb-3 font-medium uppercase">ID: {{ $school->school_id }}</p>
-                    <a href="{{ route('public.view', ['id' => $school->id]) }}" 
-                    class="inline-block py-2 px-5 bg-[#a52a2a] !text-white rounded-full text-[10px] font-bold no-underline hover:bg-slate-900 transition-colors shadow-sm">
-                    View Profile
+                    <a href="{{ route('public.view', ['id' => $school->id]) }}${isEmbedMode ? '?embed=true' : ''}" 
+                       class="inline-block py-2 px-5 bg-[#a52a2a] !text-white rounded-full text-[10px] font-bold no-underline hover:bg-slate-900 transition-colors shadow-sm">
+                        View Profile
                     </a>
                 </div>
             `);
@@ -95,7 +119,7 @@
         @endif
     @endforeach
 
-    // 5. Search Functionality
+    // 3. Search Logic
     const searchInput = document.getElementById('mapSearch');
     const resultsBox = document.getElementById('searchResults');
     const clearBtn = document.getElementById('clearSearch');
@@ -143,33 +167,17 @@
         }
     });
 
-    // 6. Interaction Helpers
     clearBtn.onclick = () => {
         searchInput.value = '';
         resultsBox.classList.add('hidden');
         clearBtn.classList.add('hidden');
-        searchInput.focus();
     };
-
-    document.addEventListener('click', (e) => {
-        if (!searchInput.contains(e.target) && !resultsBox.contains(e.target)) {
-            resultsBox.classList.add('hidden');
-        }
-    });
 </script>
 
 <style>
-    /* Clean, Rounded Popup Styling */
-    .leaflet-popup-content-wrapper { 
-        border-radius: 20px; 
-        padding: 0; 
-        overflow: hidden; 
-        box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1); 
-    }
+    .leaflet-popup-content-wrapper { border-radius: 20px; padding: 0; overflow: hidden; }
     .leaflet-popup-content { margin: 0 !important; }
     .leaflet-popup-tip-container { display: none; }
-    
-    /* Custom Scrollbar for Search Results */
     #searchResults::-webkit-scrollbar { width: 4px; }
     #searchResults::-webkit-scrollbar-thumb { background: #a52a2a; border-radius: 10px; }
 </style>
