@@ -62,24 +62,27 @@ class SchoolImportController extends Controller
                 $formattedData[] = [
                     'school_id'          => $currentId,
                     'name'               => $currentName,
-                    'no_of_teachers'     => (int)($row[2] ?? 0),
-                    'no_of_enrollees'    => (int)($row[3] ?? 0),
-                    'no_of_classrooms'   => (int)($row[4] ?? 0),
-                    'no_of_toilets'      => (int)($row[5] ?? 0),
-                    'no_of_chairs'       => (int)($row[6] ?? 0),
-                    'latitude'           => !empty($row[7]) ? (float)$row[7] : 6.9214,
-                    'longitude'          => !empty($row[8]) ? (float)$row[8] : 122.0739,
                     
-                    // FIXED: Electricity is now a string to match the UI dropdowns
+                    // Stripped commas before casting to int
+                    'no_of_teachers'     => (int)str_replace(',', '', $row[2] ?? 0),
+                    'no_of_enrollees'    => (int)str_replace(',', '', $row[3] ?? 0),
+                    'no_of_classrooms'   => (int)str_replace(',', '', $row[4] ?? 0),
+                    'no_of_toilets'      => (int)str_replace(',', '', $row[5] ?? 0),
+                    'no_of_chairs'       => (int)str_replace(',', '', $row[6] ?? 0),
+                    
+                    // Stripped commas before casting to float (just in case)
+                    'latitude'           => !empty($row[7]) ? (float)str_replace(',', '', $row[7]) : 6.9214,
+                    'longitude'          => !empty($row[8]) ? (float)str_replace(',', '', $row[8]) : 122.0739,
+                    
                     'with_electricity'   => (string)($row[9] ?? 'None'),
-                    
-                    // Water and Internet remain booleans
                     'with_potable_water' => filter_var($row[10] ?? false, FILTER_VALIDATE_BOOLEAN),
                     'with_internet'      => filter_var($row[11] ?? false, FILTER_VALIDATE_BOOLEAN),
                     
-                    'classroom_shortage' => (int)($row[12] ?? 0),
-                    'chair_shortage'     => (int)($row[13] ?? 0),
-                    'toilet_shortage'    => (int)($row[14] ?? 0),
+                    // Stripped commas before casting to int
+                    'classroom_shortage' => (int)str_replace(',', '', $row[12] ?? 0),
+                    'chair_shortage'     => (int)str_replace(',', '', $row[13] ?? 0),
+                    'toilet_shortage'    => (int)str_replace(',', '', $row[14] ?? 0),
+                    
                     'hazards'            => (string)($row[15] ?? 'None'),
                     
                     'status'             => $status,
@@ -129,10 +132,7 @@ class SchoolImportController extends Controller
                         'no_of_chairs'       => (int)$row['no_of_chairs'],
                         'latitude'           => (float)$row['latitude'],
                         'longitude'          => (float)$row['longitude'],
-                        
-                        // FIXED: Ensure this saves as a string, not a boolean
                         'with_electricity'   => (string)$row['with_electricity'], 
-                        
                         'with_potable_water' => (bool)$row['with_potable_water'], 
                         'with_internet'      => (bool)$row['with_internet'], 
                         'classroom_shortage' => (int)$row['classroom_shortage'], 
@@ -161,7 +161,7 @@ class SchoolImportController extends Controller
                 'with_internet', 'classroom_shortage', 'chair_shortage', 'toilet_shortage', 'hazards'
             ]);
             
-            // Write Sample Data (FIXED: Uses 'Grid Connection' instead of 'yes' for electricity)
+            // Write Sample Data 
             fputcsv($handle, [
                 '123456', 'SAMPLE SCHOOL', '20', '500', '15', '8', '450', 
                 '6.9214', '122.0739', 'Grid Connection', 'yes', 'no', '0', '50', '2', 'Flood Prone'

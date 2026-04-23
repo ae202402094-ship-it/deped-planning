@@ -104,7 +104,7 @@
                     <h3 class="text-sm font-black text-slate-800 uppercase border-b-2 border-slate-200 pb-2 mb-6">Calculated Deficits</h3>
                     <div class="space-y-5">
                         @foreach([
-                            ['name' => 'teacher_shortage', 'label' => 'Faculty Deficit'], 
+                            ['name' => 'teacher_shortage', 'label' => 'Teacher Shortage'], 
                             ['name' => 'classroom_shortage', 'label' => 'Classroom Shortage'], 
                             ['name' => 'chair_shortage', 'label' => 'Chair Shortage'], 
                             ['name' => 'toilet_shortage', 'label' => 'Sanitation Shortage']

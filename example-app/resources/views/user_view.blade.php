@@ -86,28 +86,29 @@
             </div>
         </header>
 
-        {{-- Metrics Grid --}}
-        {{-- Metrics Grid --}}
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6">
+       {{-- Metrics Grid (Tailwind UI Design with Hover Effects) --}}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-8">
             @foreach([
-                ['label' => 'Teachers', 'value' => $school->no_of_teachers, 'icon' => 'users-round'],
-                ['label' => 'Enrollees', 'value' => $school->no_of_enrollees, 'icon' => 'graduation-cap', 'trend' => 'Learners'],
-                ['label' => 'Classrooms', 'value' => $school->no_of_classrooms, 'icon' => 'door-open', 'trend' => 'Spaces'],
-                ['label' => 'Toilets', 'value' => $school->no_of_toilets, 'icon' => 'toilet', 'trend' => 'Hygiene'],
-                ['label' => 'Chairs', 'value' => $school->no_of_chairs, 'icon' => 'armchair', 'trend' => 'Seats'],
+                ['label' => 'Total Teachers', 'value' => $school->no_of_teachers, 'icon' => 'users-round'],
+                ['label' => 'Total Enrollees', 'value' => $school->no_of_enrollees, 'icon' => 'graduation-cap'],
+                ['label' => 'Total Classrooms', 'value' => $school->no_of_classrooms, 'icon' => 'door-open'],
+                ['label' => 'Total Toilets', 'value' => $school->no_of_toilets, 'icon' => 'toilet'],
+                ['label' => 'Total Chairs', 'value' => $school->no_of_chairs, 'icon' => 'armchair'],
             ] as $metric)
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 group hover:shadow-md transition-all duration-200">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="p-2.5 bg-slate-50 rounded-xl group-hover:bg-[#a52a2a] group-hover:text-white transition-colors duration-200">
+            <div class="group relative bg-white pt-5 px-4 pb-4 sm:pt-6 sm:px-6 shadow-sm border border-slate-200 rounded-2xl overflow-hidden hover:-translate-y-1 hover:shadow-lg hover:border-[#a52a2a]/40 transition-all duration-300 cursor-default">
+                <dt>
+                    <div class="absolute rounded-xl p-3 bg-red-50 text-[#a52a2a] group-hover:bg-[#a52a2a] group-hover:text-white transition-colors duration-300">
                         <i data-lucide="{{ $metric['icon'] }}" class="w-6 h-6"></i>
                     </div>
-                </div>
-                <h3 class="text-3xl font-black text-slate-900 mb-1.5 tabular-nums leading-none">
-                    {{ number_format($metric['value']) }}
-                </h3>
-                <p class="text-sm font-bold text-slate-600 uppercase tracking-wide">
-                    {{ $metric['label'] }}
-                </p>
+                    <p class="ml-16 text-[10px] font-black text-slate-500 uppercase tracking-widest truncate mt-0.5 group-hover:text-[#a52a2a] transition-colors duration-300">
+                        {{ $metric['label'] }}
+                    </p>
+                </dt>
+                <dd class="ml-16 flex items-baseline pb-1 mt-1">
+                    <p class="text-3xl font-black text-slate-900 tabular-nums">
+                        {{ number_format($metric['value']) }}
+                    </p>
+                </dd>
             </div>
             @endforeach
         </div>
@@ -126,7 +127,7 @@
                     <div class="relative flex-1">
                         <div id="schoolMap" class="absolute inset-0 w-full h-full"></div>
                         <div class="absolute bottom-6 left-6 z-[1000] no-print">
-                            <div class="bg-white/90 backdrop-blur-md p-1.5 rounded-xl shadow-2xl border border-slate-200 flex flex-col gap-1">
+                            <div class="bg-white/90 backdrop-blur-mddi p-1.5 rounded-xl shadow-2xl border border-slate-200 flex flex-col gap-1">
                                 <button id="setVoyager" class="px-3 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg bg-[#a52a2a] text-white">Street</button>
                                 <button id="setSatellite" class="px-3 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-slate-100 text-slate-600">Satellite</button>
                             </div>
