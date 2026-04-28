@@ -139,6 +139,8 @@
             
             <div class="grid grid-cols-2 gap-4 mb-4">
     <div>
+
+    
         <label class="block text-[10px] font-black text-slate-500 uppercase mb-1">Latitude</label>
         <input type="number" step="any" name="latitude" id="lat" value="{{ $school->latitude }}" 
                oninput="updateMapFromInputs()" 
@@ -284,9 +286,20 @@
     </div>
 </div>
 
+
+
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
+<link href='https://unpkg.com/leaflet.fullscreen@1.0.2/dist/leaflet.fullscreen.css' rel='stylesheet' />
+<script src='https://unpkg.com/leaflet.fullscreen@1.0.2/dist/Leaflet.fullscreen.min.js'></script>
+
+<style>
+    /* Ensures Leaflet buttons appear above other UI elements */
+    .leaflet-control-container {
+        z-index: 1000 !important;
+    }
+</style>
 <script>
     // Global variables to track the map and marker instances
     let editMarker;
@@ -363,6 +376,12 @@ function startRecalibration() {
             editMarker.setLatLng(e.latlng);
         } else {
             editMarker = L.marker(e.latlng).addTo(editMap);
+        }
+
+        const googleBtn = document.querySelector('a[href*="google.com/maps"]');
+        if (googleBtn) {
+            const newGoogleLink = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+            googleBtn.setAttribute('href', newGoogleLink);
         }
     });
 }
@@ -442,23 +461,49 @@ function startRecalibration() {
             }
         });
 
-        // Initialize Map and save to global variable editMap
-        setTimeout(() => {
-            editMap = L.map('schoolMap', { 
-                scrollWheelZoom: false, 
-                zoomControl: true, 
-                dragging: true 
-            }).setView([{{ $school->latitude }}, {{ $school->longitude }}], 15);
-            
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(editMap);
-            
-            editMarker = L.marker([{{ $school->latitude }}, {{ $school->longitude }}], {
-                icon: L.divIcon({ 
-                    html: `<div class="bg-[#a52a2a] w-4 h-4 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rounded-full"></div>` 
-                })
-            }).addTo(editMap);
-        }, 300);
+     setTimeout(() => {
+    // 1. Initialize Map with Fullscreen enabled explicitly
+    editMap = L.map('schoolMap', { 
+        scrollWheelZoom: false, 
+        zoomControl: true, 
+        dragging: true,
+        fullscreenControl: true, // Native plugin support
+        fullscreenControlOptions: {
+            position: 'topleft'
+        }
+    }).setView([{{ $school->latitude }}, {{ $school->longitude }}], 15);
+    
+    // 2. Define Tile Layers
+    const streetView = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap'
     });
+
+    const satelliteView = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri'
+    });
+
+    // 3. Add default layer to map
+    streetView.addTo(editMap);
+
+    // 4. Create the "Satellite/Map" Toggle Button
+    const baseMaps = {
+        "Street Map": streetView,
+        "Satellite View": satelliteView
+    };
+
+    // Add the layer control to the top-right
+    L.control.layers(baseMaps).addTo(editMap);
+    
+    // 5. Setup Marker
+    editMarker = L.marker([{{ $school->latitude }}, {{ $school->longitude }}], {
+        icon: L.divIcon({ 
+            html: `<div class="bg-[#a52a2a] w-4 h-4 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rounded-full"></div>` 
+        })
+    }).addTo(editMap);
+}, 300);
+});
+
+
 
     function openDeleteModal() { document.getElementById('deleteModal').classList.remove('hidden'); }
     function closeDeleteModal() { document.getElementById('deleteModal').classList.add('hidden'); }
