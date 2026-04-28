@@ -128,31 +128,36 @@
         </div>
 
         {{-- SECTION 3: GEOSPATIAL & HAZARDS --}}
-        <div class="bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-sm">
-            <div class="bg-slate-100 border-b-2 border-black p-4 text-sm font-black text-[#a52a2a] uppercase tracking-widest flex items-center gap-3">
-                <span class="bg-[#a52a2a] text-white px-2 py-1 text-xs rounded-sm">03</span> Geospatial & Technical Limits
-            </div>
+<div class="bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-sm">
+    <div class="bg-slate-100 border-b-2 border-black p-4 text-sm font-black text-[#a52a2a] uppercase tracking-widest flex items-center gap-3">
+        <span class="bg-[#a52a2a] text-white px-2 py-1 text-xs rounded-sm">03</span> Geospatial & Technical Limits
+    </div>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 divide-y-2 lg:divide-y-0 lg:divide-x-2 divide-slate-100">
+        <div class="p-6 md:p-8">
+            <div id="schoolMap" class="h-[250px] w-full border-2 border-black shadow-inner mb-4 rounded-sm z-0 relative"></div>
             
-            <div class="grid grid-cols-1 lg:grid-cols-2 divide-y-2 lg:divide-y-0 lg:divide-x-2 divide-slate-100">
-                <div class="p-6 md:p-8">
-                    <div id="schoolMap" class="h-[250px] w-full border-2 border-black shadow-inner mb-4 rounded-sm z-0 relative"></div>
-                    
-                    <div class="grid grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label class="block text-[10px] font-black text-slate-500 uppercase mb-1">Latitude</label>
-                            <input type="text" name="latitude" id="lat" value="{{ $school->latitude }}" class="w-full bg-slate-50 border-2 border-slate-200 p-2 font-mono text-sm text-center font-bold outline-none rounded-sm" readonly>
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-black text-slate-500 uppercase mb-1">Longitude</label>
-                            <input type="text" name="longitude" id="lng" value="{{ $school->longitude }}" class="w-full bg-slate-50 border-2 border-slate-200 p-2 font-mono text-sm text-center font-bold outline-none rounded-sm" readonly>
-                        </div>
-                    </div>
+            <div class="grid grid-cols-2 gap-4 mb-4">
+    <div>
+        <label class="block text-[10px] font-black text-slate-500 uppercase mb-1">Latitude</label>
+        <input type="number" step="any" name="latitude" id="lat" value="{{ $school->latitude }}" 
+               oninput="updateMapFromInputs()" 
+               class="w-full bg-white border-2 border-slate-300 p-2 font-mono text-sm text-center font-bold outline-none focus:border-black rounded-sm">
+    </div>
+    <div>
+        <label class="block text-[10px] font-black text-slate-500 uppercase mb-1">Longitude</label>
+        <input type="number" step="any" name="longitude" id="lng" value="{{ $school->longitude }}" 
+               oninput="updateMapFromInputs()" 
+               class="w-full bg-white border-2 border-slate-300 p-2 font-mono text-sm text-center font-bold outline-none focus:border-black rounded-sm">
+    </div>
+</div>
 
-                    <button type="button" onclick="openMapPopup('lat', 'lng', '{{ $school->latitude }}', '{{ $school->longitude }}')" 
-                            class="w-full bg-white border-2 border-black text-black text-sm font-black uppercase tracking-widest p-3 hover:bg-black hover:text-white transition-colors rounded-sm flex justify-center items-center gap-2">
-                        <i class="bi bi-geo-alt-fill"></i> Recalibrate GIS Data
-                    </button>
-                </div>
+{{-- Ensure onclick="openGisModal()" matches the script below --}}
+<button type="button" onclick="openGisModal()" 
+        class="w-full bg-white border-2 border-black text-black text-sm font-black uppercase tracking-widest p-3 hover:bg-black hover:text-white transition-colors rounded-sm flex justify-center items-center gap-2 relative z-10">
+    <i class="bi bi-geo-alt-fill"></i> Execute GIS Recalibration
+</button>
+        </div>
 
                 <div class="p-6 md:p-8 bg-slate-50/50 flex flex-col">
                     <label class="block text-xs font-black text-slate-500 uppercase mb-4 tracking-widest">Risk Categories</label>
@@ -281,7 +286,11 @@
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <script>
+    // Global variables to track the map and marker instances
+    let editMarker;
+    let editMap;
     let overrides = { teacher: false, classroom: false, chair: false, toilet: false };
 
     function getRatios() {
@@ -292,6 +301,71 @@
             toilet: parseInt(localStorage.getItem('deped_ratio_toilet')) || 50
         };
     }
+
+    /**
+     * Updates the preview map pin when you manually type coordinates
+     */
+    function updateMapFromInputs() {
+        const lat = parseFloat(document.getElementById('lat').value);
+        const lng = parseFloat(document.getElementById('lng').value);
+
+        if (!isNaN(lat) && !isNaN(lng)) {
+            const newPos = [lat, lng];
+            editMap.setView(newPos, editMap.getZoom());
+            if (editMarker) {
+                editMarker.setLatLng(newPos);
+            } else {
+                editMarker = L.marker(newPos).addTo(editMap);
+            }
+        }
+    }
+
+    /**
+     * Opens the Map Modal for interactive picking
+     */
+    /**
+ * UI Step 1: Open the Gateway Modal instead of a browser alert
+ */
+function openGisModal() {
+    const gateway = document.getElementById('gisGatewayModal');
+    gateway.classList.remove('hidden');
+}
+
+/**
+ * UI Step 2: Close Gateway
+ */
+function closeGisGateway() {
+    document.getElementById('gisGatewayModal').classList.add('hidden');
+}
+
+/**
+ * UI Step 3: Start the actual recalibration logic
+ */
+function startRecalibration() {
+    closeGisGateway();
+    
+    // Visual feedback on the inputs
+    document.getElementById('lat').classList.add('ring-2', 'ring-[#a52a2a]', 'ring-offset-2');
+    document.getElementById('lng').classList.add('ring-2', 'ring-[#a52a2a]', 'ring-offset-2');
+
+    // Scroll to the map
+    document.getElementById('schoolMap').scrollIntoView({ behavior: 'smooth' });
+
+    // Activate click-to-pick on the map instance
+    editMap.on('click', function(e) {
+        const lat = e.latlng.lat.toFixed(6);
+        const lng = e.latlng.lng.toFixed(6);
+
+        document.getElementById('lat').value = lat;
+        document.getElementById('lng').value = lng;
+
+        if (editMarker) {
+            editMarker.setLatLng(e.latlng);
+        } else {
+            editMarker = L.marker(e.latlng).addTo(editMap);
+        }
+    });
+}
 
     function initOverrides() {
         const ratios = getRatios();
@@ -340,14 +414,6 @@
                 : `<span class="bg-emerald-600 text-white px-1.5 py-0.5 rounded-sm text-[9px] ml-auto uppercase border border-black">Synced</span>`;
             
             el.innerHTML = `<i class="bi bi-info-circle-fill text-slate-400"></i> Suggestion: ${calculatedValue} <span class="text-[9px] font-normal lowercase tracking-normal">(${ratioText})</span> ${statusBadge}`;
-            
-            if(manualInput !== calculatedValue) {
-                el.classList.add('text-[#a52a2a]');
-                el.classList.remove('text-slate-500');
-            } else {
-                el.classList.remove('text-[#a52a2a]');
-                el.classList.add('text-slate-500');
-            }
         };
 
         updateSuggestionUI('teacher', teacherShortage, `1:${ratios.teacher}`);
@@ -376,12 +442,21 @@
             }
         });
 
+        // Initialize Map and save to global variable editMap
         setTimeout(() => {
-            const map = L.map('schoolMap', { scrollWheelZoom: false, zoomControl: true, dragging: true }).setView([{{ $school->latitude }}, {{ $school->longitude }}], 15);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-            L.marker([{{ $school->latitude }}, {{ $school->longitude }}], {
-                icon: L.divIcon({ html: `<div class="bg-[#a52a2a] w-4 h-4 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rounded-full"></div>` })
-            }).addTo(map);
+            editMap = L.map('schoolMap', { 
+                scrollWheelZoom: false, 
+                zoomControl: true, 
+                dragging: true 
+            }).setView([{{ $school->latitude }}, {{ $school->longitude }}], 15);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(editMap);
+            
+            editMarker = L.marker([{{ $school->latitude }}, {{ $school->longitude }}], {
+                icon: L.divIcon({ 
+                    html: `<div class="bg-[#a52a2a] w-4 h-4 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rounded-full"></div>` 
+                })
+            }).addTo(editMap);
         }, 300);
     });
 
@@ -426,14 +501,51 @@
         const wrapper = document.getElementById('custom_hazards_wrapper');
         const div = document.createElement('div');
         div.className = 'flex items-center gap-3';
-        
-        div.innerHTML = `
-            <input type="text" name="custom_hazards[]" class="flex-1 border-2 border-black bg-white text-xs font-bold text-black uppercase focus:outline-none focus:bg-[#fdf2f2] p-3 transition-all" placeholder="E.g., Wildfire Zone">
-            <button type="button" onclick="this.parentElement.remove()" class="px-4 py-3 flex items-center justify-center gap-2 bg-white text-red-600 border-2 border-black hover:bg-red-600 hover:text-white transition-all shrink-0 text-[10px] font-black uppercase tracking-widest shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none">
-                <i class="bi bi-x-lg"></i> Remove
-            </button>
-        `;
+        div.innerHTML = `<input type="text" name="custom_hazards[]" class="flex-1 border-2 border-black bg-white text-xs font-bold text-black uppercase p-3" placeholder="E.g., Wildfire Zone">
+                         <button type="button" onclick="this.parentElement.remove()" class="px-4 py-3 bg-white text-red-600 border-2 border-black">Remove</button>`;
         wrapper.appendChild(div);
     }
 </script>
+{{-- SECTION: GIS RECALIBRATION GATEWAY --}}
+<div id="gisGatewayModal" class="fixed inset-0 z-[2000] hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+    <div class="bg-white border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] w-full max-w-md overflow-hidden rounded-sm">
+        <div class="bg-[#a52a2a] text-white p-4 text-sm font-black uppercase tracking-widest flex justify-between items-center border-b-2 border-black">
+            <span><i class="bi bi-geo-fill mr-2"></i> GIS Protocol</span>
+            <span class="text-[10px] opacity-80 font-mono">SYS_GEO_INIT</span>
+        </div>
+        <div class="p-6 md:p-8 bg-white">
+            <div class="flex items-center gap-4 mb-6">
+                <div class="bg-red-50 p-4 border-2 border-[#a52a2a] text-[#a52a2a]">
+                    <i class="bi bi-pin-map-fill text-3xl"></i>
+                </div>
+                <div>
+                    <p class="text-lg font-black text-slate-800 leading-tight uppercase">Enter Recalibration Mode?</p>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Manual GPS override requested</p>
+                </div>
+            </div>
+            
+            <div class="space-y-3 mb-8">
+                <div class="flex items-center gap-3 text-xs font-bold text-slate-600">
+                    <i class="bi bi-check2-square text-emerald-600"></i> Manual Input Enabled
+                </div>
+                <div class="flex items-center gap-3 text-xs font-bold text-slate-600">
+                    <i class="bi bi-check2-square text-emerald-600"></i> Interactive Map Picking Active
+                </div>
+                <div class="flex items-center gap-3 text-xs font-bold text-slate-600">
+                    <i class="bi bi-check2-square text-emerald-600"></i> Real-time Coordinate Sync
+                </div>
+            </div>
+            
+            <div class="flex gap-4">
+                <button type="button" onclick="closeGisGateway()" class="flex-1 bg-white border-2 border-slate-300 text-slate-600 py-3 text-xs font-black uppercase tracking-widest hover:bg-slate-50 transition-colors">
+                    Abort
+                </button>
+                <button type="button" onclick="startRecalibration()" class="flex-[1.5] bg-black text-white py-3 text-xs font-black uppercase tracking-widest hover:bg-[#a52a2a] transition-colors border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] active:translate-x-1 active:translate-y-1 active:shadow-none">
+                    Initialize Map
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+@include('admin.partials.map_modal')
 @endsection
