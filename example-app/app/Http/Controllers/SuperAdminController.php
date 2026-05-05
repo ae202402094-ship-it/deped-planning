@@ -137,6 +137,19 @@ class SuperAdminController extends Controller
         return view('admin.archive', compact('archivedSchools'));
     }
 
+
+    public function forceDeleteBatch(Request $request) 
+{
+    if ($request->scope === 'all') {
+        // Force delete every single trashed school
+        School::onlyTrashed()->forceDelete();
+        return back()->with('success', 'Archive has been completely wiped.');
+    }
+
+    // Otherwise, delete only the checked IDs
+    School::onlyTrashed()->whereIn('id', $request->ids)->forceDelete();
+    return back()->with('success', 'Selected records have been purged.');
+}
     /**
      * Action: Restore Deleted School
      */

@@ -39,7 +39,7 @@
                                class="w-full bg-white border-2 border-slate-300 p-3 font-mono text-base font-bold focus:outline-none focus:border-black focus:bg-[#fdf2f2] transition-colors rounded-sm shadow-inner">
                     </div>
                     <div>
-                        <label class="block text-xs font-black text-slate-500 uppercase mb-2 tracking-widest">Institutional Nomenclature</label>
+                        <label class="block text-xs font-black text-slate-500 uppercase mb-2 tracking-widest">Institutional Name</label>
                         <input type="text" name="name" value="{{ $school->name }}" 
                                class="w-full bg-white border-2 border-slate-300 p-3 text-base font-bold uppercase focus:outline-none focus:border-black focus:bg-[#fdf2f2] transition-colors rounded-sm shadow-inner">
                     </div>
@@ -111,7 +111,7 @@
                         ] as $short)
                         <div class="bg-white border-2 border-black p-4 rounded-sm shadow-sm">
                             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                <span class="text-sm font-black text-slate-700 uppercase tracking-tight">{{ $short['label'] }} Status</span>
+                                <span class="text-sm font-black text-slate-700 uppercase tracking-tight">{{ $short['label'] }}</span>
                                 <div class="flex gap-2">
                                     <div class="flex-1">
                                         <label class="block text-[9px] font-black text-slate-400 uppercase mb-1">Manual Ratio</label>
