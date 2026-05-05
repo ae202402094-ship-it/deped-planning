@@ -95,21 +95,6 @@
                             Login
                         </button>
                     </form>
-
-                    <div class="mt-8 pt-6 border-t border-slate-100 space-y-4">
-                        <p class="text-center text-sm text-slate-500">
-                            Need an account? <a href="{{ route('register') }}" class="text-blue-600 font-bold hover:underline">Register here</a>
-                        </p>
-
-                        <div class="text-center bg-slate-50 p-3 rounded-lg">
-                            <p class="text-[11px] text-slate-500 uppercase font-bold tracking-tight">Didn't receive verification email?</p>
-                            <form class="inline" method="POST" action="{{ route('verification.send') }}">
-                                @csrf
-                                <button type="submit" class="text-blue-600 hover:text-blue-800 font-bold text-xs underline cursor-pointer mt-1">
-                                    Click here to resend link
-                                </button>
-                            </form>
-                        </div>
                     </div>
                 </div>
             </div>
