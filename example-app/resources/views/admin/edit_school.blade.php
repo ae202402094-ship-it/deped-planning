@@ -67,7 +67,7 @@
             
             <div class="grid grid-cols-1 lg:grid-cols-2 divide-y-2 lg:divide-y-0 lg:divide-x-2 divide-slate-100">
                 {{-- Utilities Left Column --}}
-                <div class="p-6 md:p-8 space-y-6 bg-white">
+                <div class="p-6 md:p-8 space-y-6 bg-white border-r-2 border-black">
                     <h3 class="text-sm font-black text-slate-800 uppercase border-b-2 border-slate-100 pb-2">Utility Connectivity</h3>
                     
                     <div>
@@ -99,26 +99,32 @@
                     </div>
                 </div>
                 
-                {{-- Deficits Right Column --}}
+                {{-- Deficits Right Column (Manual Input Only) --}}
                 <div class="p-6 md:p-8 bg-slate-50/50">
-                    <h3 class="text-sm font-black text-slate-800 uppercase border-b-2 border-slate-200 pb-2 mb-6">Calculated Deficits</h3>
-                    <div class="space-y-5">
+                    <h3 class="text-sm font-black text-slate-800 uppercase border-b-2 border-slate-200 pb-2 mb-6">Manual Ratio & Shortage Input</h3>
+                    <div class="space-y-4">
                         @foreach([
-                            ['name' => 'teacher_shortage', 'label' => 'Teacher Shortage'], 
-                            ['name' => 'classroom_shortage', 'label' => 'Classroom Shortage'], 
-                            ['name' => 'chair_shortage', 'label' => 'Chair Shortage'], 
-                            ['name' => 'toilet_shortage', 'label' => 'Sanitation Shortage']
+                            ['name' => 'teacher', 'label' => 'Teacher'], 
+                            ['name' => 'classroom', 'label' => 'Classroom'], 
+                            ['name' => 'chair', 'label' => 'Chair'], 
+                            ['name' => 'toilet', 'label' => 'Toilet']
                         ] as $short)
-                        <div class="flex flex-col bg-white border-2 border-slate-200 p-4 rounded-sm shadow-sm relative">
-                            <div class="flex items-center justify-between z-10 relative">
-                                <span class="text-sm font-bold text-slate-700 uppercase tracking-tight">{{ $short['label'] }}</span>
-                                <input type="number" name="{{ $short['name'] }}" id="input_{{ $short['name'] }}" value="{{ $school->{$short['name']} ?? 0 }}" 
-                                       class="w-24 bg-slate-50 border-2 border-slate-300 font-mono text-base font-black p-2 text-center focus:border-[#a52a2a] outline-none text-[#a52a2a] transition-colors rounded-sm">
-                            </div>
-                            <div class="flex justify-between items-center mt-3 pt-3 border-t-2 border-dashed border-slate-100 z-0 relative">
-                                <span id="suggestion_{{ $short['name'] }}" class="text-[11px] text-slate-500 font-bold uppercase tracking-widest flex items-center gap-1.5 transition-colors">
-                                    <i class="bi bi-robot text-[#a52a2a]"></i> Calc...
-                                </span>
+                        <div class="bg-white border-2 border-black p-4 rounded-sm shadow-sm">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <span class="text-sm font-black text-slate-700 uppercase tracking-tight">{{ $short['label'] }} Status</span>
+                                <div class="flex gap-2">
+                                    <div class="flex-1">
+                                        <label class="block text-[9px] font-black text-slate-400 uppercase mb-1">Manual Ratio</label>
+                                        <input type="text" name="{{ $short['name'] }}_ratio" value="{{ $school->{$short['name'].'_ratio'} ?? '' }}" 
+                                               placeholder="e.g. 1:45"
+                                               class="w-full md:w-28 bg-slate-50 border-2 border-slate-300 font-mono text-xs font-bold p-2 text-center focus:border-black outline-none transition-colors rounded-sm">
+                                    </div>
+                                    <div class="flex-1">
+                                        <label class="block text-[9px] font-black text-slate-400 uppercase mb-1">Shortage Unit</label>
+                                        <input type="number" name="{{ $short['name'] }}_shortage" value="{{ $school->{$short['name'].'_shortage'} ?? 0 }}" 
+                                               class="w-full md:w-24 bg-slate-50 border-2 border-slate-300 font-mono text-xs font-black p-2 text-center focus:border-[#a52a2a] outline-none text-[#a52a2a] transition-colors rounded-sm">
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         @endforeach
@@ -128,56 +134,47 @@
         </div>
 
         {{-- SECTION 3: GEOSPATIAL & HAZARDS --}}
-<div class="bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-sm">
-    <div class="bg-slate-100 border-b-2 border-black p-4 text-sm font-black text-[#a52a2a] uppercase tracking-widest flex items-center gap-3">
-        <span class="bg-[#a52a2a] text-white px-2 py-1 text-xs rounded-sm">03</span> Geospatial & Technical Limits
-    </div>
-    
-    <div class="grid grid-cols-1 lg:grid-cols-2 divide-y-2 lg:divide-y-0 lg:divide-x-2 divide-slate-100">
-        <div class="p-6 md:p-8">
-            <div id="schoolMap" class="h-[250px] w-full border-2 border-black shadow-inner mb-4 rounded-sm z-0 relative"></div>
+        <div class="bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-sm">
+            <div class="bg-slate-100 border-b-2 border-black p-4 text-sm font-black text-[#a52a2a] uppercase tracking-widest flex items-center gap-3">
+                <span class="bg-[#a52a2a] text-white px-2 py-1 text-xs rounded-sm">03</span> Geospatial & Technical Limits
+            </div>
             
-            <div class="grid grid-cols-2 gap-4 mb-4">
-    <div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 divide-y-2 lg:divide-y-0 lg:divide-x-2 divide-slate-100">
+                <div class="p-6 md:p-8">
+                    <div id="schoolMap" class="h-[250px] w-full border-2 border-black shadow-inner mb-4 rounded-sm z-0 relative"></div>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-500 uppercase mb-1">Latitude</label>
+                            <input type="number" step="any" name="latitude" id="lat" value="{{ $school->latitude }}" 
+                                   oninput="updateMapFromInputs()" 
+                                   class="w-full bg-white border-2 border-slate-300 p-2 font-mono text-sm text-center font-bold outline-none focus:border-black rounded-sm">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-500 uppercase mb-1">Longitude</label>
+                            <input type="number" step="any" name="longitude" id="lng" value="{{ $school->longitude }}" 
+                                   oninput="updateMapFromInputs()" 
+                                   class="w-full bg-white border-2 border-slate-300 p-2 font-mono text-sm text-center font-bold outline-none focus:border-black rounded-sm">
+                        </div>
+                    </div>
 
-    
-        <label class="block text-[10px] font-black text-slate-500 uppercase mb-1">Latitude</label>
-        <input type="number" step="any" name="latitude" id="lat" value="{{ $school->latitude }}" 
-               oninput="updateMapFromInputs()" 
-               class="w-full bg-white border-2 border-slate-300 p-2 font-mono text-sm text-center font-bold outline-none focus:border-black rounded-sm">
-    </div>
-    <div>
-        <label class="block text-[10px] font-black text-slate-500 uppercase mb-1">Longitude</label>
-        <input type="number" step="any" name="longitude" id="lng" value="{{ $school->longitude }}" 
-               oninput="updateMapFromInputs()" 
-               class="w-full bg-white border-2 border-slate-300 p-2 font-mono text-sm text-center font-bold outline-none focus:border-black rounded-sm">
-    </div>
-</div>
-
-{{-- Ensure onclick="openGisModal()" matches the script below --}}
-<button type="button" onclick="openGisModal()" 
-        class="w-full bg-white border-2 border-black text-black text-sm font-black uppercase tracking-widest p-3 hover:bg-black hover:text-white transition-colors rounded-sm flex justify-center items-center gap-2 relative z-10">
-    <i class="bi bi-geo-alt-fill"></i> Execute GIS Recalibration
-</button>
-        </div>
+                    <button type="button" onclick="openGisModal()" 
+                            class="w-full bg-white border-2 border-black text-black text-sm font-black uppercase tracking-widest p-3 hover:bg-black hover:text-white transition-colors rounded-sm flex justify-center items-center gap-2 relative z-10">
+                        <i class="bi bi-geo-alt-fill"></i> Execute GIS Recalibration
+                    </button>
+                </div>
 
                 <div class="p-6 md:p-8 bg-slate-50/50 flex flex-col">
                     <label class="block text-xs font-black text-slate-500 uppercase mb-4 tracking-widest">Risk Categories</label>
                     
                     @php
-                        // Extract current hazards safely
                         $currentHazards = is_array($school->hazard_type) ? $school->hazard_type : (json_decode($school->hazard_type, true) ?? [$school->hazard_type]);
                         if (!is_array($currentHazards)) $currentHazards = [];
-                        
-                        // Separate default hazards from custom ones
                         $defaultHazardsList = ['Flood Prone', 'Landslide Risk', 'Seismic Zone', 'Coastal Surge / Tsunami'];
                         $customHazards = array_diff($currentHazards, $defaultHazardsList);
-                        
-                        // Clean up legacy artifacts
                         $customHazards = array_filter($customHazards, fn($h) => !in_array($h, ['None', 'Others', '']));
                     @endphp
 
-                  {{-- Brutalist Checkbox Grid --}}
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
                         @foreach($defaultHazardsList as $hazard)
                         <label class="flex items-center gap-3 p-4 border-2 border-slate-300 cursor-pointer hover:border-black hover:bg-slate-50 transition-all bg-white has-[:checked]:border-[#a52a2a] has-[:checked]:shadow-[2px_2px_0px_0px_rgba(165,42,42,1)] group">
@@ -188,7 +185,6 @@
                         @endforeach
                     </div>
 
-                    {{-- Dynamic Custom Hazards Section --}}
                     <div class="border-t-2 border-black pt-5">
                         <div class="flex justify-between items-center mb-4">
                             <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest">Additional Custom Hazards</label>
@@ -237,15 +233,9 @@
                     <span class="text-xs text-slate-500 uppercase tracking-widest mb-1">Target Institution</span>
                     <span id="confirmName" class="font-black text-lg text-black leading-tight"></span>
                 </div>
-                <div class="grid grid-cols-3 gap-4 text-center mb-4">
-                    <div class="bg-white border border-slate-200 p-2 rounded"><p class="text-[10px] text-slate-500 uppercase">Teacher Shortage</p><p id="confirmTCH" class="font-black text-black text-lg"></p></div>
-                    <div class="bg-white border border-slate-200 p-2 rounded"><p class="text-[10px] text-slate-500 uppercase">Enrollees</p><p id="confirmENR" class="font-black text-black text-lg"></p></div>
-                    <div class="bg-white border border-slate-200 p-2 rounded"><p class="text-[10px] text-slate-500 uppercase">Classroom Shortage</p><p id="confirmCLS" class="font-black text-black text-lg"></p></div>
-                </div>
-                <div class="grid grid-cols-3 gap-4 text-center border-t-2 border-slate-200 pt-4">
-                    <div class="bg-white border border-slate-200 p-2 rounded"><p class="text-[10px] text-slate-500 uppercase">Chair Shortage</p><p id="confirmCHR_DEF" class="font-black text-lg"></p></div>
-                    <div class="bg-white border border-slate-200 p-2 rounded"><p class="text-[10px] text-slate-500 uppercase">Classroom Shortage</p><p id="confirmCLS_DEF" class="font-black text-lg"></p></div>
-                    <div class="bg-white border border-slate-200 p-2 rounded"><p class="text-[10px] text-slate-500 uppercase">Toilet Shortage</p><p id="confirmTLT_DEF" class="font-black text-lg"></p></div>
+                <div class="p-2 bg-white border border-slate-200 rounded text-center">
+                    <p class="text-xs text-slate-500 uppercase mb-2">Authorized update for registry cycle 2026</p>
+                    <p class="text-xs font-bold text-black italic">Ensure all manual shortage and ratio data are validated against division audits before syncing.</p>
                 </div>
             </div>
             <div class="flex gap-4">
@@ -286,38 +276,16 @@
     </div>
 </div>
 
-
-
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <link href='https://unpkg.com/leaflet.fullscreen@1.0.2/dist/leaflet.fullscreen.css' rel='stylesheet' />
 <script src='https://unpkg.com/leaflet.fullscreen@1.0.2/dist/Leaflet.fullscreen.min.js'></script>
 
-<style>
-    /* Ensures Leaflet buttons appear above other UI elements */
-    .leaflet-control-container {
-        z-index: 1000 !important;
-    }
-</style>
 <script>
-    // Global variables to track the map and marker instances
     let editMarker;
     let editMap;
-    let overrides = { teacher: false, classroom: false, chair: false, toilet: false };
 
-    function getRatios() {
-        return {
-            teacher: parseInt(localStorage.getItem('deped_ratio_teacher')) || 45,
-            classroom: parseInt(localStorage.getItem('deped_ratio_classroom')) || 40,
-            chair: parseInt(localStorage.getItem('deped_ratio_chair')) || 1,
-            toilet: parseInt(localStorage.getItem('deped_ratio_toilet')) || 50
-        };
-    }
-
-    /**
-     * Updates the preview map pin when you manually type coordinates
-     */
     function updateMapFromInputs() {
         const lat = parseFloat(document.getElementById('lat').value);
         const lng = parseFloat(document.getElementById('lng').value);
@@ -333,206 +301,65 @@
         }
     }
 
-    /**
-     * Opens the Map Modal for interactive picking
-     */
-    /**
- * UI Step 1: Open the Gateway Modal instead of a browser alert
- */
-function openGisModal() {
-    const gateway = document.getElementById('gisGatewayModal');
-    gateway.classList.remove('hidden');
-}
-
-/**
- * UI Step 2: Close Gateway
- */
-function closeGisGateway() {
-    document.getElementById('gisGatewayModal').classList.add('hidden');
-}
-
-/**
- * UI Step 3: Start the actual recalibration logic
- */
-function startRecalibration() {
-    closeGisGateway();
-    
-    // Visual feedback on the inputs
-    document.getElementById('lat').classList.add('ring-2', 'ring-[#a52a2a]', 'ring-offset-2');
-    document.getElementById('lng').classList.add('ring-2', 'ring-[#a52a2a]', 'ring-offset-2');
-
-    // Scroll to the map
-    document.getElementById('schoolMap').scrollIntoView({ behavior: 'smooth' });
-
-    // Activate click-to-pick on the map instance
-    editMap.on('click', function(e) {
-        const lat = e.latlng.lat.toFixed(6);
-        const lng = e.latlng.lng.toFixed(6);
-
-        document.getElementById('lat').value = lat;
-        document.getElementById('lng').value = lng;
-
-        if (editMarker) {
-            editMarker.setLatLng(e.latlng);
-        } else {
-            editMarker = L.marker(e.latlng).addTo(editMap);
-        }
-
-        const googleBtn = document.querySelector('a[href*="google.com/maps"]');
-        if (googleBtn) {
-            const newGoogleLink = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
-            googleBtn.setAttribute('href', newGoogleLink);
-        }
-    });
-}
-
-    function initOverrides() {
-        const ratios = getRatios();
-        const enrollees = parseInt({{ $school->no_of_enrollees ?? 0 }});
-        const teachers = parseInt({{ $school->no_of_teachers ?? 0 }});
-        const classrooms = parseInt({{ $school->no_of_classrooms ?? 0 }});
-        const chairs = parseInt({{ $school->no_of_chairs ?? 0 }});
-        const toilets = parseInt({{ $school->no_of_toilets ?? 0 }});
-
-        const calcTeach = Math.max(0, Math.ceil(enrollees / ratios.teacher) - teachers);
-        const calcClass = Math.max(0, Math.ceil(enrollees / ratios.classroom) - classrooms);
-        const calcChair = Math.max(0, Math.ceil(enrollees / ratios.chair) - chairs);
-        const calcToilet = Math.max(0, Math.ceil(enrollees / ratios.toilet) - toilets);
-
-        if (parseInt(document.getElementById('input_teacher_shortage').value || 0) !== calcTeach) overrides.teacher = true;
-        if (parseInt(document.getElementById('input_classroom_shortage').value || 0) !== calcClass) overrides.classroom = true;
-        if (parseInt(document.getElementById('input_chair_shortage').value || 0) !== calcChair) overrides.chair = true;
-        if (parseInt(document.getElementById('input_toilet_shortage').value || 0) !== calcToilet) overrides.toilet = true;
+    function openGisModal() {
+        document.getElementById('gisGatewayModal').classList.remove('hidden');
     }
 
-    function calculateGuidedSuggestions() {
-        const ratios = getRatios();
-        const enrollees = parseInt(document.getElementById('input_no_of_enrollees').value) || 0;
-        const teachers = parseInt(document.getElementById('input_no_of_teachers').value) || 0;
-        const classrooms = parseInt(document.getElementById('input_no_of_classrooms').value) || 0;
-        const chairs = parseInt(document.getElementById('input_no_of_chairs').value) || 0;
-        const toilets = parseInt(document.getElementById('input_no_of_toilets').value) || 0;
+    function closeGisGateway() {
+        document.getElementById('gisGatewayModal').classList.add('hidden');
+    }
 
-        const teacherShortage = Math.max(0, Math.ceil(enrollees / ratios.teacher) - teachers);
-        const classShortage = Math.max(0, Math.ceil(enrollees / ratios.classroom) - classrooms);
-        const chairShortage = Math.max(0, Math.ceil(enrollees / ratios.chair) - chairs);
-        const toiletShortage = Math.max(0, Math.ceil(enrollees / ratios.toilet) - toilets);
+    function startRecalibration() {
+        closeGisGateway();
+        document.getElementById('lat').classList.add('ring-2', 'ring-[#a52a2a]', 'ring-offset-2');
+        document.getElementById('lng').classList.add('ring-2', 'ring-[#a52a2a]', 'ring-offset-2');
+        document.getElementById('schoolMap').scrollIntoView({ behavior: 'smooth' });
 
-        if (!overrides.teacher) document.getElementById('input_teacher_shortage').value = teacherShortage;
-        if (!overrides.classroom) document.getElementById('input_classroom_shortage').value = classShortage;
-        if (!overrides.chair) document.getElementById('input_chair_shortage').value = chairShortage;
-        if (!overrides.toilet) document.getElementById('input_toilet_shortage').value = toiletShortage;
+        editMap.on('click', function(e) {
+            const lat = e.latlng.lat.toFixed(6);
+            const lng = e.latlng.lng.toFixed(6);
+            document.getElementById('lat').value = lat;
+            document.getElementById('lng').value = lng;
 
-        const updateSuggestionUI = (type, calculatedValue, ratioText) => {
-            const el = document.getElementById(`suggestion_${type}_shortage`);
-            if(!el) return;
-            const manualInput = parseInt(document.getElementById(`input_${type}_shortage`).value) || 0;
-            
-            let statusBadge = overrides[type] 
-                ? `<span class="bg-[#a52a2a] text-white px-1.5 py-0.5 rounded-sm text-[9px] ml-auto uppercase border border-black">Override</span>` 
-                : `<span class="bg-emerald-600 text-white px-1.5 py-0.5 rounded-sm text-[9px] ml-auto uppercase border border-black">Synced</span>`;
-            
-            el.innerHTML = `<i class="bi bi-info-circle-fill text-slate-400"></i> Suggestion: ${calculatedValue} <span class="text-[9px] font-normal lowercase tracking-normal">(${ratioText})</span> ${statusBadge}`;
-        };
-
-        updateSuggestionUI('teacher', teacherShortage, `1:${ratios.teacher}`);
-        updateSuggestionUI('classroom', classShortage, `1:${ratios.classroom}`);
-        updateSuggestionUI('chair', chairShortage, `1:${ratios.chair}`);
-        updateSuggestionUI('toilet', toiletShortage, `1:${ratios.toilet}`);
+            if (editMarker) {
+                editMarker.setLatLng(e.latlng);
+            } else {
+                editMarker = L.marker(e.latlng).addTo(editMap);
+            }
+        });
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        initOverrides();
-        calculateGuidedSuggestions();
+        setTimeout(() => {
+            editMap = L.map('schoolMap', { 
+                scrollWheelZoom: false, 
+                zoomControl: true, 
+                dragging: true,
+                fullscreenControl: true,
+                fullscreenControlOptions: { position: 'topleft' }
+            }).setView([{{ $school->latitude }}, {{ $school->longitude }}], 15);
+            
+            const streetView = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' });
+            const satelliteView = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles &copy; Esri' });
 
-        const baseInputs = ['input_no_of_enrollees', 'input_no_of_teachers', 'input_no_of_classrooms', 'input_no_of_chairs', 'input_no_of_toilets'];
-        baseInputs.forEach(id => {
-            const el = document.getElementById(id);
-            if(el) el.addEventListener('input', calculateGuidedSuggestions);
-        });
-
-        ['teacher', 'classroom', 'chair', 'toilet'].forEach(type => {
-            const el = document.getElementById(`input_${type}_shortage`);
-            if(el) {
-                el.addEventListener('input', () => {
-                    overrides[type] = true;
-                    calculateGuidedSuggestions(); 
-                });
-            }
-        });
-
-     setTimeout(() => {
-    // 1. Initialize Map with Fullscreen enabled explicitly
-    editMap = L.map('schoolMap', { 
-        scrollWheelZoom: false, 
-        zoomControl: true, 
-        dragging: true,
-        fullscreenControl: true, // Native plugin support
-        fullscreenControlOptions: {
-            position: 'topleft'
-        }
-    }).setView([{{ $school->latitude }}, {{ $school->longitude }}], 15);
-    
-    // 2. Define Tile Layers
-    const streetView = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap'
+            streetView.addTo(editMap);
+            L.control.layers({ "Street Map": streetView, "Satellite View": satelliteView }).addTo(editMap);
+            
+            editMarker = L.marker([{{ $school->latitude }}, {{ $school->longitude }}], {
+                icon: L.divIcon({ 
+                    html: `<div class="bg-[#a52a2a] w-4 h-4 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rounded-full"></div>` 
+                })
+            }).addTo(editMap);
+        }, 300);
     });
-
-    const satelliteView = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles &copy; Esri'
-    });
-
-    // 3. Add default layer to map
-    streetView.addTo(editMap);
-
-    // 4. Create the "Satellite/Map" Toggle Button
-    const baseMaps = {
-        "Street Map": streetView,
-        "Satellite View": satelliteView
-    };
-
-    // Add the layer control to the top-right
-    L.control.layers(baseMaps).addTo(editMap);
-    
-    // 5. Setup Marker
-    editMarker = L.marker([{{ $school->latitude }}, {{ $school->longitude }}], {
-        icon: L.divIcon({ 
-            html: `<div class="bg-[#a52a2a] w-4 h-4 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rounded-full"></div>` 
-        })
-    }).addTo(editMap);
-}, 300);
-});
-
-
 
     function openDeleteModal() { document.getElementById('deleteModal').classList.remove('hidden'); }
     function closeDeleteModal() { document.getElementById('deleteModal').classList.add('hidden'); }
 
     function triggerVerification() {
         const name = document.querySelector('input[name="name"]').value.toUpperCase();
-        const tch = document.getElementById('input_no_of_teachers').value;
-        const enr = document.getElementById('input_no_of_enrollees').value;
-        const cls = document.getElementById('input_no_of_classrooms').value;
-        const chrDef = document.getElementById('input_chair_shortage').value;
-        const clsDef = document.getElementById('input_classroom_shortage').value;
-        const tltDef = document.getElementById('input_toilet_shortage').value;
-
         document.getElementById('confirmName').innerText = name;
-        document.getElementById('confirmTCH').innerText = tch;
-        document.getElementById('confirmENR').innerText = enr;
-        document.getElementById('confirmCLS').innerText = cls;
-
-        updateIndicator('confirmCHR_DEF', chrDef);
-        updateIndicator('confirmCLS_DEF', clsDef);
-        updateIndicator('confirmTLT_DEF', tltDef);
-
         document.getElementById('verificationModal').classList.remove('hidden');
-    }
-
-    function updateIndicator(id, value) {
-        const el = document.getElementById(id);
-        el.innerText = value;
-        el.style.color = parseInt(value) > 0 ? '#a52a2a' : '#059669'; 
     }
 
     function submitOfficialForm() {
@@ -551,7 +378,7 @@ function startRecalibration() {
         wrapper.appendChild(div);
     }
 </script>
-{{-- SECTION: GIS RECALIBRATION GATEWAY --}}
+
 <div id="gisGatewayModal" class="fixed inset-0 z-[2000] hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
     <div class="bg-white border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] w-full max-w-md overflow-hidden rounded-sm">
         <div class="bg-[#a52a2a] text-white p-4 text-sm font-black uppercase tracking-widest flex justify-between items-center border-b-2 border-black">
@@ -568,26 +395,9 @@ function startRecalibration() {
                     <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Manual GPS override requested</p>
                 </div>
             </div>
-            
-            <div class="space-y-3 mb-8">
-                <div class="flex items-center gap-3 text-xs font-bold text-slate-600">
-                    <i class="bi bi-check2-square text-emerald-600"></i> Manual Input Enabled
-                </div>
-                <div class="flex items-center gap-3 text-xs font-bold text-slate-600">
-                    <i class="bi bi-check2-square text-emerald-600"></i> Interactive Map Picking Active
-                </div>
-                <div class="flex items-center gap-3 text-xs font-bold text-slate-600">
-                    <i class="bi bi-check2-square text-emerald-600"></i> Real-time Coordinate Sync
-                </div>
-            </div>
-            
             <div class="flex gap-4">
-                <button type="button" onclick="closeGisGateway()" class="flex-1 bg-white border-2 border-slate-300 text-slate-600 py-3 text-xs font-black uppercase tracking-widest hover:bg-slate-50 transition-colors">
-                    Abort
-                </button>
-                <button type="button" onclick="startRecalibration()" class="flex-[1.5] bg-black text-white py-3 text-xs font-black uppercase tracking-widest hover:bg-[#a52a2a] transition-colors border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] active:translate-x-1 active:translate-y-1 active:shadow-none">
-                    Initialize Map
-                </button>
+                <button type="button" onclick="closeGisGateway()" class="flex-1 bg-white border-2 border-slate-300 text-slate-600 py-3 text-xs font-black uppercase tracking-widest hover:bg-slate-50 transition-colors">Abort</button>
+                <button type="button" onclick="startRecalibration()" class="flex-[1.5] bg-black text-white py-3 text-xs font-black uppercase tracking-widest hover:bg-[#a52a2a] transition-colors border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] active:translate-x-1 active:translate-y-1 active:shadow-none">Initialize Map</button>
             </div>
         </div>
     </div>
