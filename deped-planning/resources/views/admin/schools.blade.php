@@ -93,12 +93,7 @@
             </button>
 
             {{-- Clear All Data --}}
-            <form action="{{ route('schools.clear_all') }}" method="POST" onsubmit="return confirm('WARNING: Are you sure you want to purge ALL registry data? This action cannot be undone.')">
-                @csrf @method('DELETE')
-                <button type="submit" class="bg-red-50 border-2 border-red-100 text-red-600 px-4 py-3 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-red-100 hover:border-red-200 transition-all flex items-center justify-center shadow-sm" title="Purge All Records">
-                    <i class="bi bi-trash3-fill text-sm"></i>
-                </button>
-            </form>
+           
 
             {{-- Archives Button --}}
             <a href="{{ route('schools.archive') }}" class="bg-white border-2 border-slate-200 text-slate-600 px-6 py-3 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:border-amber-500 hover:text-amber-600 transition-all flex items-center gap-2 shadow-sm">

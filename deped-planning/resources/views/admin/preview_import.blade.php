@@ -1,117 +1,123 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 py-8 font-sans leading-tight">
-    {{-- Header Ribbon: Black Borders with Auburn Accent --}}
-    <div class="flex justify-between items-stretch bg-white border-2 border-black mb-8 shadow-[4px_4px_0px_0px_rgba(165,42,42,1)]">
+<div class="max-w-7xl mx-auto px-6 py-10 font-sans leading-relaxed">
+    {{-- Header Ribbon --}}
+    <div class="flex justify-between items-stretch bg-white border-2 border-black mb-10 shadow-[6px_6px_0px_0px_rgba(165,42,42,1)]">
         <div class="flex items-center">
-            <div class="bg-[#a52a2a] text-white px-6 py-4 text-xs font-black uppercase tracking-tighter border-r-2 border-black">
+            <div class="bg-[#a52a2a] text-white px-8 py-5 text-sm font-black uppercase tracking-normal border-r-2 border-black">
                 Registry Synchronization Preview
             </div>
-            <h1 class="px-6 text-sm font-black text-black uppercase tracking-tight">Technical Audit Batch: {{ count($formattedData) }} Entities</h1>
+            <h1 class="px-8 text-base font-black text-black uppercase tracking-wide border-none">
+                Batch Audit: {{ $formattedData->total() }} Entities
+            </h1>
         </div>
         <div class="flex border-l-2 border-black">
-            <a href="{{ route('admin.schools') }}" class="px-6 py-4 text-[10px] font-black uppercase text-slate-400 hover:text-black transition-colors bg-slate-50">
+            <a href="{{ route('admin.schools') }}" class="px-8 py-5 text-xs font-black uppercase text-slate-500 hover:text-red-600 transition-colors bg-slate-50 flex items-center border-none">
                 Abort Protocol
             </a>
         </div>
     </div>
 
-    {{-- Comprehensive Status Ledger: Neutral Borders --}}
-    <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
-        <div class="border-2 border-black p-4 bg-white shadow-sm">
-            <p class="text-[7px] font-black text-slate-400 uppercase tracking-widest mb-1">New Registrations</p>
-            <p class="text-2xl font-black text-emerald-600">{{ $newCount }}</p>
+    {{-- Status Ledger --}}
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10 text-center">
+        <div class="border-2 border-black p-5 bg-white shadow-sm">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 border-none">New Entries</p>
+            <p class="text-3xl font-black text-blue-600 border-none">{{ $newCount }}</p>
         </div>
-        <div class="border-2 border-black p-4 bg-white shadow-sm">
-            <p class="text-[7px] font-black text-slate-400 uppercase tracking-widest mb-1">Record Updates</p>
-            <p class="text-2xl font-black text-[#a52a2a]">{{ $updateCount }}</p>
+        <div class="border-2 border-black p-5 bg-white shadow-sm">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 border-none">Record Updates</p>
+            <p class="text-3xl font-black text-emerald-600 border-none">{{ $updateCount }}</p>
         </div>
-        <div class="border-2 border-black p-4 bg-white shadow-sm">
-            <p class="text-[7px] font-black text-orange-400 uppercase tracking-widest mb-1">Nomenclature Mismatch</p>
-            <p class="text-2xl font-black text-orange-500">{{ $nameMismatchCount }}</p>
+        <div class="border-2 border-black p-5 bg-white shadow-sm">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 border-none">Ignored Duplicates</p>
+            <p class="text-3xl font-black text-red-600 border-none">{{ $conflictCount }}</p>
         </div>
-        <div class="border-2 border-black p-4 bg-white shadow-sm">
-            <p class="text-[7px] font-black text-red-400 uppercase tracking-widest mb-1">Primary Key Conflicts</p>
-            <p class="text-2xl font-black text-red-600">{{ $conflictCount }}</p>
-        </div>
-        <div class="border-2 border-black p-4 bg-slate-50 shadow-sm">
-            <p class="text-[7px] font-black text-slate-900 uppercase tracking-widest mb-1">Batch Total</p>
-            <p class="text-2xl font-black text-slate-900">{{ count($formattedData) }}</p>
+        <div class="border-2 border-black p-5 bg-slate-900 shadow-sm">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 border-none text-white/50">Batch Total</p>
+            <p class="text-3xl font-black text-white border-none">{{ $formattedData->total() }}</p>
         </div>
     </div>
 
-    {{-- High-Density Technical Table: Black Borders --}}
-    <div class="overflow-hidden border-2 border-black bg-white shadow-2xl overflow-x-auto">
-        <table class="w-full text-left border-collapse table-auto">
+    {{-- Technical Table --}}
+    <div class="overflow-visible border-2 border-black bg-white shadow-2xl mb-6">
+        <table class="w-full text-left border-collapse table-auto border-none">
             <thead>
-                <tr class="bg-black text-white">
-                    <th class="p-3 text-[8px] font-black uppercase tracking-widest border-r border-white/20">Protocol</th>
-                    <th class="p-3 text-[8px] font-black uppercase tracking-widest border-r border-white/20">Identification</th>
-                    <th class="p-3 text-[8px] font-black uppercase tracking-widest border-r border-white/20">Inventory Matrix</th>
-                    <th class="p-3 text-[8px] font-black uppercase tracking-widest border-r border-white/20">Utility Audit</th>
-                    <th class="p-3 text-[8px] font-black uppercase tracking-widest border-r border-white/20">Deficit Audit</th>
-                    <th class="p-3 text-[8px] font-black uppercase tracking-widest">Technical Remarks</th>
+                <tr class="bg-black text-white border-none">
+                    <th class="p-4 text-xs font-black uppercase tracking-widest border-r border-white/20">Identification</th>
+                    <th class="p-4 text-xs font-black uppercase tracking-widest border-r border-white/20">Inventory Matrix</th>
+                    <th class="p-4 text-xs font-black uppercase tracking-widest border-r border-white/20">Utility Audit</th>
+                    <th class="p-4 text-xs font-black uppercase tracking-widest border-r border-white/20">Deficit Audit</th>
+                    <th class="p-4 text-xs font-black uppercase tracking-widest border-none">Technical Remarks</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-black/10">
+            <tbody class="divide-y-2 divide-black border-none">
                 @foreach($formattedData as $row)
-                <tr class="hover:bg-slate-50 transition-colors {{ $row['status'] === 'conflict' ? 'bg-red-50' : '' }}">
-                    {{-- Protocol Status --}}
-                    <td class="p-3 border-r border-black/10 text-center align-top">
-                        <div class="flex flex-col gap-1">
+                @php
+                    $isConflict = $row['status'] === 'conflict';
+                    $hasChanges = !empty($row['changes']);
+                    $rowBg = $isConflict ? 'bg-red-50/70' : 'bg-white';
+                @endphp
+                <tr class="hover:bg-slate-50 transition-colors {{ $rowBg }} border-none">
+                    {{-- Identification --}}
+                    <td class="p-4 border-r border-black/10 align-top border-none">
+                        <div class="mb-2 border-none">
                             @if($row['status'] == 'new')
-                                <span class="text-[7px] bg-emerald-600 text-white px-2 py-0.5 font-black uppercase rounded-sm">New Data</span>
-                            @elseif($row['status'] == 'update')
-                                <span class="text-[7px] bg-blue-600 text-white px-2 py-0.5 font-black uppercase rounded-sm">Overwrite</span>
-                            @else
-                                <span class="text-[7px] bg-red-600 text-white px-2 py-0.5 font-black uppercase rounded-sm">Conflict</span>
+                                <span class="text-[9px] bg-blue-600 text-white px-2 py-1 font-black uppercase rounded-sm border-none">New Entry</span>
+                            @elseif($isConflict)
+                                <span class="text-[9px] bg-red-600 text-white px-2 py-1 font-black uppercase rounded-sm border-none">Ignored Duplicate</span>
                             @endif
                         </div>
-                    </td>
-
-                    {{-- Identification --}}
-                    <td class="p-3 border-r border-black/10 align-top">
-                        <p class="text-[10px] font-black text-slate-800 uppercase leading-none mb-1">{{ $row['name'] }}</p>
-                        <p class="text-[8px] font-mono font-bold text-slate-400 tracking-tighter italic">ID: {{ $row['school_id'] }}</p>
+                        <p class="text-sm font-black text-slate-900 uppercase leading-tight border-none {{ isset($row['changes']['name']) ? 'bg-emerald-200 px-1 rounded' : '' }}">
+                            {{ $row['name'] }}
+                        </p>
+                        <p class="text-xs font-mono font-bold text-slate-500 mt-1 italic border-none">ID: {{ $row['school_id'] }}</p>
                     </td>
                     
                     {{-- Inventory Matrix --}}
-                    <td class="p-3 border-r border-black/10 align-top">
-                        <div class="grid grid-cols-2 gap-x-4 gap-y-1 font-mono text-[9px]">
-                            <div class="flex justify-between border-b border-slate-100"><span class="text-slate-400 uppercase">TEACHERS</span><span class="font-black">{{ $row['no_of_teachers'] }}</span></div>
-                            <div class="flex justify-between border-b border-slate-100"><span class="text-slate-400 uppercase">ENROLLEES</span><span class="font-black">{{ $row['no_of_enrollees'] }}</span></div>
-                            <div class="flex justify-between border-b border-slate-100"><span class="text-slate-400 uppercase">CLASSROOMS</span><span class="font-black">{{ $row['no_of_classrooms'] }}</span></div>
-                            <div class="flex justify-between border-b border-slate-100"><span class="text-slate-400 uppercase">CHAIRS</span><span class="font-black text-[#a52a2a]">{{ $row['no_of_chairs'] }}</span></div>
+                    <td class="p-4 border-r border-black/10 align-top border-none">
+                        <div class="grid grid-cols-1 gap-y-1 font-mono text-xs border-none">
+                            @foreach(['no_of_teachers' => 'Teachers', 'no_of_enrollees' => 'Enrollees', 'no_of_classrooms' => 'Rooms', 'no_of_chairs' => 'Chairs'] as $key => $label)
+                            <div class="flex justify-between border-b border-black/5 border-none {{ isset($row['changes'][$key]) ? 'bg-emerald-200 font-black px-1 rounded' : '' }}">
+                                <span class="uppercase opacity-60 border-none">{{ $label }}:</span>
+                                <span class="border-none text-slate-900">{{ $row[$key] }}</span>
+                            </div>
+                            @endforeach
                         </div>
                     </td>
 
                     {{-- Utility Audit --}}
-                    <td class="p-3 border-r border-black/10 align-top">
-                        <div class="space-y-1">
-                            @foreach([['key' => 'with_electricity', 'label' => 'Electricity'], ['key' => 'with_potable_water', 'label' => 'Water'], ['key' => 'with_internet', 'label' => 'Connectivity']] as $util)
-                            <div class="flex items-center gap-2">
-                                <div class="w-1.5 h-1.5 rounded-full {{ $row[$util['key']] ? 'bg-emerald-500' : 'bg-red-400' }}"></div>
-                                <span class="text-[8px] font-black uppercase {{ $row[$util['key']] ? 'text-slate-700' : 'text-slate-300' }}">{{ $util['label'] }}</span>
+                    <td class="p-4 border-r border-black/10 align-top border-none">
+                        <div class="space-y-2 border-none">
+                            @foreach([['key' => 'with_electricity', 'label' => 'Electricity'], ['key' => 'with_potable_water', 'label' => 'Water'], ['key' => 'with_internet', 'label' => 'Web']] as $util)
+                            <div class="flex items-center gap-3 border-none {{ isset($row['changes'][$util['key']]) ? 'bg-emerald-200 px-1 rounded' : '' }}">
+                                <div class="w-3 h-3 rounded-full border-none {{ $row[$util['key']] ? 'bg-emerald-500' : 'bg-red-500' }}"></div>
+                                <span class="text-xs font-black uppercase border-none text-slate-800">{{ $util['label'] }}</span>
                             </div>
                             @endforeach
                         </div>
                     </td>
 
                     {{-- Deficit Audit --}}
-                    <td class="p-3 border-r border-black/10 align-top font-mono text-[9px]">
-                        <div class="space-y-1 text-[#a52a2a] font-bold">
-                            <p>CLASSROOM_SHORTAGE: {{ $row['classroom_shortage'] }}</p>
-                            <p>CHAIR_SHORTAGE: {{ $row['chair_shortage'] }}</p>
-                            <p>TOILET_SHORTAGE: {{ $row['toilet_shortage'] }}</p>
+                    <td class="p-4 border-r border-black/10 align-top font-mono text-xs border-none">
+                        <div class="space-y-1 border-none text-slate-800">
+                            @foreach(['classroom_shortage' => 'ROOM_S', 'chair_shortage' => 'CHAIR_S', 'toilet_shortage' => 'TOILET_S'] as $key => $label)
+                            <p class="border-none {{ isset($row['changes'][$key]) ? 'bg-emerald-200 font-black px-1 rounded' : '' }}">{{ $label }}: {{ $row[$key] }}</p>
+                            @endforeach
                         </div>
                     </td>
 
                     {{-- Technical Remarks --}}
-                    <td class="p-3 align-top">
-                        <p class="text-[8px] font-bold text-slate-500 uppercase leading-relaxed tracking-tighter italic">
-                            {{ $row['hazards'] ?: 'No physical hazards documented.' }}
-                        </p>
+                    <td class="p-4 align-top border-none">
+                        <div class="text-[10px] font-bold uppercase border-none">
+                            @if($isConflict)
+                                <div class="text-red-700 font-black border-none">
+                                    SYSTEM OVERRIDE: DUPLICATE RECORD DETECTED. THIS ENTRY WILL BE EXCLUDED FROM THE SYNC.
+                                </div>
+                            @else
+                                <span class="text-slate-500 italic border-none">{{ $row['hazards'] ?: 'No physical hazards documented.' }}</span>
+                            @endif
+                        </div>
                     </td>
                 </tr>
                 @endforeach
@@ -119,17 +125,24 @@
         </table>
     </div>
 
+    {{-- Pagination --}}
+    <div class="mt-6 border-none">
+        {{ $formattedData->links() }}
+    </div>
+
     {{-- Execution Protocol --}}
-    <div class="mt-10 flex flex-col md:flex-row justify-between items-center gap-6">
-        <div class="flex items-center gap-3">
-            <div class="w-2 h-2 bg-black animate-pulse rounded-full"></div>
-            <p class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Administrative Data Entry Protocol: Validated</p>
+    <div class="mt-12 flex flex-col md:flex-row justify-between items-center gap-8 border-t-4 border-black pt-10 border-none">
+        <div class="flex flex-col border-none">
+            <div class="flex items-center gap-4 border-none">
+                <div class="w-3 h-3 bg-[#a52a2a] animate-pulse rounded-full border-none"></div>
+                <p class="text-xs font-black text-slate-800 uppercase tracking-widest border-none">Registry Write Protocol</p>
+            </div>
+            <p class="text-[10px] text-slate-400 mt-1 font-bold italic border-none">Note: Faded red rows indicate internal CSV duplication and will be ignored by the system[cite: 1].</p>
         </div>
         
-        <form action="{{ route('schools.confirm_import') }}" method="POST">
+        <form action="{{ route('schools.confirm_import') }}" method="POST" class="w-full md:w-auto border-none">
             @csrf
-            <button type="submit" 
-                    class="bg-[#a52a2a] text-white px-16 py-6 text-xs font-black uppercase tracking-[0.4em] hover:bg-black transition-all shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] active:translate-x-1 active:translate-y-1 active:shadow-none">
+            <button type="submit" class="w-full md:w-auto bg-[#a52a2a] text-white px-20 py-7 text-sm font-black uppercase tracking-[0.3em] hover:bg-black transition-all shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] active:translate-x-1 active:translate-y-1 border-none">
                 Execute Batch Synchronization
             </button>
         </form>

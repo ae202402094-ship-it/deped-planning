@@ -121,7 +121,7 @@
                 {{-- Shortage Analysis --}}
                 <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
                     <h3 class="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-slate-50 pb-3">
-                        <i data-lucide="clipboard-check" class="w-4 h-4 text-[#a52a2a]"></i> Resource Shortage
+                        <i data-lucide="clipboard-check" class="w-4 h-4 text-[#a52a2a]"></i> Resources Shortage
                         <div class="relative group/shorttip cursor-help ml-auto">
                             <i data-lucide="help-circle" class="w-3 h-3 text-slate-300"></i>
                             <div class="absolute right-0 bottom-full mb-2 w-56 p-2 bg-slate-900 text-white text-[9px] rounded shadow-xl opacity-0 group-hover/shorttip:opacity-100 transition-opacity pointer-events-none z-50 normal-case tracking-normal">

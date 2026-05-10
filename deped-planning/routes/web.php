@@ -19,12 +19,12 @@ use Illuminate\Support\Facades\Mail;
 | 1. Public Routes (No Login Required)
 |--------------------------------------------------------------------------
 */
-// Interactive Map / Landing Page
 Route::get('/', [MapController::class, 'showPublicMap'])->name('public.map');
 
-// School List and Details
-Route::get('/schools', [PublicSchoolController::class, 'listSchools'])->name('public.schools');
-Route::get('/schools/{id}', [PublicSchoolController::class, 'showPublicDetail'])->name('public.view');
+Route::prefix('schools')->group(function () {
+    Route::get('/', [PublicSchoolController::class, 'listSchools'])->name('public.schools');
+    Route::get('/{id}', [PublicSchoolController::class, 'showPublicDetail'])->name('public.view');
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -36,7 +36,7 @@ Route::post('/login', [LoginController::class, 'login'])->name('login.post');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 /*
 |--------------------------------------------------------------------------
-| 3. Email Verification (Custom)
+| 3. Email Verification Routes
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth')->group(function () {
@@ -63,74 +63,74 @@ Route::middleware('auth')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| 4. Shared Admin & Super Admin (School Management)
+| 4. Protected Admin & Super Admin Routes (Shared)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'verified', 'role:admin,super_admin'])->group(function () {
+Route::middleware(['auth', 'verified', 'role:admin,super_admin'])->prefix('admin')->group(function () {
     
-    // Base Admin Gateway
-    Route::get('/admin', function () {
-        if (auth()->user()->isSuperAdmin()) {
-            return redirect()->route('superadmin.dashboard');
-        }
-        return redirect()->route('admin.dashboard');
+    // Gateway: Redirects based on specific role
+    Route::get('/', function () {
+        return auth()->user()->isSuperAdmin() 
+            ? redirect()->route('superadmin.dashboard') 
+            : redirect()->route('admin.dashboard');
     })->name('admin.index');
 
     // Dashboard & Approvals
-    Route::get('/admin/dashboard', [AdminDashboardController::class, 'adminDashboard'])->name('admin.dashboard');
-    Route::post('/admin/approve/{id}', [AdminController::class, 'approve'])->name('admin.approve');
-    Route::post('/admin/reject/{id}', [AdminController::class, 'reject'])->name('admin.reject');
+    Route::get('/dashboard', [AdminDashboardController::class, 'adminDashboard'])->name('admin.dashboard');
+    Route::post('/approve/{id}', [AdminController::class, 'approve'])->name('admin.approve');
+    Route::post('/reject/{id}', [AdminController::class, 'reject'])->name('admin.reject');
 
-    // Data Sync & Import logic
-    Route::delete('/admin/schools/clear-all', [SchoolImportController::class, 'clearAllSchools'])->name('schools.clear_all');
-    Route::get('/admin/schools/download-sample', [SchoolImportController::class, 'downloadSampleCSV'])->name('schools.sample');
-    Route::post('/admin/schools/import', [SchoolImportController::class, 'import'])->name('schools.import');
-    Route::post('/admin/schools/confirm-import', [SchoolImportController::class, 'confirmImport'])->name('schools.confirm_import');
-    Route::post('/admin/schools/check-duplicate', [SchoolCrudController::class, 'checkDuplicate'])->name('schools.check');
+    // School Management (CRUD)
+    Route::prefix('schools')->group(function () {
+        Route::get('/', [SchoolCrudController::class, 'manageSchools'])->name('admin.schools');
+        Route::get('/create', [SchoolCrudController::class, 'createSchool'])->name('schools.create');
+        Route::post('/', [SchoolCrudController::class, 'storeSchool'])->name('schools.store');
+        Route::get('/{id}/edit', [SchoolCrudController::class, 'editSchool'])->name('schools.edit');
+        Route::put('/{id}', [SchoolCrudController::class, 'updateSchool'])->name('schools.update');
+        Route::delete('/{id}', [SchoolCrudController::class, 'destroySchool'])->name('schools.destroy');
+        
+        // Archiving and Batch Actions
+        Route::get('/archive', [SchoolCrudController::class, 'archivedSchools'])->name('schools.archive');
+        Route::post('/{id}/restore', [SchoolCrudController::class, 'restoreSchool'])->name('schools.restore');
+        Route::delete('/{id}/force-delete', [SchoolCrudController::class, 'forceDeleteSchool'])->name('schools.force_delete');
+       Route::delete('/force-delete-batch', [SchoolCrudController::class, 'forceDeleteBatch'])->name('superadmin.force_delete_batch');
+        
+        // Duplication Check
+        Route::post('/check-duplicate', [SchoolCrudController::class, 'checkDuplicate'])->name('schools.check');
+    });
 
-    // School Management CRUD
-    Route::get('/admin/schools', [SchoolCrudController::class, 'manageSchools'])->name('admin.schools');
-    Route::get('/admin/schools/create', [SchoolCrudController::class, 'createSchool'])->name('schools.create');
-    Route::post('/admin/schools', [SchoolCrudController::class, 'storeSchool'])->name('schools.store');
-    Route::get('/admin/schools/{id}/edit', [SchoolCrudController::class, 'editSchool'])->name('schools.edit');
-    Route::put('/admin/schools/{id}', [SchoolCrudController::class, 'updateSchool'])->name('schools.update');
-    Route::delete('/admin/schools/{id}', [SchoolCrudController::class, 'destroySchool'])->name('schools.destroy');
-    Route::post('/admin/schools/{id}/restore', [SchoolCrudController::class, 'restoreSchool'])->name('schools.restore');
+    // Data Sync & CSV Import
+    Route::prefix('sync')->group(function () {
+        Route::get('/download-sample', [SchoolImportController::class, 'downloadSampleCSV'])->name('schools.sample');
+        Route::post('/import', [SchoolImportController::class, 'import'])->name('schools.import');
+        Route::get('/import-preview', [SchoolImportController::class, 'showPreview'])->name('schools.import.preview');
+        Route::post('/confirm-import', [SchoolImportController::class, 'confirmImport'])->name('schools.confirm_import');
+    });
 
-    // Admin Tools & Reporting
-    Route::get('/admin/map', [MapController::class, 'showMap'])->name('admin.map');
-    Route::get('/admin/history', [SchoolReportController::class, 'viewHistory'])->name('admin.history');
-    Route::get('/admin/schools/{id}/report', [SchoolReportController::class, 'generateReport'])->name('schools.report');
-
-    Route::get('/admin/reports/data-health', [SchoolReportController::class, 'dataHealthReport'])->name('admin.health_report');
-
-    Route::get('/admin/schools/archive', [SchoolCrudController::class, 'archivedSchools'])->name('schools.archive');
-    Route::post('/admin/schools/{id}/restore', [SchoolCrudController::class, 'restoreSchool'])->name('schools.restore');
-    Route::delete('/admin/schools/{id}/force-delete', [SchoolCrudController::class, 'forceDeleteSchool'])->name('schools.force_delete');
-
-    Route::get('/admin/reports/data-health', [SchoolReportController::class, 'dataHealthReport'])->name('admin.health_report');
+    // Reports & Tools
+    Route::get('/map', [MapController::class, 'showMap'])->name('admin.map');
+    Route::get('/history', [SchoolReportController::class, 'viewHistory'])->name('admin.history');
+    Route::get('/reports/data-health', [SchoolReportController::class, 'dataHealthReport'])->name('admin.health_report');
+    Route::get('/schools/{id}/report', [SchoolReportController::class, 'generateReport'])->name('schools.report');
 });
 
 /*
 |--------------------------------------------------------------------------
-| 5. Super Admin Only (Restoration, Archiving, & User Management)
+| 5. Super Admin Exclusive Routes
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'verified', 'role:super_admin'])->group(function () {
-    // Dashboard & User Approvals
-    Route::get('/super-admin/dashboard', [SuperAdminController::class, 'dashboard'])->name('superadmin.dashboard');
-    Route::get('/super-admin/notifications', [SuperAdminController::class, 'notifications'])->name('superadmin.notifications');
-    Route::post('/super-admin/approve/{id}', [SuperAdminController::class, 'approveUser'])->name('superadmin.approve');
-    Route::delete('/super-admin/reject/{id}', [SuperAdminController::class, 'rejectUser'])->name('superadmin.reject');
+Route::middleware(['auth', 'verified', 'role:super_admin'])->prefix('super-admin')->group(function () {
+    Route::get('/dashboard', [SuperAdminController::class, 'dashboard'])->name('superadmin.dashboard');
+    Route::get('/notifications', [SuperAdminController::class, 'notifications'])->name('superadmin.notifications');
+    Route::post('/approve/{id}', [SuperAdminController::class, 'approveUser'])->name('superadmin.approve');
+    Route::delete('/reject/{id}', [SuperAdminController::class, 'rejectUser'])->name('superadmin.reject');
+    Route::get('/history', [SuperAdminController::class, 'history'])->name('superadmin.history');
+    Route::put('/users/{id}/update', [SuperAdminController::class, 'updateUser'])->name('superadmin.update_user');
     
-    // System Oversight
-    Route::get('/super-admin/history', [SuperAdminController::class, 'history'])->name('superadmin.history');
-    Route::put('/super-admin/users/{id}/update', [SuperAdminController::class, 'updateUser'])->name('superadmin.update_user');
-
-    // Archiving & Data Restoration
-    Route::get('/super-admin/archive', [SuperAdminController::class, 'archive'])->name('admin.schools.archive');
-    Route::post('/super-admin/schools/{id}/restore', [SuperAdminController::class, 'restoreSchool'])->name('superadmin.restore_school');
-    Route::delete('/super-admin/schools/{id}/force-delete', [SuperAdminController::class, 'forceDeleteSchool'])->name('superadmin.force_delete_school');
+    // Super Admin specific Archive access
+    Route::get('/archive', [SuperAdminController::class, 'archive'])->name('superadmin.archive');
+    Route::post('/schools/{id}/restore', [SuperAdminController::class, 'restoreSchool'])->name('superadmin.restore_school');
+    Route::delete('/schools/{id}/force-delete', [SuperAdminController::class, 'forceDeleteSchool'])->name('superadmin.force_delete_school');
 });
 
 /*
@@ -141,11 +141,29 @@ Route::middleware(['auth', 'verified', 'role:super_admin'])->group(function () {
 Route::get('/test-mail', function () {
     try {
         Mail::raw('Hi! This is a test email from DepEd Zamboanga.', function ($message) {
-            $message->to('pettyrequest@gmail.com') 
-                    ->subject('Gmail Connection Test');
+            $message->to('pettyrequest@gmail.com')->subject('Gmail Connection Test');
         });
         return "Email sent successfully! Check your inbox.";
     } catch (\Exception $e) {
         return "Error: " . $e->getMessage();
     }
+});
+
+Route::middleware(['auth', 'verified', 'role:admin,super_admin'])->prefix('admin')->group(function () {
+    
+    // ... other routes ...
+
+    Route::prefix('schools')->group(function () {
+        Route::get('/', [SchoolCrudController::class, 'manageSchools'])->name('admin.schools');
+        Route::get('/archive', [SchoolCrudController::class, 'archivedSchools'])->name('schools.archive');
+        
+        // Single Actions
+        Route::post('/{id}/restore', [SchoolCrudController::class, 'restoreSchool'])->name('schools.restore');
+        Route::delete('/{id}/force-delete', [SchoolCrudController::class, 'forceDeleteSchool'])->name('schools.force_delete');
+        
+        // FIX: Pointing to the correct Controller for Batch Actions
+        Route::delete('/force-delete-batch', [SchoolCrudController::class, 'forceDeleteBatch'])->name('superadmin.force_delete_batch');
+        
+        Route::post('/check-duplicate', [SchoolCrudController::class, 'checkDuplicate'])->name('schools.check');
+    });
 });
