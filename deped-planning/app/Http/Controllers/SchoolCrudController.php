@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\School;
 use App\Models\ActivityLog;
+use Illuminate\Support\Facades\DB;
 
 class SchoolCrudController extends Controller
 {
@@ -25,7 +26,7 @@ class SchoolCrudController extends Controller
         return view('admin.create_school');
     }
 
- public function storeSchool(Request $request)
+    public function storeSchool(Request $request)
     {
         $validated = $request->validate([
             'school_id' => 'required|unique:schools,school_id',
@@ -50,7 +51,6 @@ class SchoolCrudController extends Controller
             'longitude' => 'nullable|numeric|between:-180,180',
         ]);
 
-        // 👉 HERE IS THE NEW, CLEAN 1-LINE CODE
         $validated['hazard_type'] = $this->processHazards(
             $request->input('hazard_type', []),
             $request->input('custom_hazards', [])
@@ -79,19 +79,7 @@ class SchoolCrudController extends Controller
         return view('admin.edit_school', compact('school'));
     }
 
-public function getApiData()
-{
-    // Fetch the data
-    $schools = \App\Models\School::all();
-
-    // Return it as JSON for Postman
-    return response()->json([
-        'status' => 'success',
-        'data' => $schools
-    ]);
-}
-
-  public function updateSchool(Request $request, $id)
+    public function updateSchool(Request $request, $id)
     {
         $school = School::findOrFail($id);
         $oldData = $school->toArray();
@@ -118,7 +106,6 @@ public function getApiData()
             'custom_hazards.*' => 'nullable|string|max:255',
         ]);
 
-        // 👉 HERE IS THE NEW, CLEAN 1-LINE CODE AGAIN
         $validated['hazard_type'] = $this->processHazards(
             $request->input('hazard_type', []),
             $request->input('custom_hazards', [])
@@ -137,9 +124,10 @@ public function getApiData()
             ]
         ]);
 
-        return redirect()->route('schools.edit', $school->id)
+        return redirect()->route('admin.schools')
             ->with('success', 'Registry synchronized and updated successfully.');
     }
+
     public function destroySchool($id)
     {
         try {
@@ -162,6 +150,27 @@ public function getApiData()
         }
     }
 
+    public function archivedSchools(Request $request) 
+    {
+        if (!in_array(auth()->user()->role, ['admin', 'super_admin'])) {
+            abort(403, 'Unauthorized.');
+        }
+
+        $search = $request->input('search');
+        
+        $archivedSchools = School::onlyTrashed()
+            ->when($search, function ($query, $search) {
+                return $query->where(function($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('school_id', 'like', "%{$search}%");
+                });
+            })
+            ->orderBy('deleted_at', 'desc')
+            ->paginate(10); 
+
+        return view('admin.schools_archive', compact('archivedSchools'));
+    }
+
     public function restoreSchool($id)
     {
         $school = School::onlyTrashed()->findOrFail($id);
@@ -177,44 +186,45 @@ public function getApiData()
         return redirect()->route('schools.archive')->with('success', "{$name} permanently purged.");
     }
 
-    public function archivedSchools(Request $request) 
-    {
-        if (!in_array(auth()->user()->role, ['admin', 'super_admin'])) {
-            abort(403, 'Unauthorized.');
-        }
-
-        $search = $request->input('search');
-        $schools = School::onlyTrashed()
-            ->when($search, function ($query, $search) {
-                return $query->where(function($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                      ->orWhere('school_id', 'like', "%{$search}%");
-                });
-            })
-            ->orderBy('deleted_at', 'desc')
-            ->paginate(10); 
-
-        return view('admin.schools_archive', compact('schools'));
+   public function forceDeleteBatch(Request $request) 
+{
+    // Ensure the user has the right permissions
+    if (!in_array(auth()->user()->role, ['super_admin'])) {
+        return back()->with('error', 'Unauthorized: Only Super Admins can purge records.');
     }
 
+    try {
+        // Handle "Delete All Archives"
+        if ($request->scope === 'all') {
+            School::onlyTrashed()->forceDelete();
+            return redirect()->route('schools.archive')->with('success', 'The entire archive has been wiped.');
+        }
+
+        // Handle "Purge Selected"
+        if ($request->filled('ids') && is_array($request->ids)) {
+            School::onlyTrashed()->whereIn('id', $request->ids)->forceDelete();
+            return redirect()->route('schools.archive')->with('success', 'Selected records purged successfully.');
+        }
+
+        return redirect()->route('schools.archive')->with('error', 'No records were selected.');
+
+    } catch (\Exception $e) {
+        return redirect()->route('schools.archive')->with('error', 'System Error: ' . $e->getMessage());
+    }
+}
     public function checkDuplicate(Request $request)
     {
         $field = $request->input('field'); 
         $value = $request->input('value');
         $excludeId = $request->input('exclude_id'); 
+
         $query = School::where($field, $value);
-        if ($excludeId) { $query->where('id', '!=', $excludeId); }
+        if ($excludeId) { 
+            $query->where('id', '!=', $excludeId); 
+        }
+        
         return response()->json(['exists' => $query->exists()]);
     }
-
-    public function manageTeachers(Request $request) 
-    {
-        // ... (Keep your existing manageTeachers logic here, it looked functional)
-        $schools = School::all();
-        $totalTeachers = $schools->sum('no_of_teachers');
-        return view('admin.teachers', compact('schools', 'totalTeachers'));
-    }
-
 
     public function audit()
     {
@@ -224,7 +234,6 @@ public function getApiData()
         foreach ($schools as $school) {
             $issues = [];
 
-            // 1. Math Check (Ratios)
             if ($school->no_of_teachers > 0 && ($school->no_of_enrollees / $school->no_of_teachers) > 45) {
                 $issues[] = "Critical Teacher-Learner Ratio";
             }
@@ -232,11 +241,9 @@ public function getApiData()
                 $issues[] = "Severe Classroom Overcrowding";
             }
 
-            // 2. Physical Hazard Check (UPDATED FOR ARRAY FIX)
-            $hazards = $school->hazard_type ?? [];
+            $hazards = is_array($school->hazard_type) ? $school->hazard_type : json_decode($school->hazard_type, true) ?? [];
             $hasPhysicalHazard = !empty($hazards) && !in_array('None', $hazards);
 
-            // Flag the school if it has ANY issue OR a physical hazard
             if (!empty($issues) || $hasPhysicalHazard) {
                 $flaggedSchools[] = [
                     'school' => $school,
@@ -261,6 +268,12 @@ public function getApiData()
         return array_values(array_unique(array_filter($cleanHazards)));
     }
 
-
-    
+    public function getApiData()
+    {
+        $schools = School::all();
+        return response()->json([
+            'status' => 'success',
+            'data' => $schools
+        ]);
+    }
 }
