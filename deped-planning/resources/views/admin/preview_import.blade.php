@@ -137,7 +137,7 @@
                 <div class="w-3 h-3 bg-[#a52a2a] animate-pulse rounded-full border-none"></div>
                 <p class="text-xs font-black text-slate-800 uppercase tracking-widest border-none">Registry Write Protocol</p>
             </div>
-            <p class="text-[10px] text-slate-400 mt-1 font-bold italic border-none">Note: Faded red rows indicate internal CSV duplication and will be ignored by the system[cite: 1].</p>
+            <p class="text-[10px] text-slate-400 mt-1 font-bold italic border-none">Note: Faded red rows indicate internal CSV duplication and will be ignored by the system.</p>
         </div>
         
         <form action="{{ route('schools.confirm_import') }}" method="POST" class="w-full md:w-auto border-none">

@@ -51,23 +51,21 @@
             </div>
         </div>
 
-    @if ($errors->any())
-    <div class="mb-8 p-6 bg-red-50 border-l-4 border-red-800 rounded-2xl shadow-sm">
-        <div class="flex items-center gap-3 mb-2">
-            <svg class="w-5 h-5 text-red-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            <h4 class="text-[10px] font-black text-red-800 uppercase tracking-widest">Registration Blocked</h4>
+        @if ($errors->any())
+        <div class="mb-8 p-6 bg-red-50 border-l-4 border-red-800 rounded-2xl shadow-sm mx-10 mt-10">
+            <div class="flex items-center gap-3 mb-2">
+                <svg class="w-5 h-5 text-red-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <h4 class="text-[10px] font-black text-red-800 uppercase tracking-widest">Registration Blocked</h4>
+            </div>
+            <ul class="list-none">
+                @foreach ($errors->all() as $error)
+                    <li class="text-[11px] font-bold text-red-600 uppercase tracking-tight italic">{{ $error }}</li>
+                @endforeach
+            </ul>
         </div>
-        <ul class="list-none">
-            @foreach ($errors->all() as $error)
-                <li class="text-[11px] font-bold text-red-600 uppercase tracking-tight italic">{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-@endif
-
-        {{-- Registration Form --}}
+        @endif
 
         <form action="{{ route('schools.store') }}" method="POST" id="registrationForm" class="p-10 space-y-12">
             @csrf
@@ -83,13 +81,13 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
                     <div class="relative group line-input">
                         <label class="block text-[9px] font-black text-slate-400 uppercase mb-1 tracking-widest">Official School ID</label>
-                        <input type="text" name="school_id" required class="input-field font-mono font-bold text-slate-700">
+                        <input type="text" name="school_id" value="{{ old('school_id') }}" required class="input-field font-mono font-bold text-slate-700">
                         <div class="underglow"></div>
                     </div>
 
                     <div class="relative group line-input">
                         <label class="block text-[9px] font-black text-slate-400 uppercase mb-1 tracking-widest">Institutional Name</label>
-                        <input type="text" name="name" required class="input-field font-black text-slate-800 uppercase tracking-tight">
+                        <input type="text" name="name" value="{{ old('name') }}" required class="input-field font-black text-slate-800 uppercase tracking-tight">
                         <div class="underglow"></div>
                     </div>
                 </div>
@@ -102,67 +100,107 @@
                     <h3 class="text-[10px] font-black text-slate-800 uppercase tracking-[0.3em]">Initial Census Data</h3>
                     <div class="h-px flex-1 bg-slate-100"></div>
                 </div>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-10">
-                    @foreach(['teachers', 'enrollees', 'classrooms', 'toilets'] as $field)
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-10">
+                    @foreach(['teachers', 'enrollees', 'classrooms', 'toilets', 'chairs'] as $field)
                     <div class="relative group line-input">
                         <label class="block text-[9px] font-black text-slate-400 uppercase mb-1 tracking-widest">{{ $field }}</label>
-                        <input type="number" name="no_of_{{ $field }}" value="0" required class="input-field text-2xl font-black text-slate-800 tabular-nums">
+                        <input type="number" name="no_of_{{ $field }}" value="{{ old('no_of_'.$field, 0) }}" required class="input-field text-2xl font-black text-slate-800 tabular-nums">
                         <div class="underglow"></div>
                     </div>
                     @endforeach
                 </div>
             </section>
 
-            {{-- 03. Coordination --}}
-<div class="bg-slate-50 p-10 rounded-[2.5rem] border border-slate-100 relative overflow-hidden">
-    <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
-    
-    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] mb-6 text-center">Satellite Coordination</h3>
-    
-    <div class="flex gap-4 mb-2">
-        <div class="flex-1 relative group">
-            <input type="text" name="latitude" id="reg_lat" value="6.9214" readonly 
-                   class="w-full bg-slate-100 border border-slate-200 rounded-xl p-4 text-xs font-mono text-center shadow-inner transition-all outline-none cursor-not-allowed opacity-60">
-            <span id="lat_status" class="absolute -top-2 left-4 bg-white px-2 text-[8px] font-black text-slate-300 uppercase tracking-widest border border-slate-100 rounded-full">
-                Locked by GPS
-            </span>
-        </div>
+            {{-- 03. Infrastructure & Risk Profile --}}
+            <section>
+                <div class="flex items-center gap-4 mb-8">
+                    <span class="text-xs font-black text-slate-300 font-mono text-[10px]">03</span>
+                    <h3 class="text-[10px] font-black text-slate-800 uppercase tracking-[0.3em]">Infrastructure & Risk Profile</h3>
+                    <div class="h-px flex-1 bg-slate-100"></div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
+                    <div class="relative group line-input">
+                        <label class="block text-[9px] font-black text-slate-400 uppercase mb-1 tracking-widest">Power Supply Type</label>
+                        <select name="with_electricity" class="input-field font-bold text-slate-700 uppercase text-xs cursor-pointer">
+                            <option value="None">No Electricity (Off-Grid)</option>
+                            <option value="Grid Connection" selected>Direct Grid Connection</option>
+                            <option value="Solar Powered">Solar / Renewable</option>
+                            <option value="Generator">Generator Set Only</option>
+                            <option value="Hybrid">Hybrid (Grid + Solar)</option>
+                        </select>
+                    </div>
+                    <div class="relative group line-input">
+                        <label class="block text-[9px] font-black text-slate-400 uppercase mb-1 tracking-widest">Potable Water</label>
+                        <select name="with_potable_water" class="input-field font-bold text-slate-700 uppercase text-xs cursor-pointer">
+                            <option value="1">YES (Available)</option>
+                            <option value="0">NO (Not Available)</option>
+                        </select>
+                    </div>
+                    <div class="relative group line-input">
+                        <label class="block text-[9px] font-black text-slate-400 uppercase mb-1 tracking-widest">Internet Connectivity</label>
+                        <select name="with_internet" class="input-field font-bold text-slate-700 uppercase text-xs cursor-pointer">
+                            <option value="1">YES (Available)</option>
+                            <option value="0">NO (Not Available)</option>
+                        </select>
+                    </div>
+                </div>
 
-        <div class="flex-1 relative group">
-            <input type="text" name="longitude" id="reg_lng" value="122.0739" readonly 
-                   class="w-full bg-slate-100 border border-slate-200 rounded-xl p-4 text-xs font-mono text-center shadow-inner transition-all outline-none cursor-not-allowed opacity-60">
-            <span id="lng_status" class="absolute -top-2 left-4 bg-white px-2 text-[8px] font-black text-slate-300 uppercase tracking-widest border border-slate-100 rounded-full">
-                Locked by GPS
-            </span>
-        </div>
-    </div>
-    
-    {{-- Instructional Hint --}}
-    <p id="coord_hint" class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-8 text-center italic">
-        Fields are synchronized with Map Picker. Click 'Manual Type' to override.
-    </p>
+                {{-- Multi-Choice Hazard Selection --}}
+                <div class="bg-slate-50 p-8 rounded-[2rem] border border-slate-200">
+                    <div class="flex justify-between items-center mb-6">
+                        <label class="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Identify Applicable Environmental Risks</label>
+                        <button type="button" onclick="addCustomHazardField()" class="text-[9px] font-black uppercase tracking-widest text-[#a52a2a] hover:text-black transition-colors flex items-center gap-2 bg-white border border-slate-200 px-4 py-2 rounded-xl shadow-sm">
+                            <i class="bi bi-plus-lg"></i> Add Custom Risk
+                        </button>
+                    </div>
 
-    <div class="flex gap-4">
-        <button type="button" onclick="openMapPopup('reg_lat', 'reg_lng', '6.9214', '122.0739')" 
-                class="flex-1 py-4 bg-slate-800 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition-all shadow-lg">
-            Map Picker
-        </button>
-        <button type="button" onclick="toggleManualEntry()" 
-                class="px-8 py-4 bg-white border border-slate-200 text-slate-400 rounded-2xl font-black uppercase text-[9px] tracking-widest hover:border-red-800 hover:text-red-800 transition-all">
-            Manual Type
-        </button>
-    </div>
-</div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="hazard_checkbox_grid">
+                        @foreach(['Flood Prone', 'Landslide Risk', 'Seismic Zone', 'Coastal Surge / Tsunami'] as $hazard)
+                        <label class="flex items-center gap-3 p-4 bg-white border-2 border-slate-100 rounded-2xl cursor-pointer hover:border-[#a52a2a] transition-all group">
+                            <input type="checkbox" name="hazard_type[]" value="{{ $hazard }}" class="w-4 h-4 accent-[#a52a2a] rounded">
+                            <span class="text-[10px] font-black text-slate-600 uppercase tracking-tight group-hover:text-slate-900">{{ $hazard }}</span>
+                        </label>
+                        @endforeach
+                    </div>
 
-            <button type="button" onclick="triggerVerification()" style="background-color: #a52a2a;" 
-                    class="w-full py-6 text-white rounded-[2rem] font-black uppercase text-xs tracking-[0.3em] shadow-2xl shadow-red-900/30 hover:scale-[1.02] active:scale-95 transition-all">
-                Commit Registration
-            </button>
+                    <div id="custom_hazards_wrapper" class="mt-4 space-y-3">
+                        {{-- Custom hazard inputs will appear here --}}
+                    </div>
+                </div>
+                {{-- Hidden required field for controller validation --}}
+                <input type="hidden" name="hazard_level" value="Low">
+            </section>
+
+            {{-- 04. Coordination --}}
+            <div class="bg-slate-50 p-10 rounded-[2.5rem] border border-slate-100 relative overflow-hidden">
+                <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+                <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] mb-6 text-center">Satellite Coordination</h3>
+                <div class="flex gap-4 mb-2">
+                    <div class="flex-1 relative group">
+                        <input type="text" name="latitude" id="reg_lat" value="{{ old('latitude', '6.9214') }}" readonly 
+                               class="w-full bg-slate-100 border border-slate-200 rounded-xl p-4 text-xs font-mono text-center shadow-inner transition-all outline-none cursor-not-allowed opacity-60">
+                        <span id="lat_status" class="absolute -top-2 left-4 bg-white px-2 text-[8px] font-black text-slate-300 uppercase tracking-widest border border-slate-100 rounded-full">Locked by GPS</span>
+                    </div>
+                    <div class="flex-1 relative group">
+                        <input type="text" name="longitude" id="reg_lng" value="{{ old('longitude', '122.0739') }}" readonly 
+                               class="w-full bg-slate-100 border border-slate-200 rounded-xl p-4 text-xs font-mono text-center shadow-inner transition-all outline-none cursor-not-allowed opacity-60">
+                        <span id="lng_status" class="absolute -top-2 left-4 bg-white px-2 text-[8px] font-black text-slate-300 uppercase tracking-widest border border-slate-100 rounded-full">Locked by GPS</span>
+                    </div>
+                </div>
+                <p id="coord_hint" class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-8 text-center italic">Fields are synchronized with Map Picker. Click 'Manual Type' to override.</p>
+                <div class="flex gap-4">
+                    <button type="button" onclick="openMapPopup('reg_lat', 'reg_lng', '6.9214', '122.0739')" class="flex-1 py-4 bg-slate-800 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition-all shadow-lg">Map Picker</button>
+                    <button type="button" onclick="toggleManualEntry()" class="px-8 py-4 bg-white border border-slate-200 text-slate-400 rounded-2xl font-black uppercase text-[9px] tracking-widest hover:border-red-800 hover:text-red-800 transition-all">Manual Type</button>
+                </div>
+            </div>
+
+            <button type="button" onclick="triggerVerification()" style="background-color: #a52a2a;" class="w-full py-6 text-white rounded-[2rem] font-black uppercase text-xs tracking-[0.3em] shadow-2xl shadow-red-900/30 hover:scale-[1.02] active:scale-95 transition-all">Commit Registration</button>
         </form>
     </div>
 </div>
 
-{{-- MODAL COMPONENT --}}
+{{-- MODAL --}}
 <div id="verificationModal" class="fixed inset-0 z-[2000] hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
     <div class="bg-white w-full max-w-xl rounded-[3rem] shadow-2xl overflow-hidden border border-slate-200">
         <div class="bg-slate-800 p-8 text-center text-white">
@@ -170,27 +208,17 @@
         </div>
         <div class="p-10 space-y-8">
             <p class="text-[10px] font-bold text-slate-400 uppercase text-center tracking-widest">Verify the entry for <span id="confirmName" class="text-slate-800 font-black"></span></p>
-            <div class="grid grid-cols-4 gap-4 border-y border-slate-100 py-8">
-                <div class="text-center"><p class="text-[8px] font-black text-slate-400 uppercase">Teachers</p><p id="confirmTeachers" class="text-xl font-black text-slate-800">0</p></div>
-                <div class="text-center"><p class="text-[8px] font-black text-slate-400 uppercase">Enrollees</p><p id="confirmEnrollees" class="text-xl font-black text-slate-800">0</p></div>
-                <div class="text-center"><p class="text-[8px] font-black text-slate-400 uppercase">Rooms</p><p id="confirmClassrooms" class="text-xl font-black text-slate-800">0</p></div>
-                <div class="text-center"><p class="text-[8px] font-black text-slate-400 uppercase">Toilets</p><p id="confirmToilets" class="text-xl font-black text-slate-800">0</p></div>
-            </div>
+<div class="grid grid-cols-5 gap-2 border-y border-slate-100 py-8">
+    <div class="text-center"><p class="text-[7px] font-black text-slate-400 uppercase">Teachers</p><p id="confirmTeachers" class="text-lg font-black text-slate-800">0</p></div>
+    <div class="text-center"><p class="text-[7px] font-black text-slate-400 uppercase">Enrollees</p><p id="confirmEnrollees" class="text-lg font-black text-slate-800">0</p></div>
+    <div class="text-center"><p class="text-[7px] font-black text-slate-400 uppercase">Rooms</p><p id="confirmClassrooms" class="text-lg font-black text-slate-800">0</p></div>
+    <div class="text-center"><p class="text-[7px] font-black text-slate-400 uppercase">Toilets</p><p id="confirmToilets" class="text-lg font-black text-slate-800">0</p></div>
+    <div class="text-center"><p class="text-[7px] font-black text-slate-400 uppercase">Chairs</p><p id="confirmChairs" class="text-lg font-black text-slate-800">0</p></div>
+</div>
             <div class="flex flex-col gap-3">
                 <button type="button" onclick="submitOfficialForm()" class="w-full py-5 bg-red-800 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition-all">Confirm & Save</button>
                 <button type="button" onclick="closeVerification()" class="w-full py-3 text-slate-400 font-bold uppercase text-[9px] tracking-widest">Go Back</button>
             </div>
-        </div>
-    </div>
-</div>
-<div id="toast" class="fixed top-6 right-6 z-[3000] transform translate-x-12 opacity-0 transition-all duration-500 pointer-events-none">
-    <div class="bg-slate-800 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4 border border-slate-700">
-        <div id="toastIcon" class="p-2 bg-red-800 rounded-lg">
-            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        </div>
-        <div>
-            <p id="toastTitle" class="text-[10px] font-black uppercase tracking-widest text-red-500">System Notice</p>
-            <p id="toastMessage" class="text-xs font-bold text-slate-200 mt-0.5">Manual Entry Protocol Enabled</p>
         </div>
     </div>
 </div>
@@ -213,6 +241,21 @@ function showToast(message, isWarning = false) {
         toast.classList.add('opacity-0', 'translate-x-12', 'pointer-events-none');
         toast.classList.remove('opacity-100', 'translate-x-0');
     }, 3000);
+}
+
+function addCustomHazardField() {
+    const wrapper = document.getElementById('custom_hazards_wrapper');
+    const div = document.createElement('div');
+    div.className = 'flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300';
+    div.innerHTML = `
+        <input type="text" name="custom_hazards[]" 
+               class="flex-1 bg-white border border-slate-200 rounded-xl p-3 text-[10px] font-bold text-slate-800 uppercase tracking-tight focus:ring-2 focus:ring-red-500/20 outline-none" 
+               placeholder="Specify custom environmental risk...">
+        <button type="button" onclick="this.parentElement.remove()" 
+                class="px-4 py-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-600 hover:text-white transition-all text-[9px] font-black uppercase">
+            Remove
+        </button>`;
+    wrapper.appendChild(div);
 }
 
 function toggleManualEntry() {
@@ -267,28 +310,19 @@ function toggleManualEntry() {
  * Verification & Submission Logic
  */
 function triggerVerification() {
-    const name = document.querySelector('input[name="name"]').value.trim();
-    const id = document.querySelector('input[name="school_id"]').value.trim();
+        const name = document.querySelector('input[name="name"]').value.trim();
+        const id = document.querySelector('input[name="school_id"]').value.trim();
+        if (!name || !id) { showToast("School ID and Name are required.", true); return; }
 
-    // NEW: Don't show modal if basic info is missing
-    if (!name || !id) {
-        showToast("School ID and Name are required before committing.", true);
-        return;
+        document.getElementById('confirmName').innerText = name.toUpperCase();
+        document.getElementById('confirmTeachers').innerText = document.querySelector('input[name="no_of_teachers"]').value;
+        document.getElementById('confirmEnrollees').innerText = document.querySelector('input[name="no_of_enrollees"]').value;
+        document.getElementById('confirmClassrooms').innerText = document.querySelector('input[name="no_of_classrooms"]').value;
+        document.getElementById('confirmToilets').innerText = document.querySelector('input[name="no_of_toilets"]').value;
+        document.getElementById('confirmChairs').innerText = document.querySelector('input[name="no_of_chairs"]').value;
+
+        document.getElementById('verificationModal').classList.remove('hidden');
     }
-
-    const teachers = document.querySelector('input[name="no_of_teachers"]').value;
-    const enrollees = document.querySelector('input[name="no_of_enrollees"]').value;
-    const classrooms = document.querySelector('input[name="no_of_classrooms"]').value;
-    const toilets = document.querySelector('input[name="no_of_toilets"]').value;
-
-    document.getElementById('confirmName').innerText = name.toUpperCase();
-    document.getElementById('confirmTeachers').innerText = teachers;
-    document.getElementById('confirmEnrollees').innerText = enrollees;
-    document.getElementById('confirmClassrooms').innerText = classrooms;
-    document.getElementById('confirmToilets').innerText = toilets;
-
-    document.getElementById('verificationModal').classList.remove('hidden');
-}
 
 function closeVerification() {
     document.getElementById('verificationModal').classList.add('hidden');
