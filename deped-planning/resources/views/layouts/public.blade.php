@@ -12,6 +12,7 @@
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
         [x-cloak] { display: none !important; }
         .font-cinzel { font-family: 'Cinzel', serif; }
@@ -44,7 +45,10 @@
                 <div class="flex flex-col font-cinzel items-center md:items-start text-center md:text-left flex-1 px-2">
                     <span class="text-[8px] sm:text-[10px] md:text-sm tracking-widest font-black uppercase">Republic of the Philippines</span>
                     <span class="text-[8px] sm:text-[10px] md:text-sm tracking-widest font-black uppercase">Department of Education</span>
-                    <div class="w-full border-b border-white/30 my-1 md:my-2"></div>
+                    
+                    {{-- FIXED LINE: Added max-width constraints and auto margins --}}
+                    <div class="w-full max-w-[200px] sm:max-w-[250px] md:max-w-[320px] lg:max-w-[420px] border-b-[1px] md:border-b-[2px] border-white/80 my-1 md:my-1.5 mx-auto md:mx-0"></div>
+                    
                     <h1 class="text-xs sm:text-lg md:text-2xl lg:text-3xl font-black leading-tight tracking-wide">
                         {{ $site_settings->header_title ?? 'Zamboanga City Division' }}
                     </h1>
