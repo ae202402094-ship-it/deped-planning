@@ -9,18 +9,34 @@ use Illuminate\Support\Facades\DB;
 
 class SchoolCrudController extends Controller
 {
-    public function manageSchools(Request $request) 
+  public function manageSchools(Request $request) 
     {
         $search = $request->input('search');
+        $sector = $request->input('sector');     // NEW
+        $level = $request->input('level');       
+        $district = $request->input('district'); 
 
         $schools = School::when($search, function ($query, $search) {
-            return $query->where('name', 'like', "%{$search}%")
-                         ->orWhere('school_id', 'like', "%{$search}%");
-        })->orderBy('name', 'asc')->paginate(10); 
+            return $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('school_id', 'like', "%{$search}%");
+            });
+        })
+        ->when($sector, function ($query, $sector) {    // NEW
+            return $query->where('sector', $sector);
+        })
+        ->when($level, function ($query, $level) {
+            return $query->where('school_level', $level);
+        })
+        ->when($district, function ($query, $district) {
+            return $query->where('district', $district);
+        })
+        ->orderBy('name', 'asc')->paginate(10); 
 
-        return view('admin.schools', compact('schools'));
+        $districts = School::select('district')->distinct()->whereNotNull('district')->pluck('district');
+
+        return view('admin.schools', compact('schools', 'districts'));
     }
-
     public function createSchool()
     {
         return view('admin.create_school');
@@ -81,39 +97,51 @@ class SchoolCrudController extends Controller
 
     public function updateSchool(Request $request, $id)
     {
+    
         $school = School::findOrFail($id);
         $oldData = $school->toArray();
 
-        $validated = $request->validate([
-            'school_id' => 'required|unique:schools,school_id,' . $school->id,
+        // 1. Validate the incoming data
+        $validatedData = $request->validate([
+            'school_id' => 'required|string|max:255|unique:schools,school_id,' . $school->id,
             'name' => 'required|string|max:255',
-            'no_of_teachers' => 'required|integer|min:0',
-            'no_of_enrollees' => 'required|integer|min:0',
-            'no_of_classrooms' => 'required|integer|min:0',
-            'no_of_chairs' => 'required|integer|min:0',
-            'no_of_toilets' => 'required|integer|min:0',
-            'with_electricity' => 'required|string',
-            'with_potable_water' => 'required|boolean',
-            'with_internet' => 'required|boolean',
-            'teacher_shortage' => 'nullable|integer|min:0',
+            'sector' => 'nullable|in:Public,Private',
+            'school_level' => 'nullable|in:Primary,Secondary',
+            'district' => 'nullable|string|max:255',
+            'no_of_teachers' => 'nullable|integer|min:0',
+            'no_of_enrollees' => 'nullable|integer|min:0',
+            'no_of_classrooms' => 'nullable|integer|min:0',
+            'no_of_chairs' => 'nullable|integer|min:0',
+            'no_of_toilets' => 'nullable|integer|min:0',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
+            'with_electricity' => 'nullable|string',
+            'with_potable_water' => 'nullable|boolean',
+            'with_internet' => 'nullable|boolean',
             'classroom_shortage' => 'nullable|integer|min:0',
             'chair_shortage' => 'nullable|integer|min:0',
             'toilet_shortage' => 'nullable|integer|min:0',
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
-            'hazard_type' => 'nullable|array', 
+            'teacher_shortage' => 'nullable|integer|min:0',
+            'classroom_ratio' => 'nullable|string',
+            'chair_ratio' => 'nullable|string',
+            'toilet_ratio' => 'nullable|string',
+            'teacher_ratio' => 'nullable|string',
+            'hazard_type' => 'nullable|array',
             'custom_hazards' => 'nullable|array',
             'custom_hazards.*' => 'nullable|string|max:255',
         ]);
 
-        $validated['hazard_type'] = $this->processHazards(
+        // Merge standard hazards with custom hazards
+        $validatedData['hazard_type'] = $this->processHazards(
             $request->input('hazard_type', []),
             $request->input('custom_hazards', [])
         );
-        unset($validated['custom_hazards']);
+        unset($validatedData['custom_hazards']);
 
-        $school->update($validated);
+        // 2. THE SILVER BULLET: Force Laravel to save everything directly
+        $school->forceFill($validatedData)->save();
 
+        // 3. Log the Activity
         ActivityLog::create([
             'user_id' => auth()->id(),
             'action' => 'Updated School Profile',
@@ -124,9 +152,9 @@ class SchoolCrudController extends Controller
             ]
         ]);
 
-        return redirect()->route('admin.schools')
-            ->with('success', 'Registry synchronized and updated successfully.');
+        return redirect()->route('admin.schools')->with('success', 'Institutional record updated successfully.');
     }
+    
 
     public function destroySchool($id)
     {

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -7,13 +8,15 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class School extends Model
 {
-    use HasFactory;
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
 
-    // 1. Ensure these match your controller's updateOrCreate array
+    // ADD THE NEW COLUMNS HERE
     protected $fillable = [
         'school_id', 
         'name', 
+        'sector',          // <-- Added
+        'school_level',    // <-- Added
+        'district',        // <-- Added
         'no_of_teachers', 
         'no_of_enrollees', 
         'no_of_classrooms', 
@@ -27,14 +30,17 @@ class School extends Model
         'classroom_shortage', 
         'chair_shortage', 
         'toilet_shortage',
-        'hazards',
-        'hazard_type', // MUST BE ADDED
-        'hazard_level', // MUST BE ADDED
-        'teacher_shortage'  
+        'teacher_shortage',
+        'classroom_ratio',
+        'chair_ratio',
+        'toilet_ratio',
+        'teacher_ratio',
+        'hazard_type', 
     ];
 
     public $incrementing = false; 
     protected $keyType = 'string';
+    
     protected $casts = [
         'hazard_type' => 'array', 
     ];

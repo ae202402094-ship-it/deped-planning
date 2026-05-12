@@ -1,7 +1,172 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 py-8 font-sans leading-tight text-slate-800 pb-32">
+
+{{-- ADVANCED PRINT STYLESHEET --}}
+<style>
+    @media print {
+        @page { size: portrait; margin: 15mm; }
+        body { 
+            -webkit-print-color-adjust: exact !important; 
+            print-color-adjust: exact !important; 
+            background: white !important; 
+        }
+        /* Hide all web UI elements and system footers */
+        .no-print, footer, header, nav, .main-sidebar, .sticky { 
+            display: none !important; 
+        }
+        .print-only { 
+            display: block !important; 
+        }
+        /* Official DepEd Header Styling */
+        .deped-red { color: #a52a2a !important; }
+        .print-border { border: 2px solid black !important; }
+        .print-border-b { border-bottom: 2px solid black !important; }
+        .print-border-r { border-right: 2px solid black !important; }
+    }
+    .print-only { display: none; }
+</style>
+
+{{-- 00. OFFICIAL DEPED PRINT PROFILE (Visible on Paper Only) --}}
+<div class="print-only w-full bg-white text-black font-sans leading-tight">
+    {{-- Header --}}
+    <div class="flex justify-between items-start border-b-[4px] border-double border-black pb-4 mb-6">
+        <div class="flex items-center gap-4">
+            <img src="{{ asset('images/deped.png') }}" class="h-24 w-auto" alt="DepEd Logo">
+            <div class="flex flex-col">
+                <span class="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-800 leading-tight">Republic of the Philippines</span>
+                <h1 class="text-3xl font-black uppercase deped-red leading-tight tracking-tight">Department of Education</h1>
+                <p class="text-[11px] font-bold italic text-slate-800 uppercase tracking-widest mt-1">Division of Zamboanga City</p>
+            </div>
+        </div>
+        <div class="text-right flex flex-col items-end">
+            <div class="print-border px-3 py-1 mb-1 bg-slate-100">
+                <span class="text-[12px] font-black deped-red uppercase tracking-widest block leading-none">Institutional Profile</span>
+            </div>
+            <p class="text-[10px] font-mono font-bold text-slate-800 uppercase leading-none">ID: {{ $school->school_id }}</p>
+            <p class="text-[8px] font-mono text-slate-500 uppercase mt-1">Ref: {{ now()->format('Ymd-His') }}</p>
+        </div>
+    </div>
+
+    {{-- Title --}}
+    <div class="mb-6">
+        <h2 class="text-2xl font-black uppercase tracking-tighter text-black">{{ $school->name }}</h2>
+        <p class="text-xs font-bold text-slate-600 uppercase tracking-widest mt-1">
+            {{ $school->sector ?? 'Public' }} • {{ $school->school_level ?? 'Unclassified' }} • {{ $school->district ?? 'No District' }}
+        </p>
+    </div>
+
+    {{-- Core Metrics Grid --}}
+    <h3 class="text-xs font-black bg-black text-white px-3 py-1.5 uppercase tracking-widest inline-block mb-3">Core Metrics</h3>
+    <div class="print-border grid grid-cols-5 bg-slate-50 mb-6 text-center divide-x-2 divide-black">
+        <div class="p-3">
+            <p class="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1">Teachers</p>
+            <p class="text-xl font-black tabular-nums">{{ number_format($school->no_of_teachers) }}</p>
+        </div>
+        <div class="p-3">
+            <p class="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1">Enrollees</p>
+            <p class="text-xl font-black tabular-nums">{{ number_format($school->no_of_enrollees) }}</p>
+        </div>
+        <div class="p-3">
+            <p class="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1">Classrooms</p>
+            <p class="text-xl font-black tabular-nums">{{ number_format($school->no_of_classrooms) }}</p>
+        </div>
+        <div class="p-3">
+            <p class="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1">Chairs</p>
+            <p class="text-xl font-black tabular-nums">{{ number_format($school->no_of_chairs) }}</p>
+        </div>
+        <div class="p-3">
+            <p class="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1">Toilets</p>
+            <p class="text-xl font-black tabular-nums">{{ number_format($school->no_of_toilets) }}</p>
+        </div>
+    </div>
+
+    {{-- Utilities & Shortages --}}
+    <div class="grid grid-cols-2 gap-6 mb-6">
+        <div>
+            <h3 class="text-xs font-black bg-black text-white px-3 py-1.5 uppercase tracking-widest inline-block mb-3">Utilities</h3>
+            <div class="print-border p-4 space-y-3 text-sm font-bold uppercase">
+                <div class="flex justify-between border-b border-slate-300 pb-1">
+                    <span class="text-slate-600">Electricity</span>
+                    <span class="text-black">{{ $school->with_electricity }}</span>
+                </div>
+                <div class="flex justify-between border-b border-slate-300 pb-1">
+                    <span class="text-slate-600">Potable Water</span>
+                    <span class="text-black">{{ $school->with_potable_water ? 'YES' : 'NO' }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-600">Internet Access</span>
+                    <span class="text-black">{{ $school->with_internet ? 'YES' : 'NO' }}</span>
+                </div>
+            </div>
+        </div>
+        <div>
+            <h3 class="text-xs font-black bg-black text-white px-3 py-1.5 uppercase tracking-widest inline-block mb-3">Reported Shortages</h3>
+            <div class="print-border p-4 space-y-3 text-sm font-bold uppercase">
+                <div class="flex justify-between border-b border-slate-300 pb-1">
+                    <span class="text-slate-600">Teachers</span>
+                    <span class="deped-red">{{ number_format($school->teacher_shortage ?? 0) }} Units ({{ $school->teacher_ratio ?? 'N/A' }})</span>
+                </div>
+                <div class="flex justify-between border-b border-slate-300 pb-1">
+                    <span class="text-slate-600">Classrooms</span>
+                    <span class="deped-red">{{ number_format($school->classroom_shortage ?? 0) }} Units ({{ $school->classroom_ratio ?? 'N/A' }})</span>
+                </div>
+                <div class="flex justify-between border-b border-slate-300 pb-1">
+                    <span class="text-slate-600">Chairs</span>
+                    <span class="deped-red">{{ number_format($school->chair_shortage ?? 0) }} Units ({{ $school->chair_ratio ?? 'N/A' }})</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-600">Toilets</span>
+                    <span class="deped-red">{{ number_format($school->toilet_shortage ?? 0) }} Units ({{ $school->toilet_ratio ?? 'N/A' }})</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Geospatial & Hazards --}}
+    <h3 class="text-xs font-black bg-black text-white px-3 py-1.5 uppercase tracking-widest inline-block mb-3">Geospatial Risk Audit</h3>
+    <div class="print-border p-4">
+        <div class="flex justify-between items-center border-b-2 border-black pb-3 mb-3">
+            <div>
+                <span class="text-[9px] font-black uppercase tracking-widest text-slate-500 block mb-1">Coordinates</span>
+                <span class="font-mono text-sm font-bold">{{ $school->latitude ?? 'N/A' }}, {{ $school->longitude ?? 'N/A' }}</span>
+            </div>
+        </div>
+        <div>
+            <span class="text-[9px] font-black uppercase tracking-widest text-slate-500 block mb-2">Identified Hazards</span>
+            <div class="flex flex-wrap gap-2">
+                @php
+                    $hazards = is_array($school->hazard_type) ? $school->hazard_type : (json_decode($school->hazard_type, true) ?? [$school->hazard_type]);
+                    if (empty(array_filter($hazards))) $hazards = ['No specific hazards reported'];
+                @endphp
+                @foreach($hazards as $h)
+                    @if(!empty($h) && $h !== 'None')
+                        <span class="print-border px-2 py-1 text-xs font-bold uppercase bg-slate-100">{{ $h }}</span>
+                    @endif
+                @endforeach
+            </div>
+        </div>
+    </div>
+    
+    {{-- Validation Footer --}}
+    <div class="mt-16 flex justify-between items-end px-4">
+        <div class="text-center w-64">
+            <div class="border-b-2 border-black mb-2 h-10"></div>
+            <p class="text-[10px] font-black uppercase tracking-widest text-black">Verified Correct By:</p>
+            <p class="text-[9px] text-slate-600 font-bold uppercase mt-1">System Administrator / DPO</p>
+        </div>
+        <div class="text-center w-64">
+            <div class="border-b-2 border-black mb-2 h-10"></div>
+            <p class="text-[10px] font-black uppercase tracking-widest text-black">Approved For Record:</p>
+            <p class="text-[9px] text-slate-600 font-bold uppercase mt-1">Schools Division Superintendent</p>
+        </div>
+    </div>
+</div>
+{{-- END PRINT LAYOUT --}}
+
+
+{{-- MAIN WEB UI (Hidden on Print) --}}
+<div class="no-print max-w-7xl mx-auto px-4 py-8 font-sans leading-tight text-slate-800 pb-32">
     
     {{-- Header Ribbon --}}
     <div class="flex flex-col md:flex-row justify-between items-stretch bg-white border-2 border-black mb-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-sm overflow-hidden">
@@ -11,7 +176,11 @@
             </div>
             <h1 class="px-6 text-xl font-black text-[#a52a2a] uppercase tracking-tight">{{ $school->name }}</h1>
         </div>
-        <div class="flex border-t-2 md:border-t-0 md:border-l-2 border-black bg-slate-50">
+        <div class="flex border-t-2 md:border-t-0 md:border-l-2 border-black bg-slate-50 flex-wrap">
+            {{-- Print Button --}}
+            <button type="button" onclick="window.print()" class="flex-1 md:flex-none px-6 py-4 text-sm font-black uppercase text-slate-700 hover:text-black hover:bg-slate-200 transition-colors border-r-2 border-black flex items-center justify-center gap-2">
+                <i class="bi bi-printer-fill"></i> Print
+            </button>
             <button type="button" onclick="openDeleteModal()" class="flex-1 md:flex-none px-6 py-4 text-sm font-black uppercase text-red-600 hover:bg-red-100 transition-colors border-r-2 border-black flex items-center justify-center gap-2">
                 <i class="bi bi-trash-fill"></i> Purge
             </button>
@@ -45,6 +214,42 @@
                     </div>
                 </div>
 
+                {{-- NEW CLASSIFICATION ROW --}}
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t-2 border-slate-100">
+                    <div>
+                        <label class="block text-xs font-black text-slate-500 uppercase mb-2 tracking-widest">Sector</label>
+                        <select name="sector" class="w-full bg-white border-2 border-slate-300 p-3 text-sm font-bold uppercase focus:outline-none focus:border-black focus:bg-white cursor-pointer transition-colors rounded-sm shadow-inner">
+                            <option value="Public" {{ ($school->sector ?? '') == 'Public' ? 'selected' : '' }}>Public School</option>
+                            <option value="Private" {{ ($school->sector ?? '') == 'Private' ? 'selected' : '' }}>Private School</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black text-slate-500 uppercase mb-2 tracking-widest">Curriculum Level</label>
+                        <select name="school_level" class="w-full bg-white border-2 border-slate-300 p-3 text-sm font-bold uppercase focus:outline-none focus:border-black focus:bg-white cursor-pointer transition-colors rounded-sm shadow-inner">
+                            <option value="">Select Level</option>
+                            <option value="Primary" {{ ($school->school_level ?? '') == 'Primary' ? 'selected' : '' }}>Primary (Elementary)</option>
+                            <option value="Secondary" {{ ($school->school_level ?? '') == 'Secondary' ? 'selected' : '' }}>Secondary (High School)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black text-slate-500 uppercase mb-2 tracking-widest">School District</label>
+                        @php
+                            $commonDistricts = ['Ayala', 'Baliwasan', 'Central', 'Culianan', 'Curuan', 'Labuan', 'Manicahan', 'Mercedes', 'Putik', 'Sangali', 'Talon-Talon', 'Tetuan', 'Vitali', 'West Coast'];
+                            $currentDistrict = $school->district ?? '';
+                            if($currentDistrict && !in_array($currentDistrict, $commonDistricts)) {
+                                $commonDistricts[] = $currentDistrict; // Ensure current is in list
+                            }
+                            sort($commonDistricts);
+                        @endphp
+                        <select name="district" class="w-full bg-white border-2 border-slate-300 p-3 text-sm font-bold uppercase focus:outline-none focus:border-black focus:bg-white cursor-pointer transition-colors rounded-sm shadow-inner">
+                            <option value="">Select District</option>
+                            @foreach($commonDistricts as $dist)
+                                <option value="{{ $dist }}" {{ $currentDistrict == $dist ? 'selected' : '' }}>{{ $dist }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
                 <div class="bg-slate-50 border-2 border-slate-200 p-6 rounded-sm mt-6">
                     <div class="grid grid-cols-2 md:grid-cols-5 gap-6">
                         @foreach([['name' => 'no_of_teachers', 'label' => 'Teachers'], ['name' => 'no_of_enrollees', 'label' => 'Enrollees'], ['name' => 'no_of_classrooms', 'label' => 'Classrooms'], ['name' => 'no_of_chairs', 'label' => 'Chairs'], ['name' => 'no_of_toilets', 'label' => 'Toilets']] as $field)
@@ -65,9 +270,9 @@
                 <span class="bg-[#a52a2a] text-white px-2 py-1 text-xs rounded-sm">02</span> Resource & Shortage Audit
             </div>
             
-            <div class="grid grid-cols-1 lg:grid-cols-2 divide-y-2 lg:divide-y-0 lg:divide-x-2 divide-slate-100">
+            <div class="grid grid-cols-1 lg:grid-cols-2 divide-y-2 lg:divide-y-0 lg:divide-x-2 divide-slate-100 border-black">
                 {{-- Utilities Left Column --}}
-                <div class="p-6 md:p-8 space-y-6 bg-white border-r-2 border-black">
+                <div class="p-6 md:p-8 space-y-6 bg-white border-r-0 lg:border-r-2 border-black">
                     <h3 class="text-sm font-black text-slate-800 uppercase border-b-2 border-slate-100 pb-2">Utility Connectivity</h3>
                     
                     <div>
@@ -139,7 +344,7 @@
                 <span class="bg-[#a52a2a] text-white px-2 py-1 text-xs rounded-sm">03</span> Geospatial & Technical Limits
             </div>
             
-            <div class="grid grid-cols-1 lg:grid-cols-2 divide-y-2 lg:divide-y-0 lg:divide-x-2 divide-slate-100">
+            <div class="grid grid-cols-1 lg:grid-cols-2 divide-y-2 lg:divide-y-0 lg:divide-x-2 divide-slate-100 border-black">
                 <div class="p-6 md:p-8">
                     <div id="schoolMap" class="h-[250px] w-full border-2 border-black shadow-inner mb-4 rounded-sm z-0 relative"></div>
                     
@@ -221,7 +426,7 @@
 </div>
 
 {{-- Verification Modal --}}
-<div id="verificationModal" class="fixed inset-0 z-[2000] hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-opacity">
+<div id="verificationModal" class="no-print fixed inset-0 z-[2000] hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-opacity">
     <div class="bg-white border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] w-full max-w-lg overflow-hidden rounded-sm transform transition-transform scale-100">
         <div class="bg-[#a52a2a] text-white p-4 text-sm font-black uppercase tracking-widest flex justify-between items-center border-b-2 border-black">
             <span><i class="bi bi-shield-lock-fill mr-2"></i> Audit Verification</span>
@@ -234,7 +439,7 @@
                     <span id="confirmName" class="font-black text-lg text-black leading-tight"></span>
                 </div>
                 <div class="p-2 bg-white border border-slate-200 rounded text-center">
-                    <p class="text-xs text-slate-500 uppercase mb-2">Authorized update for registry cycle 2026</p>
+                    <p class="text-xs text-slate-500 uppercase mb-2">Authorized update for registry cycle</p>
                     <p class="text-xs font-bold text-black italic">Ensure all manual shortage and ratio data are validated against division audits before syncing.</p>
                 </div>
             </div>
@@ -249,7 +454,7 @@
 </div>
 
 {{-- Purge Modal --}}
-<div id="deleteModal" class="fixed inset-0 z-[3000] hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+<div id="deleteModal" class="no-print fixed inset-0 z-[3000] hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
     <div class="bg-white border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] w-full max-w-md overflow-hidden rounded-sm">
         <div class="bg-red-600 text-white p-4 text-sm font-black uppercase tracking-widest flex justify-between items-center border-b-2 border-black">
             <span><i class="bi bi-exclamation-triangle-fill mr-2"></i> Critical Warning</span>
@@ -276,11 +481,14 @@
     </div>
 </div>
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+{{-- Leaflet Map Logic (Hidden on Print) --}}
+<div class="no-print">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<link href='https://unpkg.com/leaflet.fullscreen@1.0.2/dist/leaflet.fullscreen.css' rel='stylesheet' />
-<script src='https://unpkg.com/leaflet.fullscreen@1.0.2/dist/Leaflet.fullscreen.min.js'></script>
+    <link href='https://unpkg.com/leaflet.fullscreen@1.0.2/dist/leaflet.fullscreen.css' rel='stylesheet' />
+    <script src='https://unpkg.com/leaflet.fullscreen@1.0.2/dist/Leaflet.fullscreen.min.js'></script>
+</div>
 
 <script>
     let editMarker;
@@ -337,7 +545,7 @@
                 dragging: true,
                 fullscreenControl: true,
                 fullscreenControlOptions: { position: 'topleft' }
-            }).setView([{{ $school->latitude }}, {{ $school->longitude }}], 15);
+            }).setView([{{ $school->latitude ?? 6.9214 }}, {{ $school->longitude ?? 122.0739 }}], 15);
             
             const streetView = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' });
             const satelliteView = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles &copy; Esri' });
@@ -345,11 +553,13 @@
             streetView.addTo(editMap);
             L.control.layers({ "Street Map": streetView, "Satellite View": satelliteView }).addTo(editMap);
             
+            @if($school->latitude && $school->longitude)
             editMarker = L.marker([{{ $school->latitude }}, {{ $school->longitude }}], {
                 icon: L.divIcon({ 
                     html: `<div class="bg-[#a52a2a] w-4 h-4 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rounded-full"></div>` 
                 })
             }).addTo(editMap);
+            @endif
         }, 300);
     });
 
@@ -373,13 +583,13 @@
         const wrapper = document.getElementById('custom_hazards_wrapper');
         const div = document.createElement('div');
         div.className = 'flex items-center gap-3';
-        div.innerHTML = `<input type="text" name="custom_hazards[]" class="flex-1 border-2 border-black bg-white text-xs font-bold text-black uppercase p-3" placeholder="E.g., Wildfire Zone">
-                         <button type="button" onclick="this.parentElement.remove()" class="px-4 py-3 bg-white text-red-600 border-2 border-black">Remove</button>`;
+        div.innerHTML = `<input type="text" name="custom_hazards[]" class="flex-1 border-2 border-black bg-white text-xs font-bold text-black uppercase focus:outline-none focus:bg-[#fdf2f2] p-3 transition-all" placeholder="E.g., Wildfire Zone">
+                         <button type="button" onclick="this.parentElement.remove()" class="px-4 py-3 flex items-center justify-center gap-2 bg-white text-red-600 border-2 border-black hover:bg-red-600 hover:text-white transition-all shrink-0 text-[10px] font-black uppercase tracking-widest shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"><i class="bi bi-x-lg"></i> Remove</button>`;
         wrapper.appendChild(div);
     }
 </script>
 
-<div id="gisGatewayModal" class="fixed inset-0 z-[2000] hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+<div id="gisGatewayModal" class="no-print fixed inset-0 z-[2000] hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
     <div class="bg-white border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] w-full max-w-md overflow-hidden rounded-sm">
         <div class="bg-[#a52a2a] text-white p-4 text-sm font-black uppercase tracking-widest flex justify-between items-center border-b-2 border-black">
             <span><i class="bi bi-geo-fill mr-2"></i> GIS Protocol</span>

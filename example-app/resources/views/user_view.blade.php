@@ -44,10 +44,27 @@
                         <span class="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em]">Registry Cycle 2026</span>
                     </div>
                     <h1 class="text-4xl font-black text-slate-900 tracking-tight">{{ $school->name }}</h1>
+                    
+                    {{-- NEW: CLASSIFICATION BADGES --}}
+                    <div class="flex flex-wrap items-center gap-2 mt-4 pt-2">
+                        @if(($school->sector ?? 'Public') === 'Private')
+                            <span class="px-3 py-1 bg-purple-100 text-purple-700 border border-purple-200 text-[10px] font-black uppercase tracking-widest rounded-md">Private</span>
+                        @else
+                            <span class="px-3 py-1 bg-blue-100 text-blue-700 border border-blue-200 text-[10px] font-black uppercase tracking-widest rounded-md">Public</span>
+                        @endif
+                        
+                        <span class="px-3 py-1 bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-black uppercase tracking-widest rounded-md">
+                            {{ $school->school_level ?? 'Unclassified Level' }}
+                        </span>
+                        
+                        <span class="px-3 py-1 bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-black uppercase tracking-widest rounded-md flex items-center gap-1">
+                            <i data-lucide="map-pin" class="w-3 h-3"></i> {{ $school->district ?? 'Unassigned District' }}
+                        </span>
+                    </div>
                 </div>
 
                 @if(!$isEmbed)
-                <div class="flex flex-col items-end gap-3 no-print">
+                <div class="flex flex-col items-end gap-3 no-print mt-4 md:mt-0">
                     <button onclick="window.print()" class="bg-[#a52a2a] text-white px-6 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg hover:bg-black transition-all flex items-center gap-2">
                         <i data-lucide="printer" class="w-4 h-4"></i> Print Profile
                     </button>

@@ -2,45 +2,64 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\School;
 use Illuminate\Http\Request;
+use App\Models\School;
 
 class PublicSchoolController extends Controller
 {
     /**
-     * Display the list of schools with Search and Filter logic.
-     * Maps to the 'public.schools' route.
+     * 1. PUBLIC DIRECTORY LIST
+     * Handles server-side filtering and pagination for schools_list.blade.php
      */
     public function listSchools(Request $request)
     {
-        $query = School::query();
+        $search = $request->input('search');
+        $sector = $request->input('sector');
+        $level = $request->input('level');
+        $district = $request->input('district');
 
-        // 1. Handle Search (Name or School ID)
-        if ($request->filled('search')) {
-            $query->where(function($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->search . '%')
-                  ->orWhere('school_id', 'like', '%' . $request->search . '%');
+        $schools = School::when($search, function ($query, $search) {
+            return $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('school_id', 'like', "%{$search}%");
             });
-        }
-
-        // 2. Handle District Filter
-        if ($request->filled('district') && $request->district !== 'All Districts') {
-            $query->where('district', $request->district);
-        }
-
-        // 3. Paginate results updated to 10
-        // withQueryString() ensures filters stay active when clicking next page
-        $schools = $query->latest()->paginate(10)->withQueryString();
+        })
+        ->when($sector, function ($query, $sector) {
+            return $query->where('sector', $sector);
+        })
+        ->when($level, function ($query, $level) {
+            return $query->where('school_level', $level);
+        })
+        ->when($district, function ($query, $district) {
+            return $query->where('district', $district);
+        })
+        ->orderBy('name', 'asc')
+        ->paginate(12); // Paginates 12 schools per page
 
         return view('schools_list', compact('schools'));
     }
 
     /**
-     * Display the specific details for one school.
+     * 2. INTERACTIVE PUBLIC MAP
+     * Passes all valid schools to public_map.blade.php for instant Javascript filtering
      */
-    public function showPublicDetail($id) 
+    public function map()
     {
-        $school = School::findOrFail($id); 
+        // Only fetch schools that have coordinates so the map doesn't break
+        $schools = School::whereNotNull('latitude')
+                         ->whereNotNull('longitude')
+                         ->get();
+
+        return view('public_map', compact('schools'));
+    }
+
+    /**
+     * 3. INDIVIDUAL SCHOOL PROFILE
+     * Displays the detailed view for a single school in user_view.blade.php
+     */
+    public function showPublicDetail($id) // <-- Renamed to match your web.php route
+    {
+        $school = School::findOrFail($id);
         
         return view('user_view', compact('school'));
     }
