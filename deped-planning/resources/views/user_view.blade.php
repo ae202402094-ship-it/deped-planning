@@ -47,12 +47,6 @@
                     
                     {{-- NEW: CLASSIFICATION BADGES --}}
                     <div class="flex flex-wrap items-center gap-2 mt-4 pt-2">
-                        @if(($school->sector ?? 'Public') === 'Private')
-                            <span class="px-3 py-1 bg-purple-100 text-purple-700 border border-purple-200 text-[10px] font-black uppercase tracking-widest rounded-md">Private</span>
-                        @else
-                            <span class="px-3 py-1 bg-blue-100 text-blue-700 border border-blue-200 text-[10px] font-black uppercase tracking-widest rounded-md">Public</span>
-                        @endif
-                        
                         <span class="px-3 py-1 bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-black uppercase tracking-widest rounded-md">
                             {{ $school->school_level ?? 'Unclassified Level' }}
                         </span>

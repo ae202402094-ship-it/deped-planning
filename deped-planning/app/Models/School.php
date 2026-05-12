@@ -13,8 +13,7 @@ class School extends Model
     // ADD THE NEW COLUMNS HERE
     protected $fillable = [
         'school_id', 
-        'name', 
-        'sector',          // <-- Added
+        'name',       // <-- Added
         'school_level',    // <-- Added
         'district',        // <-- Added
         'no_of_teachers', 

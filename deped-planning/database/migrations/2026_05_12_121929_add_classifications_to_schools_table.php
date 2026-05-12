@@ -12,10 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('schools', function (Blueprint $table) {
-            // Check if columns don't exist before adding them to prevent crash
-            if (!Schema::hasColumn('schools', 'sector')) {
-                $table->enum('sector', ['Public', 'Private'])->nullable()->after('name');
-            }
+            
+    
             if (!Schema::hasColumn('schools', 'school_level')) {
                 $table->enum('school_level', ['Primary', 'Secondary'])->nullable()->after('sector');
             }
@@ -31,7 +29,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('schools', function (Blueprint $table) {
-            $table->dropColumn(['sector', 'school_level', 'district']);
+            $table->dropColumn([ 'school_level', 'district']);
         });
     }
 };

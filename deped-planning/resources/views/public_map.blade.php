@@ -58,7 +58,7 @@
             {{-- Autocomplete Search --}}
             <div class="relative flex-1">
                 <input type="text" id="mapSearch" placeholder="Search ID or Name..." 
-                       class="w-full bg-white/95 backdrop-blur border border-slate-100 rounded-2xl py-3.5 pl-12 pr-10 shadow-lg outline-none focus:ring-2 focus:ring-[#a52a2a]/50 text-sm font-bold text-slate-700 transition-all">
+                        class="w-full bg-white/95 backdrop-blur border border-slate-100 rounded-2xl py-3.5 pl-12 pr-10 shadow-lg outline-none focus:ring-2 focus:ring-[#a52a2a]/50 text-sm font-bold text-slate-700 transition-all">
                 <div class="absolute left-5 top-1/2 -translate-y-1/2 text-[#a52a2a]">
                     <i class="bi bi-search"></i>
                 </div>
@@ -72,13 +72,6 @@
 
             {{-- Interactive Map Filters --}}
             <div class="flex flex-wrap gap-2 justify-center">
-                {{-- Sector Filter --}}
-                <select id="mapSectorFilter" class="bg-white/95 backdrop-blur border border-slate-100 rounded-2xl py-3.5 px-4 shadow-lg outline-none focus:ring-2 focus:ring-[#a52a2a]/50 text-[10px] font-black uppercase tracking-widest text-slate-600 cursor-pointer flex-1 md:flex-none transition-all">
-                    <option value="">All Sectors</option>
-                    <option value="Public">Public Schools</option>
-                    <option value="Private">Private Schools</option>
-                </select>
-
                 {{-- Level Filter --}}
                 <select id="mapLevelFilter" class="bg-white/95 backdrop-blur border border-slate-100 rounded-2xl py-3.5 px-4 shadow-lg outline-none focus:ring-2 focus:ring-[#a52a2a]/50 text-[10px] font-black uppercase tracking-widest text-slate-600 cursor-pointer flex-1 md:flex-none transition-all">
                     <option value="">All Levels</option>
@@ -105,22 +98,9 @@
                 <i class="bi bi-geo-alt-fill text-[#a52a2a]"></i> Map Legend
             </h4>
             
-            {{-- Sector Legend (Shapes) --}}
-            <div class="mb-4">
-                <span class="text-[8px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Classification (Shape)</span>
-                <div class="flex items-center gap-3 mb-1.5">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="#64748b"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="3" fill="white"/></svg>
-                    <span class="text-[10px] font-bold text-slate-700 uppercase tracking-tight">Public School</span>
-                </div>
-                <div class="flex items-center gap-3">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="#64748b"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><rect x="9.5" y="6.5" width="5" height="5" fill="white"/></svg>
-                    <span class="text-[10px] font-bold text-slate-700 uppercase tracking-tight">Private School</span>
-                </div>
-            </div>
-
             {{-- District Legend (Colors) --}}
             <div>
-                <span class="text-[8px] font-bold text-slate-400 uppercase tracking-widest block mb-2 border-t border-slate-100 pt-2">Districts (Color)</span>
+                <span class="text-[8px] font-bold text-slate-400 uppercase tracking-widest block mb-2 pt-2">Districts (Color)</span>
                 <div class="flex flex-col gap-2.5 max-h-[25vh] overflow-y-auto pr-3 custom-scrollbar">
                     @foreach($districtColors as $dist => $color)
                     <div class="flex items-center gap-3">
@@ -172,13 +152,10 @@
             
             // Determine Map Pin Attributes
             var schoolDistrict = '{{ $school->district }}';
-            var schoolSector = '{{ $school->sector ?? 'Public' }}'; // Default to Public if null
             var pinColor = schoolDistrict && districtColors[schoolDistrict] ? districtColors[schoolDistrict] : defaultColor;
             
-            // Public = Circle Inner Hole, Private = Square Inner Hole
-            var innerShape = schoolSector === 'Private' 
-                ? '<rect x="9" y="6.5" width="6" height="6" rx="1" fill="white"/>' 
-                : '<circle cx="12" cy="9" r="3" fill="white"/>';
+            // Default Circle Inner Hole
+            var innerShape = '<circle cx="12" cy="9" r="3" fill="white"/>';
 
             var marker = L.marker([{{ $school->latitude }}, {{ $school->longitude }}], {
                 icon: L.divIcon({
@@ -193,9 +170,6 @@
             }).bindPopup(`
                 <div class="p-4 text-center min-w-[180px]">
                     <div class="flex justify-center gap-1 mb-3">
-                        <span class="inline-block px-2 py-1 text-white text-[8px] font-black uppercase tracking-widest rounded-md shadow-sm" style="background-color: ${pinColor}">
-                            {{ $school->sector ?? 'Public' }}
-                        </span>
                         <span class="inline-block px-2 py-1 text-slate-600 bg-slate-100 text-[8px] font-black uppercase tracking-widest rounded-md shadow-sm border border-slate-200">
                             {{ $school->school_level ?? 'Unclassified' }}
                         </span>
@@ -217,7 +191,6 @@
                 id: '{{ $school->id }}',
                 marker: marker,
                 level: '{{ $school->school_level }}',
-                sector: schoolSector,
                 district: schoolDistrict,
                 name: '{{ strtolower($school->name) }}',
                 school_id: '{{ $school->school_id }}'
@@ -226,27 +199,24 @@
     @endforeach
 
     // 3. Elements and Variables
-    const sectorFilter = document.getElementById('mapSectorFilter');
     const levelFilter = document.getElementById('mapLevelFilter');
     const districtFilter = document.getElementById('mapDistrictFilter');
     const searchInput = document.getElementById('mapSearch');
     const resultsBox = document.getElementById('searchResults');
     const clearBtn = document.getElementById('clearSearch');
 
-    // 4. Filtering Logic (Handles Sector, Level, District, and specific typing)
+    // 4. Filtering Logic (Handles Level, District, and specific typing)
     function applyMapFilters() {
         const term = searchInput.value.toLowerCase();
-        const selectedSector = sectorFilter.value;
         const selectedLevel = levelFilter.value;
         const selectedDistrict = districtFilter.value;
 
         markerRegistry.forEach(item => {
             let matchesSearch = term === '' || item.name.includes(term) || item.school_id.includes(term);
-            let matchesSector = selectedSector === '' || item.sector === selectedSector;
             let matchesLevel = selectedLevel === '' || item.level === selectedLevel;
             let matchesDistrict = selectedDistrict === '' || item.district === selectedDistrict;
 
-            if (matchesSearch && matchesSector && matchesLevel && matchesDistrict) {
+            if (matchesSearch && matchesLevel && matchesDistrict) {
                 if (!map.hasLayer(item.marker)) map.addLayer(item.marker);
             } else {
                 if (map.hasLayer(item.marker)) map.removeLayer(item.marker);
@@ -254,7 +224,6 @@
         });
     }
 
-    sectorFilter.addEventListener('change', applyMapFilters);
     levelFilter.addEventListener('change', applyMapFilters);
     districtFilter.addEventListener('change', applyMapFilters);
 
@@ -277,22 +246,18 @@
         if (term.length < 2) return;
 
         // Find matches based on filters + search term
-        const selectedSector = sectorFilter.value;
         const selectedLevel = levelFilter.value;
         const selectedDistrict = districtFilter.value;
 
         const filtered = allSchools.filter(s => {
-            let sSector = s.sector || 'Public';
             let matchesSearch = s.name.toLowerCase().includes(term) || s.school_id.toString().includes(term);
-            let matchesSector = selectedSector === '' || sSector === selectedSector;
             let matchesLevel = selectedLevel === '' || s.school_level === selectedLevel;
             let matchesDistrict = selectedDistrict === '' || s.district === selectedDistrict;
-            return matchesSearch && matchesSector && matchesLevel && matchesDistrict;
+            return matchesSearch && matchesLevel && matchesDistrict;
         }).slice(0, 5); // Max 5 results in dropdown
 
         if (filtered.length > 0) {
             filtered.forEach(school => {
-                let sSector = school.sector || 'Public';
                 let badgeColor = school.district && districtColors[school.district] ? districtColors[school.district] : defaultColor;
                 
                 const div = document.createElement('div');
@@ -301,7 +266,7 @@
                     <div>
                         <p class="text-xs font-black text-slate-800 group-hover:text-[#a52a2a] transition-colors">${school.name}</p>
                         <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
-                            ID: ${school.school_id} | ${sSector} | ${school.district || 'Unassigned'}
+                            ID: ${school.school_id} | ${school.district || 'Unassigned'}
                         </p>
                     </div>
                     <div class="w-3 h-3 rounded-full shadow-sm" style="background-color: ${badgeColor}"></div>

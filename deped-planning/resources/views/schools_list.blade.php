@@ -54,11 +54,6 @@
 
         {{-- Advanced Filters Row --}}
         <div class="flex flex-col md:flex-row gap-3">
-            <select name="sector" class="flex-1 bg-white border-none rounded-xl py-3.5 px-4 text-xs font-bold uppercase tracking-widest text-slate-600 focus:ring-2 focus:ring-red-800 shadow-sm outline-none cursor-pointer">
-                <option value="">All Sectors</option>
-                <option value="Public" {{ request('sector') == 'Public' ? 'selected' : '' }}>Public Schools</option>
-                <option value="Private" {{ request('sector') == 'Private' ? 'selected' : '' }}>Private Schools</option>
-            </select>
 
             <select name="level" class="flex-1 bg-white border-none rounded-xl py-3.5 px-4 text-xs font-bold uppercase tracking-widest text-slate-600 focus:ring-2 focus:ring-red-800 shadow-sm outline-none cursor-pointer">
                 <option value="">All Levels</option>
@@ -82,7 +77,7 @@
                     <span class="text-[10px] font-black uppercase tracking-widest">Filter</span>
                 </button>
 
-                @if(request()->filled('search') || request()->filled('sector') || request()->filled('level') || request()->filled('district'))
+                @if(request()->filled('search') || request()->filled('level') || request()->filled('district'))
                     <a href="{{ route('public.schools', $isEmbed ? ['embed' => 'true'] : []) }}" class="bg-slate-200 hover:bg-slate-300 text-slate-600 px-5 py-3.5 rounded-xl flex items-center justify-center transition-all shadow-sm" title="Clear Filters">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </a>
@@ -111,11 +106,7 @@
                             
                             {{-- NEW: CLASSIFICATION BADGES --}}
                             <div class="flex flex-wrap items-center gap-1.5 mt-2">
-                                @if(($school->sector ?? 'Public') === 'Private')
-                                    <span class="px-2 py-0.5 bg-purple-100 text-purple-700 border border-purple-200 text-[8px] font-black uppercase tracking-widest rounded">Private</span>
-                                @else
-                                    <span class="px-2 py-0.5 bg-blue-100 text-blue-700 border border-blue-200 text-[8px] font-black uppercase tracking-widest rounded">Public</span>
-                                @endif
+                                
                                 
                                 <span class="px-2 py-0.5 bg-slate-100 text-slate-600 border border-slate-200 text-[8px] font-black uppercase tracking-widest rounded">
                                     {{ $school->school_level ?? 'Unclassified' }}

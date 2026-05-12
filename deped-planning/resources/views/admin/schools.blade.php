@@ -53,7 +53,7 @@
             <div>
                 <h2 class="text-2xl font-black uppercase tracking-tighter text-slate-900">Institutional Masterlist</h2>
                 <p class="text-[10px] text-slate-600 font-bold uppercase tracking-[0.2em] mt-1" id="printFilterCriteria">
-                    Showing: All Sectors • All Levels • All Districts
+                    Showing: All Levels • All Districts
                 </p>
             </div>
             <div class="text-right">
@@ -78,15 +78,6 @@
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Search ID or Name..." 
                            class="w-full bg-transparent font-bold text-[10px] uppercase tracking-widest text-slate-700 focus:outline-none py-2">
                 </div>
-                
-                {{-- Sector Filter (NEW) --}}
-                <div class="flex items-center bg-white border-2 border-slate-200 rounded-2xl shadow-sm focus-within:border-[#a52a2a] transition-all px-3">
-                    <select name="sector" onchange="this.form.submit()" class="py-3 pr-2 bg-transparent font-bold text-[10px] uppercase tracking-widest text-slate-700 outline-none cursor-pointer">
-                        <option value="">All Sectors</option>
-                        <option value="Public" {{ request('sector') == 'Public' ? 'selected' : '' }}>Public Schools</option>
-                        <option value="Private" {{ request('sector') == 'Private' ? 'selected' : '' }}>Private Schools</option>
-                    </select>
-                </div>
 
                 {{-- Level Filter --}}
                 <div class="flex items-center bg-white border-2 border-slate-200 rounded-2xl shadow-sm focus-within:border-[#a52a2a] transition-all px-3">
@@ -109,7 +100,7 @@
                     </select>
                 </div>
 
-                @if(request('search') || request('sector') || request('level') || request('district'))
+                @if(request('search') || request('level') || request('district'))
                     <a href="{{ route('admin.schools') }}" class="flex items-center text-red-500 hover:text-red-700 transition-colors px-2" title="Clear Filters">
                         <i class="bi bi-x-circle-fill text-lg"></i>
                     </a>
@@ -162,13 +153,6 @@
                         </td>
                         <td class="p-6 border-r border-slate-50 print:border-slate-300 print:py-3">
                             <div class="flex flex-wrap gap-1 mb-1">
-                                {{-- SECTOR BADGE --}}
-                                @if(isset($school->sector) && $school->sector === 'Private')
-                                    <span class="inline-block px-2 py-0.5 bg-purple-100 text-purple-700 border border-purple-200 text-[8px] font-black uppercase tracking-widest rounded-md print:border-slate-400">Private</span>
-                                @else
-                                    <span class="inline-block px-2 py-0.5 bg-blue-100 text-blue-700 border border-blue-200 text-[8px] font-black uppercase tracking-widest rounded-md print:border-slate-400">Public</span>
-                                @endif
-                                
                                 {{-- LEVEL BADGE --}}
                                 <span class="inline-block px-2 py-0.5 bg-slate-100 text-slate-700 border border-slate-200 text-[8px] font-black uppercase tracking-widest rounded-md print:border-slate-400">
                                     {{ $school->school_level ?? 'N/A' }}
@@ -270,7 +254,7 @@
                 <input type="checkbox" id="toggleFilters" checked class="w-5 h-5 rounded text-[#a52a2a] focus:ring-[#a52a2a] border-slate-300 cursor-pointer">
                 <div>
                     <span class="block text-[11px] font-black uppercase tracking-widest text-slate-700 group-hover:text-black transition-colors">Display Filter Criteria</span>
-                    <span class="block text-[9px] text-slate-500 font-bold uppercase mt-0.5">Shows applied sectors, levels, and districts in header.</span>
+                    <span class="block text-[9px] text-slate-500 font-bold uppercase mt-0.5">Shows applied levels and districts in header.</span>
                 </div>
             </label>
             
@@ -284,9 +268,8 @@
     </div>
 </div>
 
-{{-- EXISTING BATCH IMPORT MODAL (Unchanged) --}}
+{{-- EXISTING BATCH IMPORT MODAL --}}
 <div id="importModal" class="fixed inset-0 z-[2000] hidden flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4 transition-all opacity-0 pointer-events-none no-print" style="transition: opacity 0.3s ease;">
-    {{-- ... (Your existing import modal HTML goes here, it remains identical to previous version) ... --}}
     <div class="bg-white rounded-[2rem] border border-slate-200 shadow-2xl w-full max-w-lg overflow-hidden flex flex-col transform scale-95 transition-transform duration-300" id="importModalContent">
         <div class="bg-slate-50 border-b border-slate-100 p-6 flex justify-between items-center">
             <div>
@@ -382,12 +365,10 @@
 
         // 2. Handle Dynamic Filter Text
         if(document.getElementById('toggleFilters').checked) {
-            // Get current values from the URL or form
             let urlParams = new URLSearchParams(window.location.search);
-            let sec = urlParams.get('sector') || 'All Sectors';
             let lvl = urlParams.get('level') || 'All Levels';
             let dist = urlParams.get('district') || 'All Districts';
-            criteriaText.innerHTML = `Showing: ${sec} &bull; ${lvl} &bull; ${dist}`;
+            criteriaText.innerHTML = `Showing: ${lvl} &bull; ${dist}`;
             criteriaText.classList.remove('hidden');
         } else {
             criteriaText.classList.add('hidden');
@@ -397,7 +378,7 @@
         closePrintConfigModal();
         setTimeout(() => {
             window.print();
-        }, 400); // Wait for modal animation to clear before printing
+        }, 400); 
     }
 
     /* =========================================================

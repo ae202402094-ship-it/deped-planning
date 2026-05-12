@@ -52,7 +52,7 @@
     <div class="mb-6">
         <h2 class="text-2xl font-black uppercase tracking-tighter text-black">{{ $school->name }}</h2>
         <p class="text-xs font-bold text-slate-600 uppercase tracking-widest mt-1">
-            {{ $school->sector ?? 'Public' }} • {{ $school->school_level ?? 'Unclassified' }} • {{ $school->district ?? 'No District' }}
+             {{ $school->school_level ?? 'Unclassified' }} • {{ $school->district ?? 'No District' }}
         </p>
     </div>
 
@@ -216,13 +216,7 @@
 
                 {{-- NEW CLASSIFICATION ROW --}}
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t-2 border-slate-100">
-                    <div>
-                        <label class="block text-xs font-black text-slate-500 uppercase mb-2 tracking-widest">Sector</label>
-                        <select name="sector" class="w-full bg-white border-2 border-slate-300 p-3 text-sm font-bold uppercase focus:outline-none focus:border-black focus:bg-white cursor-pointer transition-colors rounded-sm shadow-inner">
-                            <option value="Public" {{ ($school->sector ?? '') == 'Public' ? 'selected' : '' }}>Public School</option>
-                            <option value="Private" {{ ($school->sector ?? '') == 'Private' ? 'selected' : '' }}>Private School</option>
-                        </select>
-                    </div>
+                   
                     <div>
                         <label class="block text-xs font-black text-slate-500 uppercase mb-2 tracking-widest">Curriculum Level</label>
                         <select name="school_level" class="w-full bg-white border-2 border-slate-300 p-3 text-sm font-bold uppercase focus:outline-none focus:border-black focus:bg-white cursor-pointer transition-colors rounded-sm shadow-inner">
