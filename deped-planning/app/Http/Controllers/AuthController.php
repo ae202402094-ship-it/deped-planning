@@ -14,34 +14,6 @@ class AuthController extends Controller
         return view('auth.login'); 
     }
 
-    public function showRegister() { 
-        return view('auth.register'); 
-    }
-
-    public function register(Request $request) {
-        $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email',
-            'password' => 'required|min:8|confirmed',
-        ]);
-
-        $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
-            'role'     => 'admin',     // Default role for registration
-            'status'   => 'pending',  // Matches your migration
-        ]);
-
-        // This line is what sends the email!
-        event(new Registered($user));
-
-        // Log the user in so they can see the "Verify your email" page
-        Auth::login($user);
-
-        return redirect()->route('verification.notice')
-                        ->with('success', 'Registration successful! Please check your email for a verification link.');
-    }
 public function login(Request $request)
 {
     $credentials = $request->validate([

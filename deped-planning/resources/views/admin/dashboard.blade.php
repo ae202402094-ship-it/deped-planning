@@ -211,13 +211,6 @@
                     </div>
                 </div>
                 <div>
-                    <label class="text-[9px] font-black text-[#a52a2a] uppercase tracking-widest block mb-2">Learners per Chair</label>
-                    <div class="flex items-center bg-slate-50 border-2 border-slate-200 rounded-xl overflow-hidden focus-within:border-[#a52a2a] transition-colors">
-                        <div class="px-4 py-3 bg-slate-100 border-r border-slate-200 text-slate-400"><i data-lucide="armchair" class="w-4 h-4"></i></div>
-                        <input type="number" id="global_ratio_chair" class="w-full bg-transparent p-3 font-mono text-lg font-black text-slate-800 outline-none">
-                    </div>
-                </div>
-                <div>
                     <label class="text-[9px] font-black text-[#a52a2a] uppercase tracking-widest block mb-2">Learners per Toilet</label>
                     <div class="flex items-center bg-slate-50 border-2 border-slate-200 rounded-xl overflow-hidden focus-within:border-[#a52a2a] transition-colors">
                         <div class="px-4 py-3 bg-slate-100 border-r border-slate-200 text-slate-400"><i data-lucide="bath" class="w-4 h-4"></i></div>
@@ -521,7 +514,6 @@
         // Save ALL 4 parameters to Local Storage
         if(document.getElementById('global_ratio_teacher')) localStorage.setItem('deped_ratio_teacher', document.getElementById('global_ratio_teacher').value || 45);
         if(document.getElementById('global_ratio_classroom')) localStorage.setItem('deped_ratio_classroom', document.getElementById('global_ratio_classroom').value || 40);
-        if(document.getElementById('global_ratio_chair')) localStorage.setItem('deped_ratio_chair', document.getElementById('global_ratio_chair').value || 1);
         if(document.getElementById('global_ratio_toilet')) localStorage.setItem('deped_ratio_toilet', document.getElementById('global_ratio_toilet').value || 50);
 
         // UI Animation Feedback
