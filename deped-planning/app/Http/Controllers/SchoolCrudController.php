@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Http\Controllers;
-
 use Illuminate\Http\Request;
 use App\Models\School;
 use App\Models\ActivityLog;
@@ -43,34 +42,38 @@ class SchoolCrudController extends Controller
     }
 
     public function storeSchool(Request $request)
-    {
-        $validated = $request->validate([
-            'school_id' => 'required|unique:schools,school_id',
-            'name' => 'required|string|max:255|unique:schools,name',
-            'no_of_teachers' => 'required|integer|min:0',
-            'no_of_enrollees' => 'required|integer|min:0',
-            'no_of_classrooms' => 'required|integer|min:0',
-            'no_of_toilets' => 'required|integer|min:0',
-            'no_of_chairs' => 'required|integer|min:0',
-            'with_electricity' => 'required|string',
-            'with_potable_water' => 'required|boolean',
-            'with_internet' => 'required|boolean',
-            'teacher_shortage' => 'nullable|integer|min:0',
-            'classroom_shortage' => 'nullable|integer|min:0',
-            'chair_shortage' => 'nullable|integer|min:0',
-            'toilet_shortage' => 'nullable|integer|min:0',
-            'hazard_type' => 'nullable|array', 
-            'custom_hazards' => 'nullable|array',
-            'custom_hazards.*' => 'nullable|string|max:255',
-            'hazard_level' => 'required|string',
-            'latitude' => 'nullable|numeric|between:-90,90',
-            'longitude' => 'nullable|numeric|between:-180,180',
-        ]);
+{
+    $validated = $request->validate([
+        'school_id' => 'required|unique:schools,school_id',
+        'name' => 'required|string|max:255|unique:schools,name',
+        'school_level' => 'required|string',
+        'district' => 'required|string',
+        'no_of_teachers' => 'required|integer|min:0',
+        'no_of_enrollees' => 'required|integer|min:0',
+        'no_of_classrooms' => 'required|integer|min:0',
+        'no_of_toilets' => 'required|integer|min:0',
+        'no_of_chairs' => 'required|integer|min:0',
+        'with_electricity' => 'required|string',
+        'with_potable_water' => 'required|boolean',
+        'with_internet' => 'required|boolean',
+        'hazard_type' => 'nullable|array', 
+        'hazard_level' => 'required|string',
+        'latitude' => 'nullable|numeric',
+        'longitude' => 'nullable|numeric',
+    ]);
 
-        $validated['hazard_type'] = $this->processHazards(
-            $request->input('hazard_type', []),
-            $request->input('custom_hazards', [])
-        );
+    // Handle Hazard Encoding
+    $validated['hazard_type'] = json_encode($this->processHazards(
+        $request->input('hazard_type', []),
+        $request->input('custom_hazards', [])
+    ));
+
+    // Calculate Ratios automatically before saving
+    $validated['teacher_ratio'] = $validated['no_of_enrollees'] > 0 ? round($validated['no_of_enrollees'] / $validated['no_of_teachers'], 2) : 0;
+    $validated['classroom_ratio'] = $validated['no_of_enrollees'] > 0 ? round($validated['no_of_enrollees'] / $validated['no_of_classrooms'], 2) : 0;
+
+    $school = School::create($validated);
+     
         unset($validated['custom_hazards']);
 
         try {
@@ -83,7 +86,7 @@ class SchoolCrudController extends Controller
                 'changes' => ['after' => $school->toArray()]
             ]);
 
-            return redirect()->route('admin.schools')->with('success', 'New school registered successfully!');
+           return redirect()->route('admin.schools')->with('success', 'New school registered successfully!');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Database Error: Could not save school.');
         }

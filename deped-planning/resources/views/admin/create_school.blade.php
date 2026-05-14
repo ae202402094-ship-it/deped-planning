@@ -91,6 +91,24 @@
                         <div class="underglow"></div>
                     </div>
                 </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10 mt-8">
+    <div class="relative group line-input">
+        <label class="block text-[9px] font-black text-slate-400 uppercase mb-1 tracking-widest">School Level</label>
+        <select name="school_level" required class="input-field font-bold text-slate-700 uppercase text-xs cursor-pointer">
+            <option value="Elementary">Elementary</option>
+            <option value="Junior High School">Junior High School</option>
+            <option value="Senior High School">Senior High School</option>
+            <option value="Integrated">Integrated</option>
+        </select>
+        <div class="underglow"></div>
+    </div>
+
+    <div class="relative group line-input">
+        <label class="block text-[9px] font-black text-slate-400 uppercase mb-1 tracking-widest">District</label>
+        <input type="text" name="district" value="{{ old('district') }}" required placeholder="e.g., Zamboanga Central" class="input-field font-bold text-slate-800 uppercase tracking-tight">
+        <div class="underglow"></div>
+    </div>
+</div>
             </section>
 
             {{-- 02. Inventory --}}

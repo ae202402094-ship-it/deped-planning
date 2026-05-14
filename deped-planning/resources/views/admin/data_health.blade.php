@@ -1,46 +1,34 @@
+{{-- ADVANCED PRINT STYLESHEET --}}
 @extends(auth()->user()->role === 'super_admin' ? 'layouts.super_admin' : 'layouts.admin')
 
 @section('content')
 
 {{-- ADVANCED PRINT STYLESHEET --}}
-<{{-- ADVANCED PRINT STYLESHEET --}}
 <style>
 @media print {
-    /* 1. Kill the browser's margin space entirely */
+    /* 1. Kill the browser's margin space entirely to remove URL/Date footers */
     @page { 
-        size: auto;   /* auto is the current printer page size */
-        margin: 0mm;  /* this is the 'Nuclear' fix for URL footers */
+        size: auto;   
+        margin: 0mm !important;  
     }
 
-    /* 2. Re-establish internal spacing so content doesn't hit the paper edge */
+    /* 2. Global Print Resets & Internal Spacing */
     body { 
-        margin: 15mm !important; /* Move your content back in manually */
-        padding: 0 !important;
-        height: auto;
-        overflow: visible !important;
-    }
-
-    /* 3. Force-hide specific layout footers */
-    footer, .footer, .no-print, #footer-id { 
-        display: none !important; 
-        height: 0 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        visibility: hidden !important;
-    }
-}
-
-    /* 2. Global Print Resets */
-    body { 
+        margin: 15mm !important; /* This re-adds margin to the CONTENT, not the page */
         -webkit-print-color-adjust: exact !important; 
         print-color-adjust: exact !important; 
         background: white !important; 
         font-family: 'Helvetica', 'Arial', sans-serif; 
+        height: auto;
+        overflow: visible !important;
     }
     
     /* 3. Force-hide all unwanted web elements */
-    aside, nav, footer, .no-print, header:not(.print-only), .btn, button, .pagination { 
+    aside, nav, footer, .footer, .no-print, #footer-id, 
+    header:not(.print-only), .btn, button, .pagination { 
         display: none !important; 
+        height: 0 !important;
+        visibility: hidden !important;
     }
     
     .print-only { 
@@ -63,7 +51,7 @@
     .print-table { 
         width: 100% !important; 
         border-collapse: collapse !important; 
-        border: 1px solid #cbd5e1 !important; /* Light border for paper clarity */
+        border: 1px solid #cbd5e1 !important; 
     }
 
     .print-table th { 
@@ -173,16 +161,18 @@
         </div>
     </div>
 
-    {{-- 02. DATA HEALTH TABLE --}}
-    <div class="bg-white rounded-[2.5rem] border border-slate-200 shadow-2xl shadow-slate-200/50 overflow-hidden print-shadow-none print-table">
-        <table class="w-full text-left border-collapse print-table">
-            <thead class="bg-slate-50 border-b border-slate-200 print:bg-slate-100">
-                <tr class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] print:text-slate-600">
-                    <th class="p-8 print:py-2 print:px-2" style="width: 30%;">Institution</th>
-                    <th class="p-8 print:py-2 print:px-2" style="width: 35%;">Physical Hazards</th>
-                    <th class="p-8 print:py-2 print:px-2" style="width: 35%;">Resource Discrepancies</th>
-                    <th class="p-8 text-center no-print">Protocol</th>
-                </tr>
+   {{-- 02. DATA HEALTH TABLE --}}
+{{-- REMOVED: rounded-[2.5rem] | ADDED: border-slate-300 --}}
+<div class="bg-white border border-slate-300 shadow-sm overflow-hidden print-shadow-none print-table">
+    <table class="w-full text-left border-collapse print-table">
+        <thead class="bg-slate-50 border-b border-slate-300 print:bg-slate-100">
+            <tr class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] print:text-slate-600">
+                {{-- Ensure no 'rounded-tl' classes are here --}}
+                <th class="p-6 border-r border-slate-200 print:py-2 print:px-2" style="width: 30%;">Institution</th>
+                <th class="p-6 border-r border-slate-200 print:py-2 print:px-2" style="width: 35%;">Physical Hazards</th>
+                <th class="p-6 border-r border-slate-200 print:py-2 print:px-2" style="width: 35%;">Resource Discrepancies</th>
+                <th class="p-6 text-center no-print">Protocol</th>
+            </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 print:divide-slate-200">
                 @forelse($flaggedSchools as $data)
