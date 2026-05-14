@@ -41,27 +41,26 @@ class SchoolImportController extends Controller
             $status = 'new';
             $changes = [];
 
-            // Mapping all row data including the 3 new columns
+            // Mapping all row data (Sector Removed, indices shifted -1)
             $rowData = [
                 'school_id' => $currentId,
                 'name' => $currentName,
-                'sector' => (string)($row[2] ?? 'Public'),
-                'school_level' => (string)($row[3] ?? 'Primary'),
-                'district' => (string)($row[4] ?? 'Unknown'),
-                'no_of_teachers' => (int)str_replace(',', '', $row[5] ?? 0),
-                'no_of_enrollees' => (int)str_replace(',', '', $row[6] ?? 0),
-                'no_of_classrooms' => (int)str_replace(',', '', $row[7] ?? 0),
-                'no_of_chairs' => (int)str_replace(',', '', $row[8] ?? 0),
-                'no_of_toilets' => (int)str_replace(',', '', $row[9] ?? 0),
-                'latitude' => !empty($row[10]) ? (float)str_replace(',', '', $row[10]) : 6.9214,
-                'longitude' => !empty($row[11]) ? (float)str_replace(',', '', $row[11]) : 122.0739,
-                'with_electricity' => (string)($row[12] ?? 'None'),
-                'with_potable_water' => filter_var($row[13] ?? false, FILTER_VALIDATE_BOOLEAN),
-                'with_internet' => filter_var($row[14] ?? false, FILTER_VALIDATE_BOOLEAN),
-                'classroom_shortage' => (int)str_replace(',', '', $row[15] ?? 0),
-                'chair_shortage' => (int)str_replace(',', '', $row[16] ?? 0),
-                'toilet_shortage' => (int)str_replace(',', '', $row[17] ?? 0),
-                'hazards' => (string)($row[18] ?? 'None'),
+                'school_level' => (string)($row[2] ?? 'Primary'),
+                'district' => (string)($row[3] ?? 'Unknown'),
+                'no_of_teachers' => (int)str_replace(',', '', $row[4] ?? 0),
+                'no_of_enrollees' => (int)str_replace(',', '', $row[5] ?? 0),
+                'no_of_classrooms' => (int)str_replace(',', '', $row[6] ?? 0),
+                'no_of_chairs' => (int)str_replace(',', '', $row[7] ?? 0),
+                'no_of_toilets' => (int)str_replace(',', '', $row[8] ?? 0),
+                'latitude' => !empty($row[9]) ? (float)str_replace(',', '', $row[9]) : 6.9214,
+                'longitude' => !empty($row[10]) ? (float)str_replace(',', '', $row[10]) : 122.0739,
+                'with_electricity' => (string)($row[11] ?? 'None'),
+                'with_potable_water' => filter_var($row[12] ?? false, FILTER_VALIDATE_BOOLEAN),
+                'with_internet' => filter_var($row[13] ?? false, FILTER_VALIDATE_BOOLEAN),
+                'classroom_shortage' => (int)str_replace(',', '', $row[14] ?? 0),
+                'chair_shortage' => (int)str_replace(',', '', $row[15] ?? 0),
+                'toilet_shortage' => (int)str_replace(',', '', $row[16] ?? 0),
+                'hazards' => (string)($row[17] ?? 'None'),
             ];
 
             if (isset($seenIdsInCsv[$currentId])) {
@@ -140,7 +139,7 @@ class SchoolImportController extends Controller
                 // Use forceFill to bypass $fillable restrictions during bulk import
                 $school->forceFill([
                     'name' => $row['name'],
-                    'sector' => $row['sector'],
+                    // SECTOR HAS BEEN REMOVED HERE
                     'school_level' => $row['school_level'],
                     'district' => $row['district'],
                     'no_of_teachers' => $row['no_of_teachers'],
@@ -156,7 +155,7 @@ class SchoolImportController extends Controller
                     'classroom_shortage' => $row['classroom_shortage'], 
                     'chair_shortage' => $row['chair_shortage'], 
                     'toilet_shortage' => $row['toilet_shortage'], 
-                    'hazard_type' => [$row['hazards']], // Cast back to array
+                    'hazard_type' => [$row['hazards']], 
                 ])->save();
 
                 if ($school->trashed()) {
@@ -174,24 +173,30 @@ class SchoolImportController extends Controller
         return new StreamedResponse(function () {
             $handle = fopen('php://output', 'w');
             
+            // Updated Headers (Sector Removed)
             fputcsv($handle, [
-            'school_id', 'name', 'sector', 'school_level', 'district', 
-            'no_of_teachers', 'no_of_enrollees', 'no_of_classrooms', 
-            'no_of_chairs', 'no_of_toilets', 'latitude', 'longitude', 
-            'with_electricity', 'with_potable_water', 'with_internet', 'hazards'
-        ]);
+                'school_id', 'name', 'school_level', 'district', 'no_of_teachers', 'no_of_enrollees', 
+                'no_of_classrooms', 'no_of_chairs', 'no_of_toilets', 
+                'latitude', 'longitude', 'with_electricity', 'with_potable_water', 
+                'with_internet', 'classroom_shortage', 'chair_shortage', 'toilet_shortage', 'hazards'
+            ]);
             
             // Sample Data 1
             fputcsv($handle, [
-            '124019', 'Tetuan Central School', 'Public', 'Primary', 'Tetuan', 
-            '105', '3200', '95', '3100', '40', '6.9214', '122.0739', 
-            'Grid Connection', '1', '1', 'Flood Prone'
-        ]);
+                '124019', 'Tetuan Central School', 'Primary', 'Tetuan', '105', '3200', '95', '3100', '40', 
+                '6.9214', '122.0739', 'Grid Connection', '1', '1', '0', '100', '2', 'Flood Prone'
+            ]);
+
+            // Sample Data 2
+            fputcsv($handle, [
+                '800123', 'Claret School of Zamboanga', 'Secondary', 'Central', '90', '2100', '85', '2200', '50', 
+                '6.9100', '122.0760', 'Hybrid', '1', '1', '0', '0', '0', 'None'
+            ]);
 
             fclose($handle);
-    }, 200, [
-        'Content-Type' => 'text/csv',
-        'Content-Disposition' => 'attachment; filename="deped_census_template.csv"',
-    ]);
+        }, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="deped_census_template.csv"',
+        ]);
     }
 }
