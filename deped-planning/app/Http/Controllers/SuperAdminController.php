@@ -7,6 +7,7 @@ use App\Models\School;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use App\Notifications\AccountApproved;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 
 class SuperAdminController extends Controller
@@ -15,6 +16,45 @@ class SuperAdminController extends Controller
      * Super Admin Dashboard Overview
      * Shows statistics and provides a paginated, searchable user management list.
      */
+
+public function approvePasswordChange($id)
+{
+    $user = User::findOrFail($id);
+
+    // Check if there is actually a pending password to move
+    if ($user->pending_password) {
+        // 1. Move the hashed pending password to the active password column
+        $user->password = $user->pending_password;
+        
+        // 2. Clear the pending column so the "Approve" button disappears
+        $user->pending_password = null; 
+        
+        $user->save();
+
+        return back()->with('success', "Password for {$user->name} has been officially updated.");
+    }
+
+    return back()->with('error', 'No pending password change found for this user.');
+}
+
+// app/Http/Controllers/SuperAdminController.php
+
+public function adminResetPassword(Request $request, $id)
+{
+    $request->validate([
+        'password' => ['required', 'confirmed', 'min:8'],
+    ]);
+
+    $user = User::findOrFail($id);
+    
+    // Instead of updating 'password' directly, we put it in 'pending_password'
+    // This allows for the "Approval" step you mentioned.
+    $user->pending_password = Hash::make($request->password);
+    $user->save();
+
+    return back()->with('success', "Password change initiated. Please click 'Approve' in the user table to finalize.");
+}
+
     public function dashboard(Request $request)
     {
         $query = User::query();
@@ -75,26 +115,36 @@ public function storeUser(Request $request)
     /**
      * Update User Role & Status from Dashboard
      */
-    public function updateUser(Request $request, $id)
-    {
-        $user = User::findOrFail($id);
-        
-        $oldRole = $user->role;
-        $oldStatus = $user->status;
-        
-        $user->update([
-            'role'   => $request->role,
-            'status' => $request->status,
-        ]);
-
-        $this->logAction('Updated User Account', $user->name, [
-            'role' => "Changed from {$oldRole} to {$user->role}",
-            'status' => "Changed from {$oldStatus} to {$user->status}"
-        ]);
-
-        return back()->with('success', "{$user->name}'s account has been successfully updated.");
+   public function updateUser(Request $request, $id)
+{
+    $user = User::findOrFail($id);
+    
+    // 1. SELF-PROTECTION LOCK
+    // If the ID being updated is the same as the Logged-in Super Admin, 
+    // block the update to prevent accidental self-demotion.
+    if (auth()->id() == $user->id) {
+        return back()->with('error', 'Critical Safety: You cannot modify your own administrative role or status from this panel.');
     }
 
+    $request->validate([
+        'role' => 'sometimes|in:admin,super_admin',
+        'status' => 'sometimes|in:pending,approved,rejected',
+    ]);
+
+    // 2. EXPLICIT ASSIGNMENT
+    // We only update if the role is present AND different from current
+    if ($request->filled('role')) {
+        $user->role = $request->role;
+    }
+
+    if ($request->filled('status')) {
+        $user->status = $request->status;
+    }
+
+    $user->save();
+
+    return back()->with('success', "Updated {$user->name} successfully.");
+}
     /*
     |--------------------------------------------------------------------------
     | Account Approvals & Notifications
