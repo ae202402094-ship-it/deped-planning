@@ -3,31 +3,92 @@
 @section('content')
 
 {{-- ADVANCED PRINT STYLESHEET --}}
+<{{-- ADVANCED PRINT STYLESHEET --}}
 <style>
-    @media print {
-        @page { size: portrait; margin: 15mm; }
-        body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; background: white !important; font-family: 'Helvetica', 'Arial', sans-serif; }
-        
-        /* Hide all web navigation, footers, buttons, and screen-only elements */
-        aside, nav, footer, .no-print, header:not(.print-only) { display: none !important; }
-        .print-only { display: block !important; }
-        
-        /* Reset container constraints to use full paper width */
-        .max-w-7xl { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
-        .print-shadow-none { box-shadow: none !important; border: 1px solid #e2e8f0 !important; border-radius: 0 !important; }
-        .print-break-inside-avoid { break-inside: avoid; }
-        
-        /* Official DepEd Header Styling */
-        .official-print-header { border-bottom: 4px double #1e293b; padding-bottom: 1rem; margin-bottom: 1.5rem; }
-        .deped-red { color: #7f1d1d !important; } 
+@media print {
+    /* 1. Kill the browser's margin space entirely */
+    @page { 
+        size: auto;   /* auto is the current printer page size */
+        margin: 0mm;  /* this is the 'Nuclear' fix for URL footers */
+    }
 
-        /* Print Table Formatting */
-        .print-table { width: 100% !important; border-collapse: collapse !important; border: none !important; }
-        .print-table th { background-color: #f8fafc !important; padding: 8px !important; font-size: 10px !important; color: #475569 !important; border-bottom: 2px solid #cbd5e1 !important; text-transform: uppercase; letter-spacing: 0.05em; }
-        .print-table td { padding: 8px !important; font-size: 10px !important; border-bottom: 1px solid #f1f5f9 !important; vertical-align: top !important; color: #1e293b !important; }
+    /* 2. Re-establish internal spacing so content doesn't hit the paper edge */
+    body { 
+        margin: 15mm !important; /* Move your content back in manually */
+        padding: 0 !important;
+        height: auto;
+        overflow: visible !important;
+    }
+
+    /* 3. Force-hide specific layout footers */
+    footer, .footer, .no-print, #footer-id { 
+        display: none !important; 
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        visibility: hidden !important;
+    }
+}
+
+    /* 2. Global Print Resets */
+    body { 
+        -webkit-print-color-adjust: exact !important; 
+        print-color-adjust: exact !important; 
+        background: white !important; 
+        font-family: 'Helvetica', 'Arial', sans-serif; 
     }
     
-    .print-only { display: none; }
+    /* 3. Force-hide all unwanted web elements */
+    aside, nav, footer, .no-print, header:not(.print-only), .btn, button, .pagination { 
+        display: none !important; 
+    }
+    
+    .print-only { 
+        display: block !important; 
+    }
+    
+    /* 4. Fix Container & Table Scaling */
+    .max-w-7xl { 
+        max-width: 100% !important; 
+        padding: 0 !important; 
+        margin: 0 !important; 
+        overflow: visible !important; 
+    }
+
+    .bg-white {
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    .print-table { 
+        width: 100% !important; 
+        border-collapse: collapse !important; 
+        border: 1px solid #cbd5e1 !important; /* Light border for paper clarity */
+    }
+
+    .print-table th { 
+        background-color: #f8fafc !important; 
+        padding: 8px !important; 
+        font-size: 10px !important; 
+        color: #1e293b !important; 
+        border: 1px solid #cbd5e1 !important;
+    }
+
+    .print-table td { 
+        padding: 8px !important; 
+        font-size: 10px !important; 
+        border: 1px solid #f1f5f9 !important; 
+        color: #1e293b !important; 
+    }
+
+    /* 5. Handle Page Breaks */
+    .print-break-inside-avoid { 
+        break-inside: avoid; 
+    }
+}
+
+/* Screen-only state */
+.print-only { display: none; }
 </style>
 
 <div class="max-w-7xl mx-auto px-4 py-8">

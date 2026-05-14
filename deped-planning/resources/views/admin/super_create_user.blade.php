@@ -3,9 +3,9 @@
 @section('content')
 <div class="container mt-4">
     <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">Provision New Administrator Account</h5>
-        </div>
+        <div class="modal-header text-white p-3" style="background-color: #a52a2a; border-bottom: none;">
+    <h5 class="modal-title fw-bold">Provision New Administrator Account</h5>
+</div>
         <div class="card-body">
             <form action="{{ route('superadmin.users.store') }}" method="POST">
                 @csrf
@@ -39,10 +39,10 @@
                     </div>
                 </div>
 
-                <div class="d-flex justify-content-end gap-2">
-                    <a href="{{ route('superadmin.dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
-                    <button type="submit" class="btn btn-primary">Create Account</button>
-                </div>
+                <button type="submit" class="btn fw-bold px-4 shadow-sm text-white" 
+        style="background-color: #a52a2a; border: none;">
+    Create Account
+</button>
             </form>
         </div>
     </div>

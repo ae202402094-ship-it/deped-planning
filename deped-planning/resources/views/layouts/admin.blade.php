@@ -187,7 +187,7 @@
         </main>
 
         {{-- Footer Included at the bottom of the main wrapper --}}
-        <footer class="bg-[#f2f2f2] text-gray-700 pt-10 pb-12 md:pt-16 md:pb-16 border-t border-gray-300 mt-auto relative" x-data="{ activeSection: null }">
+       <footer class="no-print bg-[#f2f2f2] text-gray-700 pt-10 pb-12 md:pt-16 md:pb-16 border-t border-gray-300 mt-auto relative" x-data="{ activeSection: null }">
             <div class="container mx-auto px-4 md:px-6 lg:px-20">
                 
                 <div class="grid grid-cols-2 lg:flex lg:flex-row items-center lg:items-start gap-y-8 lg:gap-10 justify-between">
