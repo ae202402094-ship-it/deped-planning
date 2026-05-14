@@ -1,59 +1,272 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# DepEd Zamboanga City Division
+## Educational Facility Inventory & GIS Mapping System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A centralized, full-stack geographic information system (GIS) and school registry platform designed to track, manage, and visualize school facilities, resource shortages, and environmental hazard profiles for the **Department of Education – Zamboanga City Division**.
 
-## About Laravel
+This system was developed as part of a modernization initiative to replace manual administrative workflows with an integrated digital platform featuring interactive maps, automated resource deficit calculations, and official print-ready report generation.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Table of Contents
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- [Tech Stack](#tech-stack)
+- [Core Features](#core-features)
+- [Prerequisites](#prerequisites)
+- [Installation & Setup](#installation--setup)
+- [Production Deployment](#production-deployment)
+- [Project Structure](#project-structure)
+- [Contributing](#contributing)
+- [License](#license)
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## Tech Stack
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+| Layer | Technology |
+|---|---|
+| **Backend Framework** | [Laravel](https://laravel.com/) (PHP) |
+| **Frontend** | Blade Templating, [Tailwind CSS v4](https://tailwindcss.com/), [Alpine.js](https://alpinejs.dev/), Vanilla JavaScript |
+| **Interactive Mapping** | [Leaflet.js](https://leafletjs.com/) — Carto Voyager & Esri Satellite tile layers |
+| **Database** | MySQL 8.x |
+| **Data Processing** | Native PHP CSV parsing for batch registry imports |
+| **Asset Bundling** | [Vite](https://vitejs.dev/) |
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Core Features
 
-### Premium Partners
+### 🗺️ Interactive GIS Mapping
+Public and administrative map interfaces visualizing school locations across all districts of Zamboanga City. Features dynamic pin color-coding by district, shape indicators for school classification, and toggleable base map layers (street view and satellite imagery).
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### 📊 Resource Shortage Engine
+Automated calculation of resource deficits across four critical dimensions — **Teachers, Classrooms, Seats, and Toilets** — measured against total enrollment populations per school. Designed to surface actionable data for budget planning and resource prioritization by division administrators.
+
+### ⚠️ Risk & Hazard Profiling
+Systematic tracking and map visualization of environmental threats affecting school properties, including **Flood Prone Areas, Landslide Risk Zones, and Seismic Zones**. Enables disaster risk reduction planning at both the school and division level.
+
+### 📥 Batch Import Protocol
+Mass upload, synchronization, and conflict-resolution of registry records using standardized CSV templates. Supports initial population of the database and periodic data synchronization with enrollment and facilities reports.
+
+### 🏫 Institutional Masterlist Management
+Comprehensive CRUD operations for managing both **public and private school** records, including:
+- Utility connectivity status (Power, Water, Internet)
+- Curriculum levels and grade configurations
+- Geographic coordinates and address metadata
+- School classification (Elementary, Secondary, Integrated)
+
+### 🖨️ Official Print Generation
+Advanced print-ready CSS formatting that strips web UI elements to instantly produce cleanly formatted, official **DepEd PDF reports** complete with signature blocks, headers, and division branding — suitable for submission and archiving.
+
+---
+
+## Prerequisites
+
+Ensure your server environment meets the following requirements before installation:
+
+| Requirement | Version |
+|---|---|
+| **PHP** | ^8.1 or higher |
+| **Composer** | 2.x |
+| **Node.js** | ^16.x or higher |
+| **NPM** | Bundled with Node.js |
+| **Database** | MySQL 8.x or MariaDB |
+| **Web Server** | Nginx or Apache |
+
+---
+
+## Installation & Setup
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/your-repo/deped-inventory-system.git
+cd deped-inventory-system
+```
+
+### 2. Configure Environment Variables
+
+```bash
+cp .env.example .env
+```
+
+Open the `.env` file and set the following values for your local environment:
+
+```env
+APP_NAME="DepEd Zamboanga City Division - GIS System"
+APP_ENV=local
+APP_DEBUG=true
+APP_URL=http://localhost
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=your_database_name
+DB_USERNAME=your_database_user
+DB_PASSWORD=your_database_password
+```
+
+### 3. Install PHP Dependencies
+
+```bash
+composer install
+```
+
+### 4. Install Node Dependencies & Build Frontend Assets
+
+```bash
+npm install
+npm run build
+```
+
+### 5. Generate Application Key
+
+```bash
+php artisan key:generate
+```
+
+### 6. Run Database Migrations
+
+```bash
+php artisan migrate
+```
+
+### 7. (Optional) Seed the Database for Testing
+
+```bash
+php artisan db:seed
+```
+
+### 8. Link Public Storage
+
+Required for uploaded assets, school logos, and documents to be publicly accessible:
+
+```bash
+php artisan storage:link
+```
+
+### 9. Start the Local Development Server
+
+```bash
+php artisan serve
+```
+
+The application will be accessible at `http://localhost:8000` by default.
+
+---
+
+## Production Deployment
+
+### Optimization Commands
+
+Before going live, run the following to cache configuration and optimize autoloading:
+
+```bash
+composer install --optimize-autoloader --no-dev
+php artisan config:cache
+php artisan event:cache
+php artisan route:cache
+php artisan view:cache
+npm run build
+```
+
+> **Important:** Point your web server's document root to the `/public` directory of the project. Do not expose the root directory.
+
+### Sample Nginx Configuration
+
+```nginx
+server {
+    listen 80;
+    server_name yourdomain.com;
+    root /var/www/deped-inventory-system/public;
+
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-Content-Type-Options "nosniff";
+
+    index index.php;
+
+    charset utf-8;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location = /robots.txt  { access_log off; log_not_found off; }
+
+    error_page 404 /index.php;
+
+    location ~ \.php$ {
+        fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+}
+```
+
+### Environment Hardening for Production
+
+Update your `.env` file with the following values before deploying:
+
+```env
+APP_ENV=production
+APP_DEBUG=false
+```
+
+Ensure `APP_DEBUG` is always `false` in production to prevent sensitive stack traces from being exposed to end users.
+
+---
+
+## Project Structure
+
+```
+deped-inventory-system/
+├── app/
+│   ├── Http/
+│   │   ├── Controllers/       # Application controllers (Schools, Maps, Reports, etc.)
+│   │   └── Requests/          # Form request validation classes
+│   └── Models/                # Eloquent models (School, District, Hazard, etc.)
+├── database/
+│   ├── migrations/            # Database schema definitions
+│   └── seeders/               # Test and reference data seeders
+├── public/                    # Web server document root
+├── resources/
+│   ├── views/                 # Blade templates
+│   │   ├── admin/             # Administrative dashboard views
+│   │   ├── maps/              # GIS map interface views
+│   │   └── reports/           # Print-ready report templates
+│   ├── css/                   # Tailwind CSS source
+│   └── js/                    # Alpine.js and Leaflet.js scripts
+├── routes/
+│   ├── web.php                # Web routes
+│   └── api.php                # API routes (if applicable)
+├── storage/                   # Uploaded files, logs, caches
+├── .env.example               # Environment variable template
+└── vite.config.js             # Vite asset bundler configuration
+```
+
+---
 
 ## Contributing
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+This system was developed in collaboration with the **DepEd Zamboanga City Division IT team** and participating university interns as part of a local government technology initiative.
 
-## Code of Conduct
+For bug reports, feature requests, or institutional feedback:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+1. Open an issue on the project repository with a clear description and steps to reproduce.
+2. For sensitive institutional matters, contact the development team directly through official DepEd channels.
 
-## Security Vulnerabilities
+Please adhere to the project's coding standards and document any new features or schema changes before submitting contributions.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+---
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This project is **proprietary software** developed exclusively for the **Department of Education – Zamboanga City Division**.
+
+Unauthorized reproduction, distribution, sublicensing, or commercial use of this software or any of its components is strictly prohibited without express written consent from the authors and the DepEd Zamboanga City Division.
+
+© Department of Education – Zamboanga City Division. All rights reserved.
