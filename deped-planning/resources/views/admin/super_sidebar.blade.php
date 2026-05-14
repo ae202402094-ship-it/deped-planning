@@ -20,18 +20,6 @@
 </li>
 
         <li class="nav-item mb-2">
-            <a href="{{ route('superadmin.notifications') }}" 
-               class="nav-link text-white d-flex justify-content-between align-items-center {{ request()->routeIs('superadmin.notifications') ? 'active bg-primary' : '' }}">
-                <span><i class="bi bi-person-lines-fill me-2"></i> Account Requests</span>
-                
-                @php $pendingCount = \App\Models\User::where('status', 'pending')->count(); @endphp
-                @if($pendingCount > 0)
-                    <span class="badge bg-danger rounded-pill">{{ $pendingCount }}</span>
-                @endif
-            </a>
-        </li>
-
-        <li class="nav-item mb-2">
             <a href="{{ route('admin.schools.archive') }}" 
                class="nav-link text-white {{ request()->routeIs('admin.schools.archive') ? 'active bg-primary' : '' }}">
                 <i class="bi bi-archive me-2"></i> School Archive

@@ -17,6 +17,27 @@ class SuperAdminController extends Controller
      * Shows statistics and provides a paginated, searchable user management list.
      */
 
+public function destroyUser($id)
+{
+    $user = User::findOrFail($id);
+
+    // 1. Safety Check: Cannot delete self
+    if (auth()->id() == $user->id) {
+        return back()->with('error', 'You cannot delete your own account.');
+    }
+
+    // 2. Safety Check: Only Inactive accounts can be deleted
+    if ($user->status !== 'inactive') {
+        return back()->with('error', 'Only inactive accounts can be permanently removed.');
+    }
+
+    // 3. Delete the user
+    $userName = $user->name;
+    $user->delete();
+
+    return back()->with('success', "Account for {$userName} has been permanently deleted.");
+}
+
 public function approvePasswordChange($id)
 {
     $user = User::findOrFail($id);
@@ -56,35 +77,31 @@ public function adminResetPassword(Request $request, $id)
 }
 
     public function dashboard(Request $request)
-    {
-        $query = User::query();
+{
+    $query = User::query();
 
-        // 1. Search by Name or Email
-        if ($request->filled('search')) {
-            $query->where(function($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->search . '%')
-                  ->orWhere('email', 'like', '%' . $request->search . '%');
-            });
-        }
-
-        // 2. Filter by Role
-        if ($request->filled('role')) {
-            $query->where('role', $request->role);
-        }
-
-        // 3. Filter by Status
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        return view('admin.super_dashboard', [
-            'totalUsers'   => User::count(),
-            'pendingCount' => User::where('status', 'pending')->count(),
-            'adminCount'   => User::where('role', 'admin')->count(),
-            'totalSchools' => School::count(), 
-            'users'        => $query->latest()->paginate(10)->withQueryString(), 
-        ]);
+    // Existing Filters
+    if ($request->filled('search')) {
+        $query->where(function($q) use ($request) {
+            $q->where('name', 'like', '%' . $request->search . '%')
+              ->orWhere('email', 'like', '%' . $request->search . '%');
+        });
     }
+    if ($request->filled('role')) {
+        $query->where('role', $request->role);
+    }
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
+
+    return view('admin.super_dashboard', [
+        'totalUsers'    => User::count(),
+        'activeCount'   => User::where('status', 'active')->count(), 
+        'inactiveCount' => User::where('status', 'inactive')->count(), 
+        'totalSchools'  => School::count(), 
+        'users'         => $query->latest()->paginate(10)->withQueryString(), 
+    ]);
+}
 
     public function createUser()
 {
@@ -118,32 +135,26 @@ public function storeUser(Request $request)
    public function updateUser(Request $request, $id)
 {
     $user = User::findOrFail($id);
-    
-    // 1. SELF-PROTECTION LOCK
-    // If the ID being updated is the same as the Logged-in Super Admin, 
-    // block the update to prevent accidental self-demotion.
+
+    // Safety: Don't let the Super Admin deactivate themselves
     if (auth()->id() == $user->id) {
-        return back()->with('error', 'Critical Safety: You cannot modify your own administrative role or status from this panel.');
+        return back()->with('error', 'Critical Safety: You cannot modify your own status.');
     }
 
     $request->validate([
-        'role' => 'sometimes|in:admin,super_admin',
-        'status' => 'sometimes|in:pending,approved,rejected',
+        'role' => 'required|in:admin,super_admin',
+        'status' => 'required|in:active,inactive',
     ]);
 
-    // 2. EXPLICIT ASSIGNMENT
-    // We only update if the role is present AND different from current
-    if ($request->filled('role')) {
-        $user->role = $request->role;
-    }
-
-    if ($request->filled('status')) {
-        $user->status = $request->status;
-    }
-
+    // ONLY update these two specific fields
+    $user->role = $request->role;
+    $user->status = $request->status;
+    
+    // IMPORTANT: Do not assign $user->password here!
+    
     $user->save();
 
-    return back()->with('success', "Updated {$user->name} successfully.");
+    return back()->with('success', "Account for {$user->name} is now {$user->status}.");
 }
     /*
     |--------------------------------------------------------------------------

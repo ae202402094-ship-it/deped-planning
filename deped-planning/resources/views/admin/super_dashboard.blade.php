@@ -26,81 +26,59 @@
     </div>
 @endif
 
-{{-- Stats Row --}}
 <div class="row g-4 mb-5">
-    <div class="col-md-3">
-        <div class="card p-4 h-100 bg-transparent shadow-sm" style="border: 2px solid #a52a2a; border-radius: 8px;">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div>
-                    <h6 class="text-uppercase small fw-bold mb-1 text-muted" style="letter-spacing: 0.5px;">Total Schools</h6>
-                    <h2 class="mb-0 fw-bolder text-dark">{{ $totalSchools ?? 0 }}</h2>
-                </div>
-                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; background-color: rgba(165, 42, 42, 0.1); color: #a52a2a;">
-                    <i data-lucide="school"></i>
-                </div>
-            </div>
-            <a href="{{ route('admin.schools') }}" class="fw-semibold text-decoration-none small d-flex align-items-center mt-auto" style="color: #a52a2a;">
-                Manage Data <i data-lucide="arrow-right" class="ms-1" style="width: 14px; height: 14px;"></i>
-            </a>
+    {{-- Total Schools (Non-clickable) --}}
+    <div class="col-md-4">
+        <div class="card p-4 h-100 bg-transparent shadow-sm border-2 border-slate-200" style="border-radius: 8px;">
+            <h6 class="text-uppercase small fw-bold text-muted mb-1">Total Schools</h6>
+            <h2 class="fw-black text-dark mb-0">{{ $totalSchools }}</h2>
         </div>
     </div>
-
-    <div class="col-md-3">
-        <div class="card p-4 h-100 bg-transparent shadow-sm" style="border: 2px solid #dc3545; border-radius: 8px;">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div>
-                    <h6 class="text-uppercase small fw-bold mb-1 text-muted" style="letter-spacing: 0.5px;">Archived</h6>
-                    <h2 class="mb-0 fw-bolder text-dark">{{ \App\Models\School::onlyTrashed()->count() }}</h2>
+    
+    {{-- Active Admins KPI (Clickable) --}}
+    <div class="col-md-4">
+        <a href="{{ route('superadmin.dashboard', ['status' => 'active']) }}" class="text-decoration-none">
+            <div class="card p-4 h-100 bg-transparent shadow-sm border-2 {{ request('status') == 'active' ? 'border-success' : 'border-slate-200' }}" style="border-radius: 8px; transition: transform 0.2s;">
+                <div class="d-flex justify-content-between">
+                    <h6 class="text-uppercase small fw-bold {{ request('status') == 'active' ? 'text-success' : 'text-muted' }} mb-1">Active Admins</h6>
+                    @if(request('status') == 'active')
+                        <span class="badge bg-success small">Filtered</span>
+                    @endif
                 </div>
-                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; background-color: rgba(220, 53, 69, 0.1); color: #dc3545;">
-                    <i data-lucide="archive"></i>
-                </div>
+                <h2 class="fw-black {{ request('status') == 'active' ? 'text-success' : 'text-dark' }} mb-0">{{ $activeCount }}</h2>
             </div>
-            <a href="{{ route('schools.archive') }}" class="fw-semibold text-decoration-none small d-flex align-items-center mt-auto text-danger">
-                View Archive <i data-lucide="arrow-right" class="ms-1" style="width: 14px; height: 14px;"></i>
-            </a>
-        </div>
+        </a>
     </div>
-
-    <div class="col-md-3">
-        <div class="card p-4 h-100 bg-transparent shadow-sm" style="border: 2px solid #a52a2a; border-radius: 8px;">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div>
-                    <h6 class="text-uppercase small fw-bold mb-1 text-muted" style="letter-spacing: 0.5px;">Pending</h6>
-                    <h2 class="mb-0 fw-bolder text-dark">{{ $pendingCount }}</h2>
+    
+    {{-- Inactive Accounts KPI (Clickable) --}}
+    <div class="col-md-4">
+        <a href="{{ route('superadmin.dashboard', ['status' => 'inactive']) }}" class="text-decoration-none">
+            <div class="card p-4 h-100 bg-transparent shadow-sm border-2 {{ request('status') == 'inactive' ? 'border-danger' : 'border-slate-200' }}" style="border-radius: 8px; transition: transform 0.2s;">
+                <div class="d-flex justify-content-between">
+                    <h6 class="text-uppercase small fw-bold {{ request('status') == 'inactive' ? 'text-danger' : 'text-muted' }} mb-1">Inactive Accounts</h6>
+                    @if(request('status') == 'inactive')
+                        <span class="badge bg-danger small">Filtered</span>
+                    @endif
                 </div>
-                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; background-color: rgba(165, 42, 42, 0.1); color: #a52a2a;">
-                    <i data-lucide="user-plus"></i>
-                </div>
+                <h2 class="fw-black {{ request('status') == 'inactive' ? 'text-danger' : 'text-dark' }} mb-0">{{ $inactiveCount }}</h2>
             </div>
-            <a href="{{ route('superadmin.notifications') }}" class="fw-semibold text-decoration-none small d-flex align-items-center mt-auto" style="color: #a52a2a;">
-                Review Requests <i data-lucide="arrow-right" class="ms-1" style="width: 14px; height: 14px;"></i>
-            </a>
-        </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="card p-4 h-100 bg-transparent shadow-sm" style="border: 2px solid #a52a2a; border-radius: 8px;">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h6 class="text-uppercase small fw-bold mb-1 text-muted" style="letter-spacing: 0.5px;">Total Users</h6>
-                    <h2 class="mb-0 fw-bolder text-dark">{{ $totalUsers }}</h2>
-                </div>
-                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; background-color: rgba(165, 42, 42, 0.1); color: #a52a2a;">
-                    <i data-lucide="users"></i>
-                </div>
-            </div>
-            <div class="small text-muted mt-auto">Admins: {{ $adminCount }}</div>
-        </div>
+        </a>
     </div>
 </div>
 
+@if(request()->has('status') || request()->has('search'))
+    <div class="mb-3">
+        <a href="{{ route('superadmin.dashboard') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+            <i class="bi bi-x-circle me-1"></i> Clear All Filters
+        </a>
+    </div>
+@endif
 <div class="card shadow-sm rounded-3" style="border: 1px solid #e2e8f0;">
     <div class="card-header bg-white py-4 border-bottom-0">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
                 <h5 class="mb-0 fw-bold text-dark">User Management</h5>
-                <small class="text-muted">Edit roles and statuses directly</small>
+                <small class="text-muted">Directly manage Active/Inactive status and roles</small>
             </div>
             <a href="{{ route('superadmin.history') }}" class="btn btn-sm btn-light border fw-semibold shadow-sm text-dark">
                 <i class="bi bi-list-ul me-1"></i> View Full History
@@ -123,11 +101,10 @@
                 </select>
             </div>
             <div class="col-md-3">
-                <select name="status" class="form-select form-select-sm">
-                    <option value="">All Statuses</option>
-                    <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Approved</option>
-                    <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                    <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Rejected</option>
+                <select name="status" class="form-select form-select-sm shadow-sm border-secondary-subtle">
+                    <option value="">All Status</option>
+                    <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
+                    <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
                 </select>
             </div>
             <div class="col-md-2 d-flex gap-2">
@@ -152,11 +129,11 @@
                 <tr>
                     <td class="px-4 py-3">
                         <div class="d-flex align-items-center">
-                            <div class="text-white rounded-circle d-flex justify-content-center align-items-center me-3 shadow-sm" style="width: 40px; height: 40px; background-color: #a52a2a;">
+                            <div class="text-white rounded-circle d-flex justify-content-center align-items-center me-3 shadow-sm {{ $user->status == 'inactive' ? 'opacity-50' : '' }}" style="width: 40px; height: 40px; background-color: #a52a2a;">
                                 {{ strtoupper(substr($user->name, 0, 1)) }}
                             </div>
                             <div>
-                                <h6 class="mb-0 fw-bold text-dark">{{ $user->name }}</h6>
+                                <h6 class="mb-0 fw-bold {{ $user->status == 'inactive' ? 'text-muted' : 'text-dark' }}">{{ $user->name }}</h6>
                                 <small class="text-muted">{{ $user->email }}</small>
                             </div>
                         </div>
@@ -170,7 +147,7 @@
                             @if(auth()->id() == $user->id)
                                 <span class="badge bg-dark text-[9px] uppercase tracking-wider">Self Record</span>
                             @else
-                                <select name="role" class="form-select form-select-sm shadow-sm border-secondary-subtle" style="width: 140px;">
+                                <select name="role" class="form-select form-select-sm shadow-sm border-secondary-subtle" style="width: 130px;">
                                     <option value="admin" {{ $user->role == 'admin' ? 'selected' : '' }}>Admin</option>
                                     <option value="super_admin" {{ $user->role == 'super_admin' ? 'selected' : '' }}>Super Admin</option>
                                 </select>
@@ -179,12 +156,11 @@
 
                     <td class="py-3">
                         @if(auth()->id() == $user->id)
-                            <span class="text-success small fw-bold uppercase">Active Session</span>
+                            <span class="text-success small fw-bold uppercase"><i class="bi bi-circle-fill me-1 small"></i> Online</span>
                         @else
-                            <select name="status" class="form-select form-select-sm shadow-sm border-secondary-subtle" style="width: 140px;">
-                                <option value="pending" {{ $user->status == 'pending' ? 'selected' : '' }}>Pending</option>
-                                <option value="approved" {{ $user->status == 'approved' ? 'selected' : '' }}>Approved</option>
-                                <option value="rejected" {{ $user->status == 'rejected' ? 'selected' : '' }}>Rejected</option>
+                            <select name="status" class="form-select form-select-sm shadow-sm border-secondary-subtle" style="width: 110px;">
+                                <option value="active" {{ $user->status == 'active' ? 'selected' : '' }}>Active</option>
+                                <option value="inactive" {{ $user->status == 'inactive' ? 'selected' : '' }}>Inactive</option>
                             </select>
                         @endif
                     </td>
@@ -192,20 +168,18 @@
                     <td class="px-4 py-3 text-end">
                         <div class="d-flex justify-content-end align-items-center gap-2">
                             @if(auth()->id() != $user->id)
-                                {{-- Save Changes Button --}}
                                 <button type="submit" class="btn btn-sm btn-success d-inline-flex align-items-center gap-1 fw-bold shadow-sm px-3">
                                     <i data-lucide="save" class="w-3.5 h-3.5"></i>
                                     <span>Save</span>
                                 </button>
-                                </form> {{-- Close form for Role/Status update --}}
+                                </form>
 
                                 <div class="vr mx-1 opacity-20" style="height: 20px;"></div>
 
-                                {{-- Two-Step Password Management --}}
                                 @if($user->pending_password)
                                     <form action="{{ route('superadmin.approve_password', $user->id) }}" method="POST">
                                         @csrf
-                                        <button type="submit" class="btn btn-sm btn-warning d-inline-flex align-items-center gap-1 fw-bold shadow-sm px-3" title="Finalize Password Change">
+                                        <button type="submit" class="btn btn-sm btn-warning d-inline-flex align-items-center gap-1 fw-bold shadow-sm px-3">
                                             <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
                                             <span>Finalize</span>
                                         </button>
@@ -218,8 +192,17 @@
                                         <span>Reset</span>
                                     </button>
                                 @endif
+
+                                @if($user->status == 'inactive')
+                                    <button type="button" 
+                                            class="btn btn-sm btn-danger d-inline-flex align-items-center gap-1 fw-bold shadow-sm px-3"
+                                            onclick="openDeleteModal('{{ $user->id }}', '{{ $user->name }}', '{{ route('superadmin.users.destroy', $user->id) }}')">
+                                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                        <span>Delete</span>
+                                    </button>
+                                @endif
                             @else
-                                <span class="text-muted italic small">No actions available</span>
+                                <span class="text-muted italic small">Protected Profile</span>
                             @endif
                         </div>
                     </td>
@@ -237,7 +220,12 @@
     </div>
 </div>
 
-{{-- Final Optimized Reset Password Modal --}}
+{{-- 
+    MODALS ARE PLACED OUTSIDE THE TABLE FOR ACCESSIBILITY 
+    AND TO PREVENT ID DUPLICATION 
+--}}
+
+{{-- Password Reset Modal --}}
 <div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-sm modal-dialog-centered">
         <form id="resetPasswordForm" method="POST" class="w-full">
@@ -253,30 +241,68 @@
                         <i data-lucide="x" class="w-4 h-4"></i>
                     </button>
                 </div>
-
                 <div class="modal-body p-4 bg-white">
-                    <p class="text-[11px] text-slate-500 mb-4 italic">The new password will be stored as 'Pending' until you click Finalize in the dashboard.</p>
-                    
+                    <p class="text-[11px] text-slate-500 mb-4 italic">The password will be stored as 'Pending' until finalized.</p>
                     <div class="space-y-3">
                         <div>
-                            <label class="text-[9px] font-black uppercase text-slate-400 tracking-wider mb-1 block">New Secure Password</label>
-                            <input type="password" name="password" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none transition-all" required minlength="8">
+                            <label class="text-[9px] font-black uppercase text-slate-400 mb-1 block">New Password</label>
+                            <input type="password" name="password" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded text-sm outline-none" required minlength="8">
                         </div>
                         <div>
-                            <label class="text-[9px] font-black uppercase text-slate-400 tracking-wider mb-1 block">Confirm Password</label>
-                            <input type="password" name="password_confirmation" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded text-sm focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none transition-all" required minlength="8">
+                            <label class="text-[9px] font-black uppercase text-slate-400 mb-1 block">Confirm Password</label>
+                            <input type="password" name="password_confirmation" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded text-sm outline-none" required minlength="8">
                         </div>
                     </div>
                 </div>
-
-                <div class="p-3 bg-slate-50 flex justify-end gap-2 border-t border-slate-100">
-                    <button type="button" class="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase hover:text-slate-600 transition" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="px-4 py-1.5 bg-slate-900 text-white text-[10px] font-bold uppercase rounded shadow-sm hover:bg-black transition-all">
-                        Initiate Change
-                    </button>
+                <div class="p-3 bg-slate-50 flex justify-end gap-2 border-t">
+                    <button type="button" class="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="px-4 py-1.5 bg-slate-900 text-white text-[10px] font-bold uppercase rounded">Initiate</button>
                 </div>
             </div>
         </form>
+    </div>
+</div>
+
+{{-- Permanent Delete Confirmation Modal --}}
+<div class="modal fade" id="deleteUserModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-2xl overflow-hidden">
+            <form id="deleteUserForm" method="POST">
+                @csrf
+                @method('DELETE')
+                
+                <div class="p-4 text-center">
+                    <div class="mx-auto d-flex align-items-center justify-content-center rounded-circle mb-3" 
+                         style="width: 60px; height: 60px; background-color: #fee2e2; color: #dc2626;">
+                        <i data-lucide="alert-triangle" style="width: 30px; height: 30px;"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-1">Delete Account?</h5>
+                    <p class="text-muted small px-4">
+                        This action is <span class="text-danger fw-bold">permanent</span>. All data for 
+                        <span id="deleteTargetName" class="fw-bold text-dark"></span> will be erased.
+                    </p>
+                </div>
+
+                <div class="modal-body px-4 pt-0">
+                    <div class="bg-light p-3 rounded-3 mb-3 border">
+                        <label class="text-[10px] font-black uppercase text-slate-500 mb-2 d-block tracking-wider text-center">
+                            Type <span class="text-danger">DELETE</span> to confirm
+                        </label>
+                        {{-- Added onkeyup to force verification check --}}
+                        <input type="text" id="deleteConfirmInput" class="form-control form-control-sm text-center fw-bold border-2 shadow-none" 
+                               placeholder="Verification required" autocomplete="off"
+                               onkeyup="document.getElementById('finalDeleteBtn').disabled = (this.value.trim().toUpperCase() !== 'DELETE');">
+                    </div>
+                </div>
+
+                <div class="p-3 bg-slate-50 d-flex gap-2 justify-content-center border-top">
+                    <button type="button" class="btn btn-light btn-sm fw-bold px-4 border" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="finalDeleteBtn" class="btn btn-danger btn-sm fw-bold px-4 shadow-sm" disabled>
+                        Confirm Purge
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -285,6 +311,21 @@
         const form = document.getElementById('resetPasswordForm');
         form.action = actionUrl;
         const modal = new bootstrap.Modal(document.getElementById('resetPasswordModal'));
+        modal.show();
+    }
+
+    function openDeleteModal(userId, userName, actionUrl) {
+        const form = document.getElementById('deleteUserForm');
+        const nameSpan = document.getElementById('deleteTargetName');
+        const input = document.getElementById('deleteConfirmInput');
+        const btn = document.getElementById('finalDeleteBtn');
+
+        form.action = actionUrl;
+        nameSpan.innerText = userName;
+        input.value = '';
+        btn.disabled = true;
+
+        const modal = new bootstrap.Modal(document.getElementById('deleteUserModal'));
         modal.show();
     }
 </script>

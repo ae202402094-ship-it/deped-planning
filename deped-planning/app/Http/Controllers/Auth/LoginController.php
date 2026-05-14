@@ -13,64 +13,50 @@ class LoginController extends Controller
         return view('auth.login');
     }
 
-    protected function authenticated(Request $request, $user)
-    {
-        if (!$user->isApproved()) {
-            Auth::logout();
-            return redirect()->route('login')->with('error', 'Your email is not verified or your account is not yet approved.');
-        }
-
-        // Redirect based on role
-        if ($user->isSuperAdmin()) {
-            return redirect()->route('superadmin.dashboard');
-        }
-
-        return redirect()->route('admin.schools');
-    }
-
     public function login(Request $request)
-{
-    // Validate the login input
-    $credentials = $request->validate([
-        'email' => ['required', 'email'],
-        'password' => ['required'],
-    ]);
+    {
+        // 1. Validate the login input
+        $credentials = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required'],
+        ]);
 
-    // 1. Attempt to log the user in
-    if (\Illuminate\Support\Facades\Auth::attempt($credentials)) {
-        
-        $user = \Illuminate\Support\Facades\Auth::user();
-
-        // 2. Check if they are approved by the Super Admin
-        if (!$user->isApproved()) { // Uses the helper we made in User.php
-            \Illuminate\Support\Facades\Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
+        // 2. Attempt to log the user in
+        if (Auth::attempt($credentials)) {
             
-            return back()->withErrors([
-                'email' => 'Your account is pending approval by the Super Admin.',
-            ]);
+            $user = Auth::user();
+
+            // 3. NEW STATUS CHECK: Block Inactive accounts
+            if ($user->status === 'inactive') {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+                
+                return back()->withErrors([
+                    'email' => 'Your account is currently inactive. Please contact the Super Admin.',
+                ]);
+            }
+
+            // 4. Regenerate session for security
+            $request->session()->regenerate();
+
+            // 5. Redirect based on their exact role
+            if ($user->role === 'super_admin') {
+                return redirect()->route('superadmin.dashboard');
+            }
+
+            // Regular admins go to the schools management page
+            return redirect()->route('admin.schools');
         }
 
-        // 3. User is approved, regenerate session for security
-        $request->session()->regenerate();
-
-        // 4. Redirect based on their exact role
-        if ($user->isSuperAdmin()) {
-            return redirect()->route('superadmin.dashboard');
-        }
-
-        // Regular admins go to the schools management page
-        return redirect()->route('admin.schools');
+        // 6. If Auth::attempt fails
+        return back()->withErrors([
+            'email' => 'The provided credentials do not match our records.',
+        ])->onlyInput('email');
     }
 
-    // 5. If Auth::attempt fails (wrong password or email)
-    return back()->withErrors([
-        'email' => 'The provided credentials do not match our records.',
-    ])->onlyInput('email');
-}
-
-    public function logout(Request $request) {
+    public function logout(Request $request) 
+    {
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

@@ -132,6 +132,8 @@ Route::middleware(['auth', 'verified', 'role:super_admin'])->prefix('super-admin
         ->name('superadmin.users.reset_password');
     Route::post('/users/{id}/approve-password', [SuperAdminController::class, 'approvePasswordChange'])
         ->name('superadmin.approve_password');
+    Route::delete('/users/{id}', [SuperAdminController::class, 'destroyUser'])->name('superadmin.users.destroy');
+
 
     // Super Admin specific Archive access
     Route::get('/archive', [SuperAdminController::class, 'archive'])->name('superadmin.archive');

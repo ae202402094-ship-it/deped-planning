@@ -91,17 +91,6 @@
         <span>Create User</span>
     </a>
 
-    <a href="{{ route('superadmin.notifications') }}" class="flex items-center justify-between px-5 py-2.5 text-white hover:bg-black/10 transition-all {{ request()->routeIs('superadmin.notifications') ? 'bg-black/20 font-semibold border-r-4 border-white' : '' }}">
-        <div class="flex items-center gap-3">
-            <i data-lucide="users" class="w-4 h-4"></i>
-            <span>Account Requests</span>
-        </div>
-        @php $pendingCount = \App\Models\User::where('status', 'pending')->count() ?? 0; @endphp
-        @if($pendingCount > 0)
-            <span class="bg-white text-red-900 text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm">{{ $pendingCount }}</span>
-        @endif
-    </a>
-
             <div class="mt-4 px-5 py-3 text-[9px] font-black uppercase text-white/40 tracking-[0.15em]">Inventory & Data</div>
 
             <a href="{{ route('admin.schools') }}" class="flex items-center gap-3 px-5 py-2.5 text-white hover:bg-black/10 transition-all {{ request()->routeIs('admin.schools') ? 'bg-black/20 font-semibold border-r-4 border-white' : '' }}">
