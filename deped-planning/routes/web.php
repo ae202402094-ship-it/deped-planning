@@ -85,7 +85,7 @@ Route::middleware(['auth', 'verified', 'role:admin,super_admin'])->prefix('admin
     Route::prefix('schools')->group(function () {
         Route::get('/', [SchoolCrudController::class, 'manageSchools'])->name('admin.schools');
         Route::get('/create', [SchoolCrudController::class, 'createSchool'])->name('schools.create');
-       Route::post('/admin/schools/store', [SchoolController::class, 'storeSchool'])->name('schools.store');
+        Route::post('/admin/schools/store', [SchoolCrudController::class, 'storeSchool'])->name('schools.store');
         Route::get('/{id}/edit', [SchoolCrudController::class, 'editSchool'])->name('schools.edit');
         Route::put('/{id}', [SchoolCrudController::class, 'updateSchool'])->name('schools.update');
         Route::delete('/{id}', [SchoolCrudController::class, 'destroySchool'])->name('schools.destroy');

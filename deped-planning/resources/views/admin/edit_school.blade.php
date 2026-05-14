@@ -219,10 +219,11 @@
                    
                     <div>
                         <label class="block text-xs font-black text-slate-500 uppercase mb-2 tracking-widest">Curriculum Level</label>
-                        <select name="school_level" class="w-full bg-white border-2 border-slate-300 p-3 text-sm font-bold uppercase focus:outline-none focus:border-black focus:bg-white cursor-pointer transition-colors rounded-sm shadow-inner">
-                            <option value="">Select Level</option>
-                            <option value="Primary" {{ ($school->school_level ?? '') == 'Primary' ? 'selected' : '' }}>Primary (Elementary)</option>
-                            <option value="Secondary" {{ ($school->school_level ?? '') == 'Secondary' ? 'selected' : '' }}>Secondary (High School)</option>
+                        <select name="school_level" required class="input-field">
+                        <option value="Elementary" {{ $school->school_level == 'Elementary' ? 'selected' : '' }}>Elementary</option>
+                        <option value="Junior High School" {{ $school->school_level == 'Junior High School' ? 'selected' : '' }}>Junior High School</option>
+                        <option value="Senior High School" {{ $school->school_level == 'Senior High School' ? 'selected' : '' }}>Senior High School</option>
+                        <option value="Integrated" {{ $school->school_level == 'Integrated' ? 'selected' : '' }}>Integrated</option>
                         </select>
                     </div>
                     <div>

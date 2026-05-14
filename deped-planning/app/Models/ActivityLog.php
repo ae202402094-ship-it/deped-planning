@@ -16,8 +16,8 @@ class ActivityLog extends Model
 
     // This tells Laravel to convert the 'changes' array into a JSON string automatically
     protected $casts = [
-        'changes' => 'array'
-    ];
+    'changes' => 'array',
+];
 
     /**
      * Relationship to the User who performed the action
