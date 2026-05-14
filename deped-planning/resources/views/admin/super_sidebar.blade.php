@@ -13,6 +13,12 @@
             </a>
         </li>
 
+<li class="nav-item">
+    <a class="nav-link" href="{{ route('superadmin.users.create') }}">
+        <i class="fas fa-user-plus"></i> Create User
+    </a>
+</li>
+
         <li class="nav-item mb-2">
             <a href="{{ route('superadmin.notifications') }}" 
                class="nav-link text-white d-flex justify-content-between align-items-center {{ request()->routeIs('superadmin.notifications') ? 'active bg-primary' : '' }}">
@@ -43,7 +49,7 @@
 
         <hr class="bg-secondary mt-3">
         <small class="text-uppercase text-muted fw-bold mb-2 d-block px-3">Registry Management</small>
-
+        
         <li class="nav-item mb-2">
             <a href="{{ route('admin.schools') }}" 
                class="nav-link text-white {{ request()->routeIs('admin.schools') ? 'active bg-primary' : '' }}">

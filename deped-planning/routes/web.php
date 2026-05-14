@@ -126,7 +126,9 @@ Route::middleware(['auth', 'verified', 'role:super_admin'])->prefix('super-admin
     Route::delete('/reject/{id}', [SuperAdminController::class, 'rejectUser'])->name('superadmin.reject');
     Route::get('/history', [SuperAdminController::class, 'history'])->name('superadmin.history');
     Route::put('/users/{id}/update', [SuperAdminController::class, 'updateUser'])->name('superadmin.update_user');
-    
+    Route::get('/users/create', [SuperAdminController::class, 'createUser'])->name('superadmin.users.create');
+    Route::post('/users/store', [SuperAdminController::class, 'storeUser'])->name('superadmin.users.store');
+
     // Super Admin specific Archive access
     Route::get('/archive', [SuperAdminController::class, 'archive'])->name('superadmin.archive');
     Route::post('/schools/{id}/restore', [SuperAdminController::class, 'restoreSchool'])->name('superadmin.restore_school');

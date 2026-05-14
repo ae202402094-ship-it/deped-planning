@@ -46,6 +46,32 @@ class SuperAdminController extends Controller
         ]);
     }
 
+    public function createUser()
+{
+    return view('admin.super_create_user'); // We will create this view next
+}
+
+public function storeUser(Request $request)
+{
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|string|email|max:255|unique:users',
+        'password' => 'required|string|min:8|confirmed',
+        'role' => 'required|in:admin,super_admin',
+    ]);
+
+    User::create([
+        'name' => $request->name,
+        'email' => $request->email,
+        'password' => Hash::make($request->password),
+        'role' => $request->role,
+        'status' => 'approved', // Auto-approve since IT is creating it
+        'email_verified_at' => now(), // Skip verification for manual provisioning
+    ]);
+
+    return redirect()->route('superadmin.history')->with('success', 'New Administrator account created successfully.');
+}
+
     /**
      * Update User Role & Status from Dashboard
      */

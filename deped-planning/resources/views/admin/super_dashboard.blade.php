@@ -42,7 +42,7 @@
                     <i data-lucide="archive"></i>
                 </div>
             </div>
-            <a href="{{ route('admin.schools.archive') }}" class="fw-semibold text-decoration-none small d-flex align-items-center mt-auto text-danger">
+            <a href="{{ route('schools.archive') }}" class="fw-semibold text-decoration-none small d-flex align-items-center mt-auto text-danger">
                 View Archive <i data-lucide="arrow-right" class="ms-1" style="width: 14px; height: 14px;"></i>
             </a>
         </div>
